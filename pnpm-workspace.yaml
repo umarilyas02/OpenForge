@@ -6,4 +6,8 @@ packages:
   - "templates/*"
   - "tooling/*"
 
-onlyBuiltDependencies: []
+allowBuilds:
+  sharp: true
+
+minimumReleaseAgeExclude:
+  - postcss@8.5.24

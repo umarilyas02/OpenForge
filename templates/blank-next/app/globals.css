@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+:root {
+  --color-canvas: #f5f3ee;
+  --color-surface: #ffffff;
+  --color-ink: #151515;
+  --color-muted: #66645f;
+  --color-accent: #ff5a36;
+  --radius-control: 0.75rem;
+  --space-page: clamp(1.25rem, 4vw, 4rem);
+  --font-sans:
+    Arial, "Helvetica Neue", Helvetica, system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+}
+
+button,
+a {
+  font: inherit;
+}

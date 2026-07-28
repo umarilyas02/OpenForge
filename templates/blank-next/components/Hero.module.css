@@ -1,0 +1,37 @@
+.hero {
+  align-content: center;
+  display: grid;
+  min-height: 100svh;
+  padding-block: 5rem;
+}
+
+.eyebrow {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0 0 1.25rem;
+  text-transform: uppercase;
+}
+
+.summary {
+  color: var(--color-muted);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.6;
+  margin: 1.5rem 0 2rem;
+  max-width: 42rem;
+}
+
+.action {
+  background: var(--color-ink);
+  border-radius: var(--radius-control);
+  color: var(--color-surface);
+  justify-self: start;
+  padding: 0.8rem 1rem;
+  text-decoration: none;
+}
+
+.action:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}

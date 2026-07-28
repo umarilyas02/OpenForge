@@ -1,0 +1,26 @@
+{
+  "name": "openforge-starter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portable JavaScript Next.js starter for OpenForge projects.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "postcss": "8.5.24",
+    "tailwindcss": "4.3.3"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
