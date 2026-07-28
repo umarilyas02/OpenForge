@@ -1,5 +1,6 @@
-import { parse } from "@babel/parser";
 import { VISITOR_KEYS } from "@babel/types";
+
+import { parseJavaScript } from "../parser/parse-javascript.js";
 
 export const COMPATIBILITY_LEVELS = Object.freeze({
   CODE_ONLY: "code-only",
@@ -37,12 +38,7 @@ export function analyzeSourceCompatibility({ filePath, source }) {
   let ast;
 
   try {
-    ast = parse(source, {
-      errorRecovery: false,
-      plugins: ["jsx"],
-      sourceFilename: filePath,
-      sourceType: "unambiguous",
-    });
+    ast = parseJavaScript({ filePath, source });
   } catch (error) {
     return {
       diagnostics: [
