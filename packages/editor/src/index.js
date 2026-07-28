@@ -8,3 +8,8 @@ export {
   markSaving,
   updateBuffer,
 } from "./model.js";
+export {
+  EditorStateError,
+  EditorOperationController,
+  createVisualEditorState,
+} from "./operation-controller.js";
