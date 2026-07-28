@@ -146,6 +146,8 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
+  packages/integration-security: {}
+
   packages/storage: {}
 
   packages/workspace:

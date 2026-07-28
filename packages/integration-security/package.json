@@ -1,0 +1,23 @@
+{
+  "name": "@openforge/integration-security",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Security primitives for OpenForge provider integrations.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
