@@ -43,3 +43,16 @@ export {
   setResponsiveOverride,
   updateResponsiveHostWidth,
 } from "./responsive-model.js";
+export {
+  EDITOR_KEYBOARD_COMMANDS,
+  auditOfficialBlockDefinitions,
+  createAccessibilityStatus,
+  getMotionPreferences,
+  normalizeAccessibilityResults,
+  resolveEditorKeyboardCommand,
+} from "./accessibility-model.js";
+export {
+  RecoveryController,
+  RecoveryError,
+  createRecoveryState,
+} from "./recovery-controller.js";

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { analyzeSourceCompatibility } from "@openforge/compiler";
+import { auditOfficialBlockDefinitions } from "@openforge/editor";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -162,5 +163,9 @@ describe("official block registry", () => {
     expect(() => officialBlockRegistry.get("openforge.missing")).toThrowError(
       expect.objectContaining({ code: "OF_BLOCK_NOT_FOUND" }),
     );
+  });
+
+  it("passes the official source-level accessibility contract", () => {
+    expect(auditOfficialBlockDefinitions(officialBlocks)).toEqual([]);
   });
 });

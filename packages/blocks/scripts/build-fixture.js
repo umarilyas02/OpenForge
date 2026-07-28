@@ -3,11 +3,14 @@ import {
   mkdirSync,
   mkdtempSync,
   rmSync,
+  readFileSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import axe from "axe-core";
+import { JSDOM, VirtualConsole } from "jsdom";
 
 import { officialBlockRegistry } from "../src/index.js";
 
@@ -104,6 +107,35 @@ ${elements.join("\n")}
     },
     stdio: "inherit",
   });
+  const renderedHtml = readFileSync(
+    join(fixtureRoot, ".next", "server", "app", "index.html"),
+    "utf8",
+  );
+  const virtualConsole = new VirtualConsole().forwardTo(console, {
+    jsdomErrors: "none",
+  });
+  const dom = new JSDOM(renderedHtml, {
+    runScripts: "outside-only",
+    url: "https://fixture.openforge.test/",
+    virtualConsole,
+  });
+  dom.window.eval(axe.source);
+  const audit = await dom.window.axe.run(dom.window.document, {
+    runOnly: {
+      type: "tag",
+      values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"],
+    },
+  });
+  dom.window.close();
+  if (audit.violations.length > 0) {
+    const summary = audit.violations
+      .map(
+        ({ id, nodes }) =>
+          `${id}: ${nodes.map(({ target }) => target.join(" ")).join(", ")}`,
+      )
+      .join("\n");
+    throw new Error(`Official block accessibility audit failed:\n${summary}`);
+  }
 } finally {
   rmSync(fixtureRoot, { force: true, recursive: true });
   if (existsSync(fixtureParent)) {

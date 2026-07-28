@@ -17,6 +17,10 @@
     "@openforge/compiler": "workspace:*",
     "tar": "7.5.22"
   },
+  "devDependencies": {
+    "@openforge/blocks": "workspace:*",
+    "@openforge/editor": "workspace:*"
+  },
   "engines": {
     "node": ">=24.11.0"
   }

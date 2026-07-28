@@ -31,7 +31,7 @@ import {
   UndoIcon,
   XIcon,
 } from "@primer/octicons-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const navItems = [
   { id: "pages", label: "Pages", icon: FileCodeIcon },
@@ -65,18 +65,25 @@ export function EditorShell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [viewport, setViewport] = useState("desktop");
   const paletteInput = useRef(null);
+  const paletteButton = useRef(null);
+
+  const closePalette = useCallback(() => {
+    setPaletteOpen(false);
+    queueMicrotask(() => paletteButton.current?.focus());
+  }, []);
 
   useEffect(() => {
     function onKeyDown(event) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setPaletteOpen((open) => !open);
+        if (paletteOpen) closePalette();
+        else setPaletteOpen(true);
       }
-      if (event.key === "Escape") setPaletteOpen(false);
+      if (event.key === "Escape" && paletteOpen) closePalette();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [closePalette, paletteOpen]);
 
   useEffect(() => {
     if (paletteOpen) paletteInput.current?.focus();
@@ -86,7 +93,10 @@ export function EditorShell() {
     <ThemeProvider colorMode="dark" nightScheme="dark_dimmed">
       <BaseStyles>
         <main className="editor-shell">
-          <TopBar onOpenPalette={() => setPaletteOpen(true)} />
+          <TopBar
+            onOpenPalette={() => setPaletteOpen(true)}
+            paletteButtonRef={paletteButton}
+          />
           <div className="editor-body">
             <PrimaryRail active={activeNav} onChange={setActiveNav} />
             <LayerPanel activeNav={activeNav} />
@@ -95,18 +105,23 @@ export function EditorShell() {
           </div>
           <BottomPanel active={bottomPanel} onChange={setBottomPanel} />
           {paletteOpen && (
-            <CommandPalette
-              inputRef={paletteInput}
-              onClose={() => setPaletteOpen(false)}
-            />
+            <CommandPalette inputRef={paletteInput} onClose={closePalette} />
           )}
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            className="sr-only"
+            role="status"
+          >
+            Project saved locally at revision 42.
+          </div>
         </main>
       </BaseStyles>
     </ThemeProvider>
   );
 }
 
-function TopBar({ onOpenPalette }) {
+function TopBar({ onOpenPalette, paletteButtonRef }) {
   return (
     <header className="topbar">
       <div className="brand">
@@ -129,6 +144,7 @@ function TopBar({ onOpenPalette }) {
         <Button
           leadingVisual={CommandPaletteIcon}
           onClick={onOpenPalette}
+          ref={paletteButtonRef}
           size="small"
         >
           Commands <kbd>Ctrl K</kbd>
@@ -550,6 +566,29 @@ function BottomPanel({ active, onChange }) {
 }
 
 function CommandPalette({ inputRef, onClose }) {
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    function keepFocusInside(event) {
+      if (event.key !== "Tab") return;
+      const focusable = dialogRef.current?.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", keepFocusInside);
+    return () => document.removeEventListener("keydown", keepFocusInside);
+  }, []);
+
   return (
     <div className="palette-backdrop" onMouseDown={onClose} role="presentation">
       <section
@@ -557,6 +596,7 @@ function CommandPalette({ inputRef, onClose }) {
         aria-modal="true"
         className="command-palette"
         onMouseDown={(event) => event.stopPropagation()}
+        ref={dialogRef}
         role="dialog"
       >
         <div className="palette-search">
@@ -595,6 +635,18 @@ function CommandPalette({ inputRef, onClose }) {
                 <PlayIcon />
               </ActionList.LeadingVisual>
               Start preview
+            </ActionList.Item>
+            <ActionList.Item>
+              <ActionList.LeadingVisual>
+                <HistoryIcon />
+              </ActionList.LeadingVisual>
+              Restore a project snapshot
+            </ActionList.Item>
+            <ActionList.Item>
+              <ActionList.LeadingVisual>
+                <GearIcon />
+              </ActionList.LeadingVisual>
+              Enter safe mode
             </ActionList.Item>
           </ActionList.Group>
         </ActionList>
