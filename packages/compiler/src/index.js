@@ -19,3 +19,9 @@ export {
 export { applyEditorOperation } from "./operations/apply-editor-operation.js";
 export { withTemporaryProject } from "./workspace/with-temporary-project.js";
 export { injectPreviewMetadata } from "./preview/inject-preview-metadata.js";
+export {
+  VISUAL_OPERATION_SCHEMA_VERSION,
+  parseVisualOperation,
+  visualOperationSchema,
+} from "./operations/visual-operation-schema.js";
+export { applyVisualOperation } from "./operations/apply-visual-operation.js";
