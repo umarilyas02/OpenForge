@@ -21,3 +21,13 @@ export {
   navigateCanvasSelection,
   selectCanvasNode,
 } from "./canvas-selection.js";
+export {
+  INSPECTOR_BREAKPOINTS,
+  INSPECTOR_CONTROLS,
+  INSPECTOR_VALUE_SOURCES,
+  InspectorValueError,
+  createInspectorModel,
+  createInspectorValue,
+  planInspectorTokenUpdate,
+  resolveBreakpointValue,
+} from "./inspector-model.js";

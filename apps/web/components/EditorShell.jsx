@@ -342,11 +342,15 @@ function Inspector() {
       </div>
       <InspectorGroup title="Content">
         <label>
-          Eyebrow
+          <span className="field-label">
+            Eyebrow <ValueSource>Local</ValueSource>
+          </span>
           <input defaultValue="Infrastructure for ambitious teams" />
         </label>
         <label>
-          Heading
+          <span className="field-label">
+            Heading <ValueSource>Local</ValueSource>
+          </span>
           <textarea
             defaultValue="Build the future without rebuilding your foundation."
             rows={3}
@@ -354,6 +358,10 @@ function Inspector() {
         </label>
       </InspectorGroup>
       <InspectorGroup title="Layout">
+        <div className="source-summary">
+          <span>Display</span>
+          <ValueSource>Inherited · Hero</ValueSource>
+        </div>
         <div className="segmented">
           <button aria-pressed="true" type="button">
             Split
@@ -377,8 +385,51 @@ function Inspector() {
       </InspectorGroup>
       <InspectorGroup title="Spacing">
         <div className="spacing-control">
-          <span>Section padding</span>
-          <code>space.16</code>
+          <span>
+            Section padding
+            <small>Semantic token</small>
+          </span>
+          <code>space.section</code>
+        </div>
+        <button className="usage-button" type="button">
+          Check affected usage before changing
+        </button>
+      </InspectorGroup>
+      <InspectorGroup title="Typography">
+        <div className="field-grid">
+          <label>
+            <span className="field-label">
+              Size <ValueSource>Local</ValueSource>
+            </span>
+            <input defaultValue="56px" />
+          </label>
+          <label>
+            <span className="field-label">
+              Weight <ValueSource>Token</ValueSource>
+            </span>
+            <select defaultValue="strong">
+              <option value="strong">font.weight-strong</option>
+            </select>
+          </label>
+        </div>
+      </InspectorGroup>
+      <InspectorGroup title="Background & border">
+        <div className="field-grid">
+          <label>
+            Background
+            <input aria-label="Background color" defaultValue="#f5f6f8" />
+          </label>
+          <label>
+            Radius
+            <select defaultValue="none">
+              <option value="none">0</option>
+              <option value="card">radius.card</option>
+            </select>
+          </label>
+        </div>
+        <div className="breakpoint-source">
+          <DeviceDesktopIcon size={13} />
+          Base value · no desktop override
         </div>
       </InspectorGroup>
       <InspectorGroup title="Visibility">
@@ -389,6 +440,10 @@ function Inspector() {
       </InspectorGroup>
     </aside>
   );
+}
+
+function ValueSource({ children }) {
+  return <span className="value-source">{children}</span>;
 }
 
 function InspectorGroup({ children, title }) {

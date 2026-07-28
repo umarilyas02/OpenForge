@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@openforge/compiler": "workspace:*",
+    "@openforge/design-tokens": "workspace:*",
     "@monaco-editor/react": "4.7.0",
     "diff": "9.0.0",
     "monaco-editor": "0.56.0",

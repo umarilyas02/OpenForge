@@ -496,6 +496,27 @@ button {
   gap: 5px;
   margin-bottom: 10px;
 }
+.field-label,
+.source-summary {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+.value-source {
+  background: #202733;
+  border: 1px solid #323b48;
+  border-radius: 999px;
+  color: #aeb7c3;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 500;
+  padding: 2px 5px;
+}
+.source-summary {
+  color: var(--muted);
+  font-size: 10px;
+  margin-bottom: 10px;
+}
 .inspector-group input,
 .inspector-group textarea,
 .inspector-group select {
@@ -542,6 +563,33 @@ button {
 .spacing-control code {
   color: var(--accent);
   font-family: var(--font-mono);
+}
+.spacing-control span {
+  display: grid;
+  gap: 2px;
+}
+.spacing-control small {
+  color: var(--muted);
+  font-size: 8px;
+}
+.usage-button {
+  background: transparent;
+  border: 0;
+  color: var(--accent);
+  font-size: 9px;
+  margin-top: 10px;
+  padding: 0;
+  text-align: left;
+}
+.breakpoint-source {
+  align-items: center;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  display: flex;
+  font-size: 9px;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 10px;
 }
 .toggle-row input {
   accent-color: var(--accent);
