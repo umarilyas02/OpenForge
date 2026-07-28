@@ -1,0 +1,69 @@
+{
+  "page-section-proposal": {
+    "input": {
+      "request": "Replace the selected page heading with a clearer title.",
+      "baseRevision": "fixture-revision"
+    },
+    "output": {
+      "summary": "Proposes one bounded heading update.",
+      "issues": [],
+      "proposal": {
+        "schemaVersion": 1,
+        "intent": {
+          "summary": "Clarify the selected page heading.",
+          "rationale": "The requested heading is more descriptive."
+        },
+        "baseRevision": "fixture-revision",
+        "changes": [
+          {
+            "path": "app/page.jsx",
+            "operation": "update",
+            "expectedSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "content": "export default function Page() {\n  return <h1>Build portable apps</h1>;\n}\n"
+          }
+        ]
+      }
+    }
+  },
+  "accessibility-review": {
+    "input": {
+      "standard": "WCAG 2.2 AA",
+      "includeProposal": false
+    },
+    "output": {
+      "summary": "One keyboard-access issue was found.",
+      "issues": [
+        {
+          "code": "keyboard-action",
+          "severity": "error",
+          "path": "components/Card.jsx",
+          "message": "The clickable div has no keyboard-equivalent control."
+        }
+      ],
+      "proposal": null
+    }
+  },
+  "responsive-review": {
+    "input": {
+      "viewports": [375, 768, 1440],
+      "includeProposal": false
+    },
+    "output": {
+      "summary": "The supplied captures show no evidenced responsive defect.",
+      "issues": [],
+      "proposal": null
+    }
+  },
+  "seo-copy-assistance": {
+    "input": {
+      "goal": "Clarify the page purpose without changing its claims.",
+      "primaryPhrase": "portable Next.js visual editor",
+      "includeProposal": false
+    },
+    "output": {
+      "summary": "Metadata recommendations are grounded in the selected page.",
+      "issues": [],
+      "proposal": null
+    }
+  }
+}

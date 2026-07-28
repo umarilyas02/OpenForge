@@ -28,3 +28,7 @@ export {
   createAIProposalPipeline,
   parseAIProposal,
 } from "./proposal-pipeline.js";
+export {
+  evaluateAISkillRun,
+  parseAISkillDefinition,
+} from "./skill-contract.js";

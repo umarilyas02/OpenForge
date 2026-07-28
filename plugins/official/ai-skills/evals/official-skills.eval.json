@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "name": "page proposal accepts complete approved context",
+      "skillId": "page-section-proposal",
+      "context": ["selectedPage", "selectedFiles"],
+      "permissions": ["project.readFiles", "editor.proposePatch"],
+      "provider": "text",
+      "expected": "valid"
+    },
+    {
+      "name": "responsive review requires image capability",
+      "skillId": "responsive-review",
+      "context": ["selectedPage", "selectedFiles", "screenshots"],
+      "permissions": [
+        "project.readFiles",
+        "assets.read",
+        "editor.proposePatch"
+      ],
+      "provider": "text",
+      "expected": "OF_AI_SKILL_CAPABILITY_UNSUPPORTED"
+    },
+    {
+      "name": "responsive review accepts managed image context",
+      "skillId": "responsive-review",
+      "context": ["selectedPage", "selectedFiles", "screenshots"],
+      "permissions": [
+        "project.readFiles",
+        "assets.read",
+        "editor.proposePatch"
+      ],
+      "provider": "vision",
+      "expected": "valid"
+    },
+    {
+      "name": "accessibility review rejects missing selected files",
+      "skillId": "accessibility-review",
+      "context": ["selectedPage"],
+      "permissions": [
+        "project.readFiles",
+        "project.readDiagnostics",
+        "editor.proposePatch"
+      ],
+      "provider": "text",
+      "expected": "OF_AI_SKILL_CONTEXT_MISSING"
+    },
+    {
+      "name": "seo assistance rejects missing proposal permission",
+      "skillId": "seo-copy-assistance",
+      "context": ["selectedPage", "selectedFiles"],
+      "permissions": ["project.readFiles"],
+      "provider": "text",
+      "expected": "OF_AI_SKILL_PERMISSION_DENIED"
+    }
+  ]
+}

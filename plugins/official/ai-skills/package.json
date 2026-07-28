@@ -1,0 +1,28 @@
+{
+  "name": "@openforge/official-ai-skills",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Proposal-only official AI skill definitions for OpenForge.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "fixtures",
+    "evals",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openforge/ai": "workspace:*"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

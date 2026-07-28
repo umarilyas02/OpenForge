@@ -33,3 +33,9 @@ blocks secrets and dangerous source, checks compiler compatibility, runs
 lint/test/build gates, produces review diffs, revalidates selected files, and
 requires an actor-bound one-time confirmation before an external source writer
 can apply anything.
+
+AI skill definitions declare their instructions, provider capabilities,
+approved context, permissions, JSON input/output schemas, and required
+validators. Runtime evaluation rejects missing capabilities, context, or
+permissions; schema drift; likely secret output; and malformed proposals.
+Official skills are shipped separately as data-only, proposal-only definitions.

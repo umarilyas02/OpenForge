@@ -209,6 +209,12 @@ importers:
         specifier: workspace:*
         version: link:../editor
 
+  plugins/official/ai-skills:
+    dependencies:
+      '@openforge/ai':
+        specifier: workspace:*
+        version: link:../../../packages/ai
+
   templates/blank-next:
     dependencies:
       next:
