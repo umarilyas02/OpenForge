@@ -248,6 +248,66 @@ button {
   color: var(--muted);
   font-size: 10px;
 }
+.asset-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.asset-upload {
+  align-items: center;
+  background: var(--selection);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  color: var(--accent);
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  min-height: 42px;
+}
+.asset-card {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  padding: 7px;
+}
+.asset-card > div:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.asset-card strong {
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.asset-card span {
+  color: var(--muted);
+  font-size: 8px;
+}
+.asset-thumbnail {
+  background: linear-gradient(135deg, #202733 50%, transparent 50%), #303846;
+  border-radius: 4px;
+  height: 34px;
+}
+.asset-thumbnail-orange {
+  background:
+    radial-gradient(circle at 65% 35%, #ff9a77 0 18%, transparent 19%), #6f2d19;
+}
+.asset-usage {
+  color: #7ee787 !important;
+}
+.asset-warning {
+  color: var(--warning) !important;
+}
+.asset-policy-note {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.5;
+  margin: 4px 2px;
+}
 
 .canvas-area {
   background: #090c10;

@@ -206,26 +206,30 @@ function LayerPanel({ activeNav }) {
         placeholder={`Search ${activeNav}`}
         size="small"
       />
-      <div className="layer-tree" role="tree">
-        {layers.map((layer) => (
-          <button
-            aria-selected={layer.selected || undefined}
-            className="layer-row"
-            key={layer.name}
-            role="treeitem"
-            style={{ "--depth": layer.depth }}
-            type="button"
-          >
-            <ChevronDownIcon
-              className={layer.depth === 2 ? "layer-leaf" : undefined}
-              size={12}
-            />
-            <LayerIcon type={layer.type} />
-            <span>{layer.name}</span>
-            {layer.selected && <span className="component-badge">Block</span>}
-          </button>
-        ))}
-      </div>
+      {activeNav === "assets" ? (
+        <AssetPanel />
+      ) : (
+        <div className="layer-tree" role="tree">
+          {layers.map((layer) => (
+            <button
+              aria-selected={layer.selected || undefined}
+              className="layer-row"
+              key={layer.name}
+              role="treeitem"
+              style={{ "--depth": layer.depth }}
+              type="button"
+            >
+              <ChevronDownIcon
+                className={layer.depth === 2 ? "layer-leaf" : undefined}
+                size={12}
+              />
+              <LayerIcon type={layer.type} />
+              <span>{layer.name}</span>
+              {layer.selected && <span className="component-badge">Block</span>}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="branch-card">
         <GitBranchIcon size={14} />
         <div>
@@ -234,6 +238,36 @@ function LayerPanel({ activeNav }) {
         </div>
       </div>
     </aside>
+  );
+}
+
+function AssetPanel() {
+  return (
+    <div className="asset-panel">
+      <button className="asset-upload" type="button">
+        <PlusIcon size={14} />
+        Upload validated asset
+      </button>
+      <div className="asset-card">
+        <div className="asset-thumbnail asset-thumbnail-orange" />
+        <div>
+          <strong>hero-product.webp</strong>
+          <span>1280 × 720 · Alt text ready</span>
+        </div>
+        <span className="asset-usage">2 uses</span>
+      </div>
+      <div className="asset-card">
+        <div className="asset-thumbnail" />
+        <div>
+          <strong>customer-mark.png</strong>
+          <span>640 × 320 · Alt text missing</span>
+        </div>
+        <span className="asset-warning">Unused</span>
+      </div>
+      <p className="asset-policy-note">
+        PNG, JPEG, or WebP · maximum 10 MB · duplicates detected automatically
+      </p>
+    </div>
   );
 }
 

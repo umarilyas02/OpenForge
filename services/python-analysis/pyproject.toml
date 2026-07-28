@@ -1,0 +1,17 @@
+[project]
+name = "openforge-python-analysis"
+version = "0.0.0"
+description = "Bounded image analysis and derivative generation for OpenForge."
+requires-python = ">=3.12"
+dependencies = [
+  "Pillow==12.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
