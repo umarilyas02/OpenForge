@@ -81,6 +81,7 @@ exports/
 snapshots/
 screenshots/
 preview-output/
+.openforge-fixtures/
 *.tgz
 *.zip
 
