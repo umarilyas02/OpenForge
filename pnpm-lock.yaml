@@ -146,6 +146,15 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
+  packages/github:
+    dependencies:
+      '@openforge/compiler':
+        specifier: workspace:*
+        version: link:../compiler
+      '@openforge/integration-security':
+        specifier: workspace:*
+        version: link:../integration-security
+
   packages/integration-security: {}
 
   packages/storage: {}
