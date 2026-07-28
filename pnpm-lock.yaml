@@ -164,6 +164,10 @@ importers:
       '@openforge/integration-security':
         specifier: workspace:*
         version: link:../integration-security
+    devDependencies:
+      '@openforge/github':
+        specifier: workspace:*
+        version: link:../github
 
   packages/workspace:
     dependencies:

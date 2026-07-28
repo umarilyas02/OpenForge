@@ -15,3 +15,19 @@ export {
   normalizeProjectName,
   normalizeVercelId,
 } from "./validation.js";
+export { scanSourceSecrets } from "./secret-scanner.js";
+export {
+  normalizeDeploymentStatus,
+  safeDeploymentUrl,
+  sanitizeDeploymentEvents,
+  sanitizeLogText,
+} from "./safe-deployment-output.js";
+export { createMemoryDeploymentStore } from "./deployment-store.js";
+export {
+  assertPromotionTarget,
+  createPromotionConfirmations,
+} from "./promotion-confirmation.js";
+export {
+  VERCEL_DEPLOYMENT_OPERATIONS,
+  createVercelDeploymentManager,
+} from "./deployment-manager.js";

@@ -111,6 +111,88 @@ describe("Vercel REST transport", () => {
       expect(JSON.stringify(error)).not.toContain("provider-echoed-token");
     }
   });
+
+  it("creates versioned Git deployments with an explicit target", async () => {
+    const fetchImpl = vi.fn(async () =>
+      response(
+        {
+          id: "dpl_1",
+          url: "site-preview.vercel.app",
+          readyState: "QUEUED",
+          target: "preview",
+        },
+        { status: 200 },
+      ),
+    );
+    const transport = createVercelRestTransport({ fetchImpl });
+    await expect(
+      transport.createDeployment({
+        token: "token",
+        teamId: "team_1",
+        project: { id: "prj_1", name: "site" },
+        source: {
+          type: "github",
+          repo: "openforge-user/site",
+          repoId: 301,
+          ref: "main",
+          sha: "aaaaaaaa",
+        },
+        target: "preview",
+      }),
+    ).resolves.toMatchObject({
+      id: "dpl_1",
+      readyState: "QUEUED",
+      target: "preview",
+    });
+    const [url, options] = fetchImpl.mock.calls[0];
+    expect(url.pathname).toBe("/v13/deployments");
+    expect(url.searchParams.get("teamId")).toBe("team_1");
+    expect(JSON.parse(options.body)).toEqual({
+      name: "site",
+      project: "prj_1",
+      target: "preview",
+      gitSource: {
+        type: "github",
+        ref: "main",
+        repoId: 301,
+        sha: "aaaaaaaa",
+      },
+    });
+  });
+
+  it("normalizes deployment events without retaining provider payload objects", async () => {
+    const fetchImpl = vi.fn(async () =>
+      response([
+        {
+          type: "stderr",
+          created: 123,
+          payload: {
+            text: "build failed",
+            statusCode: 500,
+            proxy: { clientIp: "192.0.2.1" },
+          },
+        },
+      ]),
+    );
+    const transport = createVercelRestTransport({ fetchImpl });
+    await expect(
+      transport.getDeploymentEvents({
+        token: "token",
+        teamId: "team_1",
+        deploymentId: "dpl_1",
+      }),
+    ).resolves.toEqual([
+      {
+        type: "stderr",
+        createdAt: 123,
+        text: "build failed",
+        statusCode: 500,
+      },
+    ]);
+    expect(fetchImpl.mock.calls[0][0].pathname).toBe(
+      "/v2/deployments/dpl_1/events",
+    );
+  });
 });
 
 function response(payload, { status = 200, headers = {} } = {}) {

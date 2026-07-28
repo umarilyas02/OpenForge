@@ -171,6 +171,49 @@ export function createVercelRestTransport({
           : [payload];
       return created.map(normalizeEnvironmentMetadata);
     },
+
+    async createDeployment({ token, teamId, project, source, target }) {
+      const payload = await request("/v13/deployments", {
+        token,
+        teamId,
+        method: "POST",
+        body: {
+          name: project.name,
+          project: project.id,
+          target,
+          gitSource: {
+            type: "github",
+            ref: source.ref,
+            repoId: source.repoId,
+            sha: source.sha,
+          },
+        },
+      });
+      return normalizeDeployment(payload, source);
+    },
+
+    async getDeployment({ token, teamId, deploymentId }) {
+      const id = normalizeVercelId(deploymentId, "deployment ID");
+      const payload = await request(
+        `/v13/deployments/${encodeURIComponent(id)}`,
+        { token, teamId },
+      );
+      return normalizeDeployment(payload);
+    },
+
+    async getDeploymentEvents({ token, teamId, deploymentId }) {
+      const id = normalizeVercelId(deploymentId, "deployment ID");
+      const payload = await request(
+        `/v2/deployments/${encodeURIComponent(id)}/events?direction=forward&builds=1&limit=100`,
+        { token, teamId },
+      );
+      return (payload ?? []).map((event) => ({
+        type: event.type,
+        createdAt: event.created,
+        text: event.payload?.text ?? "",
+        statusCode: event.payload?.statusCode ?? null,
+      }));
+    },
   };
 }
 
@@ -203,5 +246,19 @@ function normalizeEnvironmentMetadata(variable) {
     createdAt: variable.createdAt ?? variable.created ?? null,
     valuePolicy:
       variable.type === "sensitive" ? "write-only" : "provider-readable",
+  };
+}
+
+function normalizeDeployment(deployment, source) {
+  return {
+    id: deployment.id ?? deployment.uid,
+    url: deployment.url ?? null,
+    readyState: deployment.readyState ?? deployment.state ?? null,
+    status: deployment.status ?? null,
+    target: deployment.target ?? "preview",
+    createdAt: deployment.createdAt ?? deployment.created ?? null,
+    readyAt: deployment.readyAt ?? null,
+    errorCode: deployment.errorCode ?? deployment.error?.code ?? null,
+    source: source ?? null,
   };
 }

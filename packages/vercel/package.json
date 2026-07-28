@@ -20,6 +20,9 @@
   "dependencies": {
     "@openforge/integration-security": "workspace:*"
   },
+  "devDependencies": {
+    "@openforge/github": "workspace:*"
+  },
   "engines": {
     "node": ">=24.11.0"
   }

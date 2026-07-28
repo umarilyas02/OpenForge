@@ -40,3 +40,24 @@ returns only key, targets, type, branch, timestamps, and value policy.
 
 Tests use a deterministic fake transport. They do not install an integration,
 create a real project, or write real environment variables.
+
+## Deployment lifecycle
+
+Preview creation is allowed only after project validation, a high-confidence
+source secret scan, required Preview environment-key checks, and confirmation
+that the GitHub repository matches the connected Vercel project. Every request
+is idempotently bound to the exact repository, ref, repository ID, and commit
+SHA.
+
+Deployment status is reduced to queued, building, ready, failed, or canceled.
+Provider error payloads are converted to safe messages. Build events are
+allow-listed, credential patterns are redacted, individual messages are
+truncated, and at most 100 events are returned. Preview URLs must be
+credential-free HTTPS hosts.
+
+Production is a separate action. A ready Preview deployment creates a short
+lived confirmation bound to its Vercel project and deployment ID. After exact
+target confirmation, OpenForge rechecks the Preview and idempotently requests a
+new `target: production` build from the same Git source. This intentionally uses
+Production environment variables and can affect live traffic; Preview variables
+are never copied forward.
