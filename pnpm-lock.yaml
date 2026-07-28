@@ -74,9 +74,15 @@ importers:
       '@google/genai':
         specifier: 2.13.0
         version: 2.13.0
+      '@openforge/compiler':
+        specifier: workspace:*
+        version: link:../compiler
       '@openforge/integration-security':
         specifier: workspace:*
         version: link:../integration-security
+      diff:
+        specifier: 9.0.0
+        version: 9.0.0
       ignore:
         specifier: 7.0.6
         version: 7.0.6

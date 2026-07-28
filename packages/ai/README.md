@@ -26,3 +26,10 @@ Gemini Interactions streaming APIs. They keep model capability declarations
 explicit, expose provider model-ID discovery, resolve images only through the
 managed asset boundary, disable provider-side response storage where supported,
 and normalize SDK errors without returning provider response bodies.
+
+AI-generated source is accepted only as a digest-bound structured proposal.
+The proposal pipeline formats and validates a copy in a disposable workspace,
+blocks secrets and dangerous source, checks compiler compatibility, runs
+lint/test/build gates, produces review diffs, revalidates selected files, and
+requires an actor-bound one-time confirmation before an external source writer
+can apply anything.

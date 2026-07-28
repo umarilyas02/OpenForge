@@ -23,3 +23,8 @@ export {
 export { createOpenAIAdapter } from "./openai-adapter.js";
 export { createAnthropicAdapter } from "./anthropic-adapter.js";
 export { createGeminiAdapter } from "./gemini-adapter.js";
+export {
+  AIProposalError,
+  createAIProposalPipeline,
+  parseAIProposal,
+} from "./proposal-pipeline.js";
