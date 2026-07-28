@@ -1,0 +1,26 @@
+{
+  "name": "@openforge/vercel",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vercel integration connection and project configuration for OpenForge.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openforge/integration-security": "workspace:*"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
