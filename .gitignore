@@ -19,6 +19,8 @@ openforge-docs/
 # Dependencies
 node_modules/
 .pnpm-store/
+.corepack/
+.npm/
 .yarn/
 .pnp.*
 

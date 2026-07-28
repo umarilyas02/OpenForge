@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "id": "supported-server-component",
+      "entry": "supported/server-component/app/page.jsx",
+      "expectedLevel": "supported",
+      "expectedDiagnostics": []
+    },
+    {
+      "id": "supported-client-tailwind",
+      "entry": "supported/client-tailwind/components/Counter.jsx",
+      "expectedLevel": "supported",
+      "expectedDiagnostics": []
+    },
+    {
+      "id": "supported-css-module",
+      "entry": "supported/css-module/components/Hero.jsx",
+      "expectedLevel": "supported",
+      "expectedDiagnostics": []
+    },
+    {
+      "id": "supported-nested-route",
+      "entry": "supported/nested-route/app/blog/[slug]/page.jsx",
+      "expectedLevel": "supported",
+      "expectedDiagnostics": []
+    },
+    {
+      "id": "partial-dynamic-import",
+      "entry": "partial/dynamic-import/components/Renderer.jsx",
+      "expectedLevel": "partial",
+      "expectedDiagnostics": ["OF_COMPAT_DYNAMIC_IMPORT"]
+    },
+    {
+      "id": "partial-complex-conditional",
+      "entry": "partial/complex-conditional/components/Status.jsx",
+      "expectedLevel": "partial",
+      "expectedDiagnostics": ["OF_COMPAT_COMPLEX_CONDITIONAL"]
+    },
+    {
+      "id": "code-only-runtime-element",
+      "entry": "code-only/runtime-element/components/LegacyWidget.jsx",
+      "expectedLevel": "code-only",
+      "expectedDiagnostics": ["OF_COMPAT_RUNTIME_ELEMENT"]
+    },
+    {
+      "id": "code-only-component-factory",
+      "entry": "code-only/component-factory/components/createCard.jsx",
+      "expectedLevel": "code-only",
+      "expectedDiagnostics": ["OF_COMPAT_COMPONENT_FACTORY"]
+    }
+  ]
+}

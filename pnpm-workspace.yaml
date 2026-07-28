@@ -1,0 +1,9 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "plugins/*"
+  - "plugins/*/*"
+  - "templates/*"
+  - "tooling/*"
+
+onlyBuiltDependencies: []

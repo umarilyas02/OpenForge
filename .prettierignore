@@ -1,0 +1,6 @@
+openforge-docs/
+coverage/
+dist/
+node_modules/
+pnpm-lock.yaml
+README.md

@@ -1,0 +1,29 @@
+{
+  "name": "@openforge/compiler",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Compatibility analysis and deterministic source transforms for OpenForge.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "build": "node --check src/index.js && node --check src/compatibility/analyze-source.js",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@babel/parser": "8.0.4",
+    "@babel/types": "8.0.4"
+  },
+  "devDependencies": {
+    "@openforge/test-utils": "workspace:*"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
