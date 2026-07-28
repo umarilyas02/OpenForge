@@ -1,0 +1,26 @@
+{
+  "name": "@openforge/editor",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./code-workspace": "./src/CodeWorkspace.jsx"
+  },
+  "scripts": {
+    "build": "node --check src/model.js",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "4.7.0",
+    "diff": "9.0.0",
+    "monaco-editor": "0.56.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

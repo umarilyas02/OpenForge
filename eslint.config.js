@@ -15,7 +15,9 @@ export default [
     files: ["**/*.js", "**/*.jsx"],
     languageOptions: {
       ecmaVersion: "latest",
+      parserOptions: { ecmaFeatures: { jsx: true } },
       globals: {
+        ...globals.browser,
         ...globals.node,
       },
       sourceType: "module",
