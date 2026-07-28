@@ -1,0 +1,13 @@
+# Example OpenForge context/export exclusions
+.env
+.env.*
+envs/local/
+node_modules/
+.next/
+dist/
+build/
+coverage/
+*.pem
+*.key
+credentials.json
+service-account*.json

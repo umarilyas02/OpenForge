@@ -1,0 +1,112 @@
+# Local source documentation used to define the product
+openforge-docs/
+
+# Local planning and scaffold documentation
+/IMPLEMENTATION_PLAN.md
+/FOLDER_STRUCTURE.md
+/progress.md
+/.changeset/README.md
+/apps/README.md
+/docker/README.md
+/envs/README.md
+/packages/README.md
+/plugins/README.md
+/services/README.md
+/services/python-analysis/README.md
+/templates/README.md
+/tooling/README.md
+
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+.pnp.*
+
+# Build output and caches
+.next/
+out/
+dist/
+build/
+.turbo/
+.cache/
+.parcel-cache/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+!*.env.example
+envs/local/*
+!envs/local/.gitkeep
+
+# Runtime data
+.data/
+data/
+tmp/
+temp/
+logs/
+*.log
+*.pid
+
+# Local databases and object-storage state
+*.sqlite
+*.sqlite3
+docker/volumes/
+postgres-data/
+redis-data/
+minio-data/
+
+# Generated project workspaces, archives, and previews
+workspaces/
+artifacts/
+exports/
+snapshots/
+screenshots/
+preview-output/
+*.tgz
+*.zip
+
+# Credentials, certificates, and keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+credentials.json
+service-account*.json
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+*.swp
+*.swo
+
+# Package and release tooling
+*.pack
+.changeset/pre.json
+
+# Local overrides
+docker-compose.override.yml
+compose.override.yml
