@@ -18,7 +18,10 @@
   },
   "dependencies": {
     "@babel/parser": "8.0.4",
-    "@babel/types": "8.0.4"
+    "@babel/types": "8.0.4",
+    "diff": "9.0.0",
+    "magic-string": "1.1.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@openforge/test-utils": "workspace:*"
