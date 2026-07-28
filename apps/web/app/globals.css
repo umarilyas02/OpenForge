@@ -51,7 +51,7 @@ button {
   display: grid;
   grid-template-rows: 48px minmax(0, 1fr) 126px;
   height: 100dvh;
-  min-width: 760px;
+  min-width: 0;
   background: var(--bg);
 }
 
@@ -293,12 +293,24 @@ button {
 .zoom {
   justify-self: end;
 }
+.canvas-health {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-self: end;
+}
+.canvas-health > span:first-child {
+  color: #7ee787;
+  font-size: 9px;
+}
 .canvas-stage {
   align-items: flex-start;
   display: flex;
   justify-content: center;
   overflow: auto;
   padding: 28px;
+  position: relative;
+  --preview-width: 1440px;
 }
 .site-preview {
   background: #f5f6f8;
@@ -309,10 +321,19 @@ button {
   min-height: 590px;
   overflow: hidden;
   transition: width 180ms ease;
-  width: min(100%, 980px);
+  width: min(100%, var(--preview-width));
 }
 .canvas-stage-mobile .site-preview {
-  width: 390px;
+  --preview-width: 390px;
+}
+.canvas-stage-tablet .site-preview {
+  --preview-width: 768px;
+}
+.canvas-stage-laptop .site-preview {
+  --preview-width: 1024px;
+}
+.review-mode-notice {
+  display: none;
 }
 .preview-nav {
   align-items: center;
@@ -710,6 +731,46 @@ button {
     grid-template-columns: 190px minmax(150px, 1fr) auto;
   }
   .save-state {
+    display: none;
+  }
+}
+
+@media (max-width: 899px) {
+  .editor-shell {
+    grid-template-rows: 48px minmax(0, 1fr);
+  }
+  .editor-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .primary-rail,
+  .layer-panel,
+  .inspector,
+  .bottom-panel,
+  .project-path,
+  .save-state {
+    display: none;
+  }
+  .topbar {
+    grid-template-columns: 1fr auto;
+  }
+  .canvas-stage {
+    padding: 46px 12px 12px;
+  }
+  .review-mode-notice {
+    background: #202733;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--muted);
+    display: block;
+    font-size: 10px;
+    left: 50%;
+    padding: 6px 10px;
+    position: absolute;
+    top: 10px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .canvas-health > span:first-child {
     display: none;
   }
 }

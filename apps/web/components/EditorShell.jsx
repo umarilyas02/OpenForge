@@ -40,6 +40,13 @@ const navItems = [
   { id: "assets", label: "Assets", icon: ArchiveIcon },
 ];
 
+const viewportPresets = [
+  { id: "mobile", label: "Mobile", shortLabel: "M", width: 390 },
+  { id: "tablet", label: "Tablet", shortLabel: "T", width: 768 },
+  { id: "laptop", label: "Laptop", shortLabel: "L", width: 1024 },
+  { id: "desktop", label: "Desktop", shortLabel: "D", width: 1440 },
+];
+
 const layers = [
   { name: "Home", depth: 0, type: "page" },
   { name: "Navigation", depth: 1, type: "component" },
@@ -231,35 +238,45 @@ function LayerPanel({ activeNav }) {
 }
 
 function Canvas({ viewport, onViewportChange }) {
+  const activeViewport = viewportPresets.find(({ id }) => id === viewport);
+
   return (
     <section className="canvas-area" aria-label="Responsive canvas">
       <div className="canvas-toolbar">
         <div className="viewport-switcher">
-          <button
-            aria-pressed={viewport === "mobile"}
-            onClick={() => onViewportChange("mobile")}
-            title="Mobile viewport"
-            type="button"
-          >
-            <DeviceMobileIcon size={15} />
-          </button>
-          <button
-            aria-pressed={viewport === "desktop"}
-            onClick={() => onViewportChange("desktop")}
-            title="Desktop viewport"
-            type="button"
-          >
-            <DeviceDesktopIcon size={15} />
-          </button>
-          <span>{viewport === "desktop" ? "1440" : "390"} px</span>
+          {viewportPresets.map((preset) => (
+            <button
+              aria-label={`${preset.label} viewport`}
+              aria-pressed={viewport === preset.id}
+              key={preset.id}
+              onClick={() => onViewportChange(preset.id)}
+              title={`${preset.label} · ${preset.width}px`}
+              type="button"
+            >
+              {preset.id === "mobile" ? (
+                <DeviceMobileIcon size={14} />
+              ) : preset.id === "desktop" ? (
+                <DeviceDesktopIcon size={14} />
+              ) : (
+                preset.shortLabel
+              )}
+            </button>
+          ))}
+          <span>{activeViewport.width} px</span>
         </div>
         <div className="canvas-location">
           <span>/</span>
           <strong>Home</strong>
         </div>
-        <span className="zoom">82%</span>
+        <div className="canvas-health">
+          <span>No horizontal overflow</span>
+          <span className="zoom">82%</span>
+        </div>
       </div>
       <div className={`canvas-stage canvas-stage-${viewport}`}>
+        <div className="review-mode-notice" role="status">
+          Review mode · editing is available on a wider screen
+        </div>
         <article className="site-preview">
           <PreviewNavigation />
           <section className="preview-hero selected-block">

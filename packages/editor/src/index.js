@@ -31,3 +31,15 @@ export {
   planInspectorTokenUpdate,
   resolveBreakpointValue,
 } from "./inspector-model.js";
+export {
+  VIEWPORT_PRESETS,
+  ResponsiveEditorError,
+  analyzeResponsiveLayout,
+  createResponsiveEditorState,
+  getResponsiveEditorLayout,
+  resetResponsiveOverride,
+  resolveResponsiveOverride,
+  selectResponsiveViewport,
+  setResponsiveOverride,
+  updateResponsiveHostWidth,
+} from "./responsive-model.js";
