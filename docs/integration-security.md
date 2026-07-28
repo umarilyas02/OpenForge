@@ -7,15 +7,17 @@ handled.
 
 ## Secrets and connection references
 
-Provider credentials are stored as AES-256-GCM ciphertext. Callers receive an
-opaque `secret_*` reference plus non-sensitive metadata, never the stored
-plaintext. Encryption authenticates the reference, provider, connection, secret
-name, and creation timestamp as associated data.
+Provider credentials are stored with AES-256-GCM envelope encryption. Each
+secret uses a unique random data-encryption key, which is wrapped by the active
+key-encryption key. Callers receive an opaque `secret_*` reference plus
+non-sensitive metadata, never the stored plaintext. Encryption authenticates
+the reference, provider, connection, secret name, creation timestamp, and key
+purpose as associated data.
 
 Plaintext is available only inside `withSecret` and its temporary buffer is
 cleared after the callback. A caller can bind access to the expected provider,
-connection, and secret name. Key rotation decrypts with the record key and
-immediately re-encrypts with the active key.
+connection, and secret name. Key rotation decrypts the envelope and immediately
+re-encrypts it with a fresh data key under the active key-encryption key.
 
 Production storage must implement the same `put`, `get`, and `delete` boundary
 using a durable database and a managed encryption key. Raw encryption keys do

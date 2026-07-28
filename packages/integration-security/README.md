@@ -2,7 +2,8 @@
 
 Security primitives shared by OpenForge's GitHub and Vercel integrations:
 
-- opaque, AES-256-GCM encrypted secret references;
+- opaque, AES-256-GCM envelope-encrypted secret references with a unique data
+  key per secret;
 - operation-derived least-privilege scope policies;
 - raw-body webhook signature verification and delivery deduplication;
 - request-bound idempotency;

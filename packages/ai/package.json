@@ -12,6 +12,9 @@
     "src",
     "README.md"
   ],
+  "dependencies": {
+    "@openforge/integration-security": "workspace:*"
+  },
   "scripts": {
     "build": "node -e \"import('./src/index.js')\"",
     "lint": "eslint src test",

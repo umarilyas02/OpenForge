@@ -9,3 +9,8 @@ uses managed `assetRef` values rather than provider URLs or embedded secrets.
 
 It does not contain provider credentials, network SDKs, prompts, or automatic
 source mutation.
+
+The credential manager supports organization, project, environment, and
+memory-only session ownership. Persistent values use the shared envelope
+vault; only metadata leaves management APIs, and plaintext is scoped to a
+trusted server/worker consumer callback.

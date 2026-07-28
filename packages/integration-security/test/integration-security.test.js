@@ -17,6 +17,38 @@ import {
 } from "../src/index.js";
 
 describe("secret vault", () => {
+  it("uses a unique encrypted data key for each secret envelope", async () => {
+    const storage = createMemorySecretStorage();
+    const vault = createSecretVault({
+      keys: { primary: randomBytes(32) },
+      activeKeyId: "primary",
+      storage,
+    });
+    const first = await vault.putSecret({
+      provider: "ai.openai",
+      connectionId: "credential_1",
+      name: "provider-credential",
+      value: "same-value",
+    });
+    const second = await vault.putSecret({
+      provider: "ai.openai",
+      connectionId: "credential_2",
+      name: "provider-credential",
+      value: "same-value",
+    });
+    const firstRecord = await storage.get(first.ref);
+    const secondRecord = await storage.get(second.ref);
+
+    expect(firstRecord).toMatchObject({
+      version: 2,
+      algorithm: "aes-256-gcm",
+      keyId: "primary",
+    });
+    expect(firstRecord.wrappedKey).not.toBe(secondRecord.wrappedKey);
+    expect(firstRecord.ciphertext).not.toBe(secondRecord.ciphertext);
+    expect(JSON.stringify(firstRecord)).not.toContain("same-value");
+  });
+
   it("stores only authenticated ciphertext behind an opaque reference", async () => {
     const storage = createMemorySecretStorage();
     const vault = createSecretVault({

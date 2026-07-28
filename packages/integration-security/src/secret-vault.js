@@ -147,34 +147,42 @@ function encrypt({ ref, value, metadata, createdAt, rotatedAt, keyId, key }) {
     "OF_SECRET_VALUE_EMPTY",
     "Secret values cannot be empty.",
   );
-  const iv = randomBytes(12);
-  const cipher = createCipheriv(ALGORITHM, key, iv);
-  cipher.setAAD(aad({ ref, metadata, createdAt }));
+  const dataKey = randomBytes(32);
   try {
-    const ciphertext = Buffer.concat([
-      cipher.update(plaintext),
-      cipher.final(),
-    ]);
+    const payload = encryptBuffer(
+      plaintext,
+      dataKey,
+      payloadAad({ ref, metadata, createdAt }),
+    );
+    const wrappedKey = encryptBuffer(
+      dataKey,
+      key,
+      keyAad({ ref, metadata, createdAt, keyId }),
+    );
     return {
-      version: 1,
+      version: 2,
       algorithm: ALGORITHM,
       ref,
       keyId,
       metadata,
       createdAt,
       rotatedAt,
-      iv: iv.toString("base64"),
-      tag: cipher.getAuthTag().toString("base64"),
-      ciphertext: ciphertext.toString("base64"),
+      iv: payload.iv,
+      tag: payload.tag,
+      ciphertext: payload.ciphertext,
+      wrappedKeyIv: wrappedKey.iv,
+      wrappedKeyTag: wrappedKey.tag,
+      wrappedKey: wrappedKey.ciphertext,
     };
   } finally {
     plaintext.fill(0);
+    dataKey.fill(0);
   }
 }
 
 function decrypt(record, keyring) {
   invariant(
-    record.version === 1 && record.algorithm === ALGORITHM,
+    [1, 2].includes(record.version) && record.algorithm === ALGORITHM,
     "OF_SECRET_RECORD_UNSUPPORTED",
     "The encrypted secret record format is unsupported.",
   );
@@ -186,17 +194,23 @@ function decrypt(record, keyring) {
     { keyId: record.keyId },
   );
   try {
-    const decipher = createDecipheriv(
-      ALGORITHM,
+    if (record.version === 1) {
+      return decryptBuffer(record, key, legacyAad(record));
+    }
+    const dataKey = decryptBuffer(
+      {
+        iv: record.wrappedKeyIv,
+        tag: record.wrappedKeyTag,
+        ciphertext: record.wrappedKey,
+      },
       key,
-      Buffer.from(record.iv, "base64"),
+      keyAad(record),
     );
-    decipher.setAAD(aad(record));
-    decipher.setAuthTag(Buffer.from(record.tag, "base64"));
-    return Buffer.concat([
-      decipher.update(Buffer.from(record.ciphertext, "base64")),
-      decipher.final(),
-    ]);
+    try {
+      return decryptBuffer(record, dataKey, payloadAad(record));
+    } finally {
+      dataKey.fill(0);
+    }
   } catch {
     throw new IntegrationSecurityError(
       "OF_SECRET_AUTH_FAILED",
@@ -205,8 +219,54 @@ function decrypt(record, keyring) {
   }
 }
 
-function aad({ ref, metadata, createdAt }) {
+function encryptBuffer(value, key, additionalData) {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv(ALGORITHM, key, iv);
+  cipher.setAAD(additionalData);
+  const ciphertext = Buffer.concat([cipher.update(value), cipher.final()]);
+  return {
+    iv: iv.toString("base64"),
+    tag: cipher.getAuthTag().toString("base64"),
+    ciphertext: ciphertext.toString("base64"),
+  };
+}
+
+function decryptBuffer(record, key, additionalData) {
+  const decipher = createDecipheriv(
+    ALGORITHM,
+    key,
+    Buffer.from(record.iv, "base64"),
+  );
+  decipher.setAAD(additionalData);
+  decipher.setAuthTag(Buffer.from(record.tag, "base64"));
+  return Buffer.concat([
+    decipher.update(Buffer.from(record.ciphertext, "base64")),
+    decipher.final(),
+  ]);
+}
+
+function payloadAad({ ref, metadata, createdAt }) {
+  return Buffer.from(
+    canonicalJson({ ref, metadata, createdAt, purpose: "secret-payload" }),
+    "utf8",
+  );
+}
+
+function legacyAad({ ref, metadata, createdAt }) {
   return Buffer.from(canonicalJson({ ref, metadata, createdAt }), "utf8");
+}
+
+function keyAad({ ref, metadata, createdAt, keyId }) {
+  return Buffer.from(
+    canonicalJson({
+      ref,
+      metadata,
+      createdAt,
+      keyId,
+      purpose: "data-key",
+    }),
+    "utf8",
+  );
 }
 
 function publicMetadata(record) {
