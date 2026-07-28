@@ -14,3 +14,9 @@ The credential manager supports organization, project, environment, and
 memory-only session ownership. Persistent values use the shared envelope
 vault; only metadata leaves management APIs, and plaintext is scoped to a
 trusted server/worker consumer callback.
+
+Context assembly is explicit and least-privilege: only requested project paths
+can be included, built-in exclusions and `.openforgeignore` are applied, secret
+values are redacted or blocked, and a digest-bearing included-file manifest is
+returned for review. Administrator policy restricts context size, retention,
+providers, models, and provider capabilities.

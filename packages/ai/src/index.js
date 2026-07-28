@@ -13,3 +13,10 @@ export {
   createMemoryAICredentialStore,
   parseCredentialScope,
 } from "./credential-manager.js";
+export {
+  assertAIProviderAllowed,
+  buildAIContext,
+  createMemoryAIContextStore,
+  parseAIAdminPolicy,
+  redactAISecrets,
+} from "./context-policy.js";

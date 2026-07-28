@@ -1,5 +1,9 @@
 import { capabilityKey, parseModelCapabilities } from "./capabilities.js";
 import {
+  assertAIProviderAllowed,
+  parseAIAdminPolicy,
+} from "./context-policy.js";
+import {
   AIProviderError,
   invariant,
   normalizeProviderError,
@@ -7,8 +11,9 @@ import {
 import { parseAIEvent } from "./events.js";
 import { parseAIRequest } from "./request.js";
 
-export function createAIProviderRegistry() {
+export function createAIProviderRegistry({ policy } = {}) {
   const models = new Map();
+  const adminPolicy = parseAIAdminPolicy(policy);
 
   return {
     register(adapter) {
@@ -68,6 +73,7 @@ export function createAIProviderRegistry() {
         request,
         fallback,
         signal,
+        adminPolicy,
       });
     },
   };
@@ -79,6 +85,7 @@ async function* streamWithFallback({
   request,
   fallback,
   signal,
+  adminPolicy,
 }) {
   const candidates = [
     selection,
@@ -106,6 +113,13 @@ async function* streamWithFallback({
       "OF_AI_MODEL_NOT_FOUND",
       "An AI fallback model is not registered.",
       { candidate },
+    );
+    assertAIProviderAllowed(
+      {
+        selection: candidate,
+        requiredCapabilities: inferRequiredCapabilities(request),
+      },
+      adminPolicy,
     );
     const parsedRequest = parseAIRequest(request, entry.capabilities);
     let emitted = false;
@@ -144,4 +158,20 @@ async function* streamWithFallback({
     category: "availability",
     retryable: true,
   });
+}
+
+function inferRequiredCapabilities(request) {
+  const required = new Set(["text"]);
+  if (
+    request?.messages?.some((message) =>
+      message?.content?.some((part) => part?.type === "image"),
+    )
+  ) {
+    required.add("image");
+  }
+  if (request?.tools?.length > 0) required.add("tools");
+  if (request?.responseSchema !== undefined) {
+    required.add("structured-output");
+  }
+  return [...required];
 }
