@@ -6,6 +6,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.js",
+    "./canvas-overlays": "./src/CanvasOverlays.jsx",
     "./code-workspace": "./src/CodeWorkspace.jsx"
   },
   "scripts": {

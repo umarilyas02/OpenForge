@@ -13,3 +13,11 @@ export {
   EditorOperationController,
   createVisualEditorState,
 } from "./operation-controller.js";
+export {
+  createCanvasSelectionState,
+  getCanvasOverlayDescriptors,
+  hoverCanvasNode,
+  markInvalidDropTarget,
+  navigateCanvasSelection,
+  selectCanvasNode,
+} from "./canvas-selection.js";

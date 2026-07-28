@@ -1,0 +1,47 @@
+.openforge-overlays {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 20;
+}
+
+.openforge-overlays > div {
+  box-shadow: inset 0 0 0 1px #58a6ff;
+}
+
+.openforge-overlay-hovered {
+  box-shadow: inset 0 0 0 1px #8c96a5 !important;
+}
+
+.openforge-overlay-selected {
+  box-shadow: inset 0 0 0 2px #ff7043 !important;
+}
+
+.openforge-overlay-parent {
+  box-shadow: inset 0 0 0 1px #d29922;
+}
+
+.openforge-overlay-slot {
+  background: rgba(255, 112, 67, 0.06);
+}
+
+.openforge-overlay-invalid-drop {
+  background: rgba(248, 81, 73, 0.1);
+  box-shadow: inset 0 0 0 2px #f85149 !important;
+}
+
+.openforge-overlay-label {
+  background: #ff7043;
+  border-radius: 3px 3px 0 0;
+  color: #1a0c07;
+  font: 700 10px/1.4 var(--font-geist-mono, ui-monospace, monospace);
+  left: 0;
+  max-width: min(220px, 80vw);
+  overflow: hidden;
+  padding: 2px 6px;
+  position: absolute;
+  text-overflow: ellipsis;
+  top: 0;
+  transform: translateY(-100%);
+  white-space: nowrap;
+}
