@@ -1,0 +1,23 @@
+{
+  "name": "@openforge/ai",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Provider-neutral optional AI contracts for OpenForge.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

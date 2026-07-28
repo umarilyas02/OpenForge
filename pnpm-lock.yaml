@@ -66,6 +66,8 @@ importers:
         specifier: 19.2.8
         version: 19.2.8
 
+  packages/ai: {}
+
   packages/blocks:
     dependencies:
       zod:
