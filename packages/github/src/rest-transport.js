@@ -116,6 +116,20 @@ export function createGitHubRestTransport({
       }));
     },
 
+    async getBranch({ token, repository, branch }) {
+      const { owner, name } = normalizeRepositoryCoordinates(repository);
+      const ref = normalizeBranch(branch);
+      const payload = await request(
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/branches/${encodeURIComponent(ref)}`,
+        { token },
+      );
+      return {
+        name: payload.name,
+        sha: payload.commit.sha,
+        protected: Boolean(payload.protected),
+      };
+    },
+
     async createRepository({ token, owner, ownerType, repository }) {
       normalizeRepositoryCoordinates({ owner, name: repository.name });
       const target =
@@ -146,7 +160,7 @@ export function createGitHubRestTransport({
       const blobs = tree.tree.filter(
         (entry) =>
           entry.type === "blob" &&
-          /\.(?:js|jsx)$/iu.test(entry.path) &&
+          /\.(?:cjs|css|html|js|json|jsx|md|mdx|mjs|txt)$/iu.test(entry.path) &&
           entry.size <= maxSourceBytes,
       );
       invariant(
@@ -171,6 +185,120 @@ export function createGitHubRestTransport({
           };
         }),
       );
+    },
+
+    async getRef({ token, repository, branch }) {
+      const { owner, name } = normalizeRepositoryCoordinates(repository);
+      const ref = normalizeBranch(branch);
+      const payload = await request(
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/git/ref/heads/${encodeURIComponent(ref)}`,
+        { token },
+      );
+      return { ref: payload.ref, sha: payload.object.sha };
+    },
+
+    async compareCommits({ token, repository, base, head }) {
+      const { owner, name } = normalizeRepositoryCoordinates(repository);
+      const payload = await request(
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`,
+        { token },
+      );
+      return {
+        status: payload.status,
+        aheadBy: payload.ahead_by,
+        behindBy: payload.behind_by,
+        totalCommits: payload.total_commits,
+      };
+    },
+
+    async createBranch({ token, repository, branch, sha }) {
+      const { owner, name } = normalizeRepositoryCoordinates(repository);
+      const ref = normalizeBranch(branch);
+      const payload = await request(
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/git/refs`,
+        {
+          token,
+          method: "POST",
+          body: { ref: `refs/heads/${ref}`, sha },
+        },
+      );
+      return { ref: payload.ref, sha: payload.object.sha };
+    },
+
+    async createCommit({
+      token,
+      repository,
+      branch,
+      baseSha,
+      message,
+      files,
+      changes,
+    }) {
+      const { owner, name } = normalizeRepositoryCoordinates(repository);
+      const prefix = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`;
+      const baseCommit = await request(`${prefix}/git/commits/${baseSha}`, {
+        token,
+      });
+      const sources = new Map(files.map((file) => [file.path, file.source]));
+      const entries = await Promise.all(
+        changes.map(async (change) => {
+          if (change.type === "delete") {
+            return {
+              path: change.path,
+              mode: "100644",
+              type: "blob",
+              sha: null,
+            };
+          }
+          const blob = await request(`${prefix}/git/blobs`, {
+            token,
+            method: "POST",
+            body: { content: sources.get(change.path), encoding: "utf-8" },
+          });
+          return {
+            path: change.path,
+            mode: "100644",
+            type: "blob",
+            sha: blob.sha,
+          };
+        }),
+      );
+      const tree = await request(`${prefix}/git/trees`, {
+        token,
+        method: "POST",
+        body: { base_tree: baseCommit.tree.sha, tree: entries },
+      });
+      const commit = await request(`${prefix}/git/commits`, {
+        token,
+        method: "POST",
+        body: { message, tree: tree.sha, parents: [baseSha] },
+      });
+      await request(
+        `${prefix}/git/refs/heads/${encodeURIComponent(normalizeBranch(branch))}`,
+        {
+          token,
+          method: "PATCH",
+          body: { sha: commit.sha, force: false },
+        },
+      );
+      return { sha: commit.sha, htmlUrl: commit.html_url ?? null };
+    },
+
+    async createPullRequest({ token, repository, title, body, head, base }) {
+      const { owner, name } = normalizeRepositoryCoordinates(repository);
+      const payload = await request(
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/pulls`,
+        {
+          token,
+          method: "POST",
+          body: { title, body, head, base },
+        },
+      );
+      return {
+        number: payload.number,
+        state: payload.state,
+        htmlUrl: payload.html_url,
+      };
     },
   };
 }

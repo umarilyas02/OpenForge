@@ -44,3 +44,23 @@ provider message. Tokens and raw response headers are never included.
 
 Tests use a deterministic fake transport. No test creates, connects, or modifies
 a real GitHub repository.
+
+## Git synchronization
+
+Synchronization plans are based on a specific remote commit SHA. OpenForge
+fetches the latest ref, validates the project in a disposable workspace, builds
+a file-level diff, and issues a one-time confirmation token bound to the exact
+repository, branch, base SHA, content hash, and commit message. Execution
+rechecks both the target and the remote SHA.
+
+An unprotected branch may receive a non-force commit after confirmation. If the
+branch is protected at execution time, OpenForge creates an `openforge/*`
+feature branch, commits there, and opens a pull request instead.
+Changes under `.github/workflows/` are rejected by the default connection
+because they require a separate, explicitly approved Workflows permission.
+
+Pulls use a three-way comparison between the last synchronized files, local
+files, and freshly fetched remote files. Clean previews can be applied once
+through a workspace callback. Concurrent edits are never written
+automatically; their base, local, remote, compatibility, and conflict-marker
+preview are returned for code-only resolution.
