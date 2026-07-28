@@ -20,3 +20,9 @@ can be included, built-in exclusions and `.openforgeignore` are applied, secret
 values are redacted or blocked, and a digest-bearing included-file manifest is
 returned for review. Administrator policy restricts context size, retention,
 providers, models, and provider capabilities.
+
+Initial adapters target the current OpenAI Responses, Anthropic Messages, and
+Gemini Interactions streaming APIs. They keep model capability declarations
+explicit, expose provider model-ID discovery, resolve images only through the
+managed asset boundary, disable provider-side response storage where supported,
+and normalize SDK errors without returning provider response bodies.

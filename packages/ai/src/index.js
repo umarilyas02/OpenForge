@@ -20,3 +20,6 @@ export {
   parseAIAdminPolicy,
   redactAISecrets,
 } from "./context-policy.js";
+export { createOpenAIAdapter } from "./openai-adapter.js";
+export { createAnthropicAdapter } from "./anthropic-adapter.js";
+export { createGeminiAdapter } from "./gemini-adapter.js";

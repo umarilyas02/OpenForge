@@ -7,7 +7,10 @@ packages:
   - "tooling/*"
 
 allowBuilds:
+  "@google/genai": false
+  protobufjs: true
   sharp: true
 
 minimumReleaseAgeExclude:
   - postcss@8.5.24
+  - openai@7.0.0
