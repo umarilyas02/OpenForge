@@ -113,6 +113,14 @@ export const cmsRendererEnvSchema = z
   })
   .strict();
 
+export const cmsAdminEnvSchema = z
+  .object({
+    NODE_ENV: nodeEnvField,
+    PORT: portField,
+    DATABASE_URL: requiredUrl(),
+  })
+  .strict();
+
 export const aiProvidersEnvSchema = z
   .object({
     OPENAI_API_KEY: optionalString(),
@@ -130,5 +138,6 @@ export const SERVICE_ENV_SCHEMAS = Object.freeze({
   web: webEnvSchema,
   preview: previewEnvSchema,
   "cms-renderer": cmsRendererEnvSchema,
+  "cms-admin": cmsAdminEnvSchema,
   "ai-providers": aiProvidersEnvSchema,
 });
