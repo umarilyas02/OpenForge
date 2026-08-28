@@ -5,7 +5,6 @@ import {
   defaultThemeBlockRegistry,
 } from "@openforge/theme-default";
 import { and, eq } from "drizzle-orm";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getDb } from "../../../../../../src/lib/db.js";
@@ -56,9 +55,6 @@ export default async function ContentEditorPage({ params }) {
 
   return (
     <div className="stack">
-      <Link className="muted" href={`/sites/${site.id}`}>
-        ← {site.name}
-      </Link>
       <ContentEditor
         allowedBlockIds={region.allowedBlockIds}
         catalog={catalog}

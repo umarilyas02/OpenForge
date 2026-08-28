@@ -25,6 +25,28 @@ export function BlockPropsForm({ definition, props, onChange }) {
           );
         }
 
+        if (field.control === "select") {
+          return (
+            <div className="form-field" key={field.path}>
+              <label htmlFor={`field-${field.path}`}>
+                {field.label}
+                {field.required ? " *" : ""}
+              </label>
+              <select
+                id={`field-${field.path}`}
+                onChange={(event) => setField(field.path, event.target.value)}
+                value={value}
+              >
+                {field.options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          );
+        }
+
         if (field.control === "textarea") {
           return (
             <div className="form-field" key={field.path}>

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, TextInput } from "@primer/react";
-import Link from "next/link";
 import { use, useActionState, useState } from "react";
 
 import { templatesForType } from "../../../../../../src/lib/page-templates.js";
@@ -19,9 +18,6 @@ export default function NewContentPage({ params }) {
 
   return (
     <div className="stack">
-      <Link className="breadcrumb" href={`/sites/${siteId}`}>
-        ← Back
-      </Link>
       <div className="page-header">
         <div>
           <h1 className="page-title">New content</h1>

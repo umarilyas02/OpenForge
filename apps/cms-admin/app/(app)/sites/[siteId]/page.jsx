@@ -33,12 +33,9 @@ export default async function SiteOverviewPage({ params }) {
 
   return (
     <div className="stack">
-      <Link className="breadcrumb" href="/sites">
-        ← Sites
-      </Link>
       <div className="page-header">
         <div>
-          <h1 className="page-title">{site.name}</h1>
+          <h1 className="page-title">Overview</h1>
           <p className="page-subtitle">
             /{site.slug} ·{" "}
             <span
@@ -52,14 +49,9 @@ export default async function SiteOverviewPage({ params }) {
             </span>
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Link href={`/sites/${site.id}/appearance`}>
-            <Button>Appearance</Button>
-          </Link>
-          <Link href={`/sites/${site.id}/content/new`}>
-            <Button variant="primary">New page</Button>
-          </Link>
-        </div>
+        <Link href={`/sites/${site.id}/content/new`}>
+          <Button variant="primary">New page</Button>
+        </Link>
       </div>
 
       {contentItems.length === 0 ? (

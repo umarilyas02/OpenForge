@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, Checkbox, TextInput } from "@primer/react";
-import Link from "next/link";
 import { useState } from "react";
 
 import { BlockList } from "./BlockList.jsx";
@@ -48,9 +47,6 @@ export function ContentEditor({
 
   return (
     <div className="stack">
-      <Link className="breadcrumb" href={`/sites/${siteId}`}>
-        ← Back
-      </Link>
       <div className="page-header">
         <div>
           <h1 className="page-title">{title || "Untitled"}</h1>

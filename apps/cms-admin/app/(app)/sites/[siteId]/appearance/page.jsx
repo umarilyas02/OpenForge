@@ -5,7 +5,6 @@ import {
   defaultDesignTokens,
 } from "@openforge/design-tokens";
 import { eq } from "drizzle-orm";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AppearanceForm } from "../../../../../src/components/AppearanceForm.jsx";
@@ -50,9 +49,6 @@ export default async function AppearancePage({ params }) {
 
   return (
     <div className="stack">
-      <Link className="breadcrumb" href={`/sites/${site.id}`}>
-        ← {site.name}
-      </Link>
       <div className="page-header">
         <div>
           <h1 className="page-title">Appearance</h1>
