@@ -1,0 +1,35 @@
+/* No Preflight: apps/cms-renderer/app/blocks.css already establishes its
+   own base resets and typography defaults on the --of-* token system, and
+   Tailwind's Preflight would fight it (e.g. re-resetting headings/links).
+   Only theme + utilities are imported, so Tailwind here is purely a utility
+   toolkit for the shadcn/ReactBits-inspired blocks in packages/cms-blocks. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* packages/cms-blocks is a sibling workspace package, outside this app's
+   own directory tree, so Tailwind's automatic source detection won't find
+   it without an explicit @source. */
+@source "../../../packages/cms-blocks/src/**/*.jsx";
+
+@theme {
+  --animate-marquee-slow: marquee-text 45s linear infinite;
+  --animate-marquee-normal: marquee-text 28s linear infinite;
+  --animate-marquee-fast: marquee-text 14s linear infinite;
+}
+
+@keyframes marquee-text {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-slow,
+  .animate-marquee-normal,
+  .animate-marquee-fast {
+    animation: none;
+  }
+}

@@ -1,4 +1,5 @@
 import "./blocks.css";
+import "./tailwind.css";
 
 export const metadata = {
   title: "OpenForge Site",

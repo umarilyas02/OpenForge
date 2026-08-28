@@ -35,6 +35,12 @@ export const manifest = {
         "openforge-cms.logo-cloud",
         "openforge-cms.timeline",
         "openforge-cms.avatar-group",
+        "openforge-cms.spotlight-card",
+        "openforge-cms.gradient-heading",
+        "openforge-cms.marquee-text",
+        "openforge-cms.feature-list",
+        "openforge-cms.data-table",
+        "openforge-cms.carousel",
       ],
     },
     {
@@ -52,6 +58,9 @@ export const manifest = {
         "openforge-cms.pricing",
         "openforge-cms.badge",
         "openforge-cms.card",
+        "openforge-cms.gradient-heading",
+        "openforge-cms.feature-list",
+        "openforge-cms.data-table",
       ],
     },
     {

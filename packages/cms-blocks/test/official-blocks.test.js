@@ -26,10 +26,10 @@ function minimalProps(definition) {
 }
 
 describe("official CMS blocks", () => {
-  it("registers all thirty-one starter blocks with unique ids", () => {
-    expect(registry.list()).toHaveLength(31);
+  it("registers all thirty-eight starter blocks with unique ids", () => {
+    expect(registry.list()).toHaveLength(38);
     const ids = new Set(registry.list().map((definition) => definition.id));
-    expect(ids.size).toBe(31);
+    expect(ids.size).toBe(38);
   });
 
   it.each(OFFICIAL_CMS_BLOCKS)(
@@ -184,6 +184,100 @@ describe("official CMS blocks", () => {
     );
     expect(html).toContain('style="width:70%"');
     expect(html).toContain('aria-valuenow="70"');
+  });
+
+  it("renders the Carousel block's nested CarouselSlide children", () => {
+    const CarouselSlide = registry.get(
+      "openforge-cms.carousel-slide",
+    ).component;
+    const Carousel = registry.get("openforge-cms.carousel").component;
+
+    const html = renderToStaticMarkup(
+      Carousel({
+        heading: "Gallery",
+        slots: {
+          items: [
+            CarouselSlide({
+              image: "https://example.test/a.png",
+              caption: "First",
+            }),
+            CarouselSlide({
+              image: "https://example.test/b.png",
+              caption: "Second",
+            }),
+          ],
+        },
+      }),
+    );
+
+    expect(html).toContain("Gallery");
+    expect(html).toContain("First");
+    expect(html).toContain("Second");
+  });
+
+  it("renders the Data Table block's comma-headers and piped rows", () => {
+    const DataTable = registry.get("openforge-cms.data-table").component;
+    const html = renderToStaticMarkup(
+      DataTable({
+        heading: "Pricing comparison",
+        headers: "Plan, Price, Seats",
+        rows: "Starter|$9|1\nTeam|$29|5",
+      }),
+    );
+
+    expect(html).toContain("<th");
+    expect(html).toContain("Plan");
+    expect(html).toContain("Starter");
+    expect(html).toContain("$29");
+  });
+
+  it("renders the Feature List block's checklist items", () => {
+    const FeatureList = registry.get("openforge-cms.feature-list").component;
+    const html = renderToStaticMarkup(
+      FeatureList({
+        heading: "What's included",
+        items: "Unlimited pages\nCustom domain",
+      }),
+    );
+
+    expect(html).toContain("Unlimited pages");
+    expect(html).toContain("Custom domain");
+  });
+
+  it("renders the Gradient Heading block's real heading tag", () => {
+    const GradientHeading = registry.get(
+      "openforge-cms.gradient-heading",
+    ).component;
+    const html = renderToStaticMarkup(
+      GradientHeading({ text: "Ship faster", level: "h1", tone: "ocean" }),
+    );
+
+    expect(html).toContain("<h1");
+    expect(html).toContain("Ship faster");
+    expect(html).toContain("bg-clip-text");
+  });
+
+  it("renders the Marquee Text block's duplicated, aria-hidden second copy", () => {
+    const MarqueeText = registry.get("openforge-cms.marquee-text").component;
+    const html = renderToStaticMarkup(
+      MarqueeText({ text: "Now shipping", speed: "fast" }),
+    );
+
+    expect(html.match(/Now shipping/gu) ?? []).toHaveLength(2);
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain("animate-marquee-fast");
+  });
+
+  it("renders the Spotlight Card block with its selected glow tone", () => {
+    const SpotlightCard = registry.get(
+      "openforge-cms.spotlight-card",
+    ).component;
+    const html = renderToStaticMarkup(
+      SpotlightCard({ title: "Fast by default", tone: "cyan" }),
+    );
+
+    expect(html).toContain("Fast by default");
+    expect(html).toContain("from-cyan-400");
   });
 
   it("renders the Heading block's select-controlled level", () => {
