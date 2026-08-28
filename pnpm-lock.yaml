@@ -179,6 +179,12 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
+  packages/events:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
   packages/github:
     dependencies:
       '@openforge/compiler':
@@ -189,6 +195,12 @@ importers:
         version: link:../integration-security
 
   packages/integration-security: {}
+
+  packages/logger:
+    dependencies:
+      '@openforge/config':
+        specifier: workspace:*
+        version: link:../config
 
   packages/schemas:
     dependencies:
