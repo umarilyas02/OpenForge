@@ -148,6 +148,7 @@ apps/cms-renderer (Next.js, multi-tenant)
 | Area | Responsibility |
 |---|---|
 | `apps/cms-renderer` | Multi-tenant Next.js app: resolves the requesting site and renders its published content. |
+| `apps/cms-admin` | Login-gated admin UI: sites, content, and the recursive block-tree page editor. |
 | `packages/db` | Drizzle schema/migrations for tenancy, sessions, sites, content, assets, menus, and theme installations. |
 | `packages/auth` | Password hashing, hashed-token sessions, and cross-tenant authorization. |
 | `packages/theme-sdk` | Theme manifest schema and the runtime registry that resolves a theme's templates and block components. |
@@ -155,8 +156,10 @@ apps/cms-renderer (Next.js, multi-tenant)
 | `packages/renderer` | Block-tree rendering and per-site design-token CSS. |
 | `themes/*` | Installable themes built on `theme-sdk` and `cms-blocks` (starts with `themes/default`). |
 
-There is no admin UI yet — content is authored directly through `packages/db`
-or a seed script (`tooling/scripts/seed-cms-demo.js`) until that lands.
+`apps/cms-admin` covers login, sites, and content (including the block-tree
+editor). A media library, theme customizer, and org management UI are not
+built yet — the seed script (`tooling/scripts/seed-cms-demo.js`) or direct
+`packages/db` access still covers what the UI doesn't.
 
 ## How source editing works
 
@@ -216,9 +219,10 @@ for that side yet.
 The CMS surface is further along: `apps/cms-renderer` builds a real
 production Docker image (`apps/cms-renderer/Dockerfile`) and has been run
 against a live PostgreSQL database, correctly rendering seeded content by
-Host header. It is still pre-alpha — no admin UI, no authenticated write
-API, and no versioned release — but it is genuinely runnable today, not a
-placeholder.
+Host header, and `apps/cms-admin` now provides real login-gated site and
+content management, including the block-tree page editor. It is still
+pre-alpha — no media library, no theme customizer, no versioned release —
+but it is genuinely runnable today, not a placeholder.
 
 If you want to help shape the project now:
 
