@@ -2,14 +2,28 @@ import { z } from "zod";
 
 export const CMS_BLOCK_SCHEMA_VERSION = 1;
 
+const selectOptionSchema = z
+  .object({
+    value: z.string().min(1),
+    label: z.string().min(1),
+  })
+  .strict();
+
 const editableFieldSchema = z
   .object({
     path: z.string().min(1),
     label: z.string().min(1),
-    control: z.enum(["text", "textarea", "url", "image", "boolean"]),
+    control: z.enum(["text", "textarea", "url", "image", "boolean", "select"]),
     required: z.boolean().default(false),
+    options: z.array(selectOptionSchema).min(1).optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (field) => field.control !== "select" || (field.options?.length ?? 0) > 0,
+    {
+      message: "A select control requires at least one option.",
+    },
+  );
 
 const slotSchema = z
   .object({
