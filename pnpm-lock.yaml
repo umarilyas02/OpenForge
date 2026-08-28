@@ -140,6 +140,15 @@ importers:
         specifier: workspace:*
         version: link:../../tooling/test-utils
 
+  packages/config:
+    dependencies:
+      '@openforge/integration-security':
+        specifier: workspace:*
+        version: link:../integration-security
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
   packages/design-tokens:
     dependencies:
       zod:
@@ -180,6 +189,12 @@ importers:
         version: link:../integration-security
 
   packages/integration-security: {}
+
+  packages/schemas:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
 
   packages/storage: {}
 

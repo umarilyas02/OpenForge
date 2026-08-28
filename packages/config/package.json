@@ -1,0 +1,27 @@
+{
+  "name": "@openforge/config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Runtime environment schemas, safe startup validation, and public/secret redaction for OpenForge services.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openforge/integration-security": "workspace:*",
+    "zod": "4.4.3"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
