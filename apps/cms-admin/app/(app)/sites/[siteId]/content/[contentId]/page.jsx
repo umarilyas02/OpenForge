@@ -1,15 +1,21 @@
 import { assertSiteAccess } from "@openforge/auth";
 import { schema } from "@openforge/db";
-import { Heading } from "@primer/react";
+import {
+  defaultTheme,
+  defaultThemeBlockRegistry,
+} from "@openforge/theme-default";
 import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getDb } from "../../../../../../src/lib/db.js";
+import { serializeBlockDefinitions } from "../../../../../../src/lib/content-tree-ops.js";
 import {
   getMemberships,
   requireUser,
 } from "../../../../../../src/lib/session.js";
+import { ContentEditor } from "../../../../../../src/components/ContentEditor.jsx";
+import { saveContent } from "./actions.js";
 
 export default async function ContentEditorPage({ params }) {
   const { siteId, contentId } = await params;
@@ -40,16 +46,26 @@ export default async function ContentEditorPage({ params }) {
     );
   if (!item) notFound();
 
+  const region = defaultTheme.getRegion(
+    item.type === "post" ? "post-body" : "page-body",
+  );
+  const catalog = serializeBlockDefinitions(
+    region.allowedBlockIds,
+    defaultThemeBlockRegistry,
+  );
+
   return (
     <div className="stack">
       <Link className="muted" href={`/sites/${site.id}`}>
         ← {site.name}
       </Link>
-      <Heading as="h1">{item.title}</Heading>
-      <p className="muted">
-        The block-tree editor is coming next — this page exists so the
-        create-content flow has somewhere real to land.
-      </p>
+      <ContentEditor
+        allowedBlockIds={region.allowedBlockIds}
+        catalog={catalog}
+        initialItem={item}
+        saveContent={saveContent}
+        siteId={site.id}
+      />
     </div>
   );
 }
