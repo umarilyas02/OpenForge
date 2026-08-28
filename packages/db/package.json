@@ -1,0 +1,33 @@
+{
+  "name": "@openforge/db",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Drizzle schema, migrations, and a thin PostgreSQL client for OpenForge.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "migrations",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "lint": "eslint src test",
+    "test": "vitest run",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.2",
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "0.31.10"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
