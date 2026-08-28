@@ -129,6 +129,15 @@ a {
   font-size: 12px;
 }
 
+.form-field select {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  min-height: 32px;
+  padding: 4px 8px;
+}
+
 .form-actions {
   display: flex;
   gap: 8px;

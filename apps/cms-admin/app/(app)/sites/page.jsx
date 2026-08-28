@@ -46,7 +46,9 @@ export default async function SitesPage() {
           sites.map((site) => (
             <div className="list-row" key={site.id}>
               <div>
-                <strong>{site.name}</strong>
+                <Link href={`/sites/${site.id}`}>
+                  <strong>{site.name}</strong>
+                </Link>
                 <div className="muted">/{site.slug}</div>
               </div>
               <span
