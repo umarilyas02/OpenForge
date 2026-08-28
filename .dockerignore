@@ -1,0 +1,33 @@
+# Local source documentation and planning docs (not needed to build/run)
+openforge-docs/
+IMPLEMENTATION_PLAN.md
+FOLDER_STRUCTURE.md
+progress.md
+
+# Dependencies and build output (installed/built fresh inside the image)
+node_modules
+**/node_modules
+.next
+**/.next
+.turbo
+**/.turbo
+dist
+**/dist
+coverage
+**/coverage
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+!**/*.env.example
+envs/local
+
+# Local infrastructure state
+docker/volumes
+
+# Misc
+.git
+*.log
+.vscode
+.idea
