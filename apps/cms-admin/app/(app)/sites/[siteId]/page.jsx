@@ -31,6 +31,15 @@ export default async function SiteOverviewPage({ params }) {
     .from(schema.contentItems)
     .where(eq(schema.contentItems.siteId, site.id));
 
+  const stats = {
+    total: contentItems.length,
+    pages: contentItems.filter((item) => item.type === "page").length,
+    posts: contentItems.filter((item) => item.type === "post").length,
+    published: contentItems.filter((item) => item.status === "published")
+      .length,
+    draft: contentItems.filter((item) => item.status === "draft").length,
+  };
+
   return (
     <div className="stack">
       <div className="page-header">
@@ -51,6 +60,40 @@ export default async function SiteOverviewPage({ params }) {
         </div>
         <Link href={`/sites/${site.id}/content/new`}>
           <Button variant="primary">New page</Button>
+        </Link>
+      </div>
+
+      <div className="stats-row">
+        <div className="stat-card">
+          <span className="stat-card-value">{stats.pages}</span>
+          <span className="stat-card-label">Pages</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-card-value">{stats.posts}</span>
+          <span className="stat-card-label">Posts</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-card-value">{stats.published}</span>
+          <span className="stat-card-label">Published</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-card-value">{stats.draft}</span>
+          <span className="stat-card-label">Draft</span>
+        </div>
+      </div>
+
+      <div className="quick-links">
+        <Link className="quick-link" href={`/sites/${site.id}/appearance`}>
+          <span className="quick-link-title">Appearance</span>
+          <span className="quick-link-body">Theme, colors, and layout</span>
+        </Link>
+        <Link className="quick-link" href={`/sites/${site.id}/menus`}>
+          <span className="quick-link-title">Menus</span>
+          <span className="quick-link-body">Navigation for this site</span>
+        </Link>
+        <Link className="quick-link" href={`/sites/${site.id}/settings`}>
+          <span className="quick-link-title">Settings</span>
+          <span className="quick-link-body">Name, domain, and status</span>
         </Link>
       </div>
 

@@ -455,6 +455,68 @@ a {
   color: var(--accent);
 }
 
+/* ---------- Stats & quick links ---------- */
+
+.stats-row {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.stat-card-value {
+  color: var(--text);
+  font-size: var(--text-xl);
+  font-weight: 620;
+}
+
+.stat-card-label {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.quick-links {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.quick-link {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: 2px;
+  padding: var(--space-4);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.quick-link:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.quick-link-title {
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.quick-link-body {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
 /* ---------- Cards & lists ---------- */
 
 .card {
@@ -615,6 +677,17 @@ a.list-row:hover,
   background: var(--danger-wash);
   border-radius: var(--radius);
   color: var(--danger);
+  display: flex;
+  font-size: var(--text-sm);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
+.form-success {
+  align-items: center;
+  background: var(--success-wash);
+  border-radius: var(--radius);
+  color: var(--success);
   display: flex;
   font-size: var(--text-sm);
   gap: var(--space-2);
