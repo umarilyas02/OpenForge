@@ -1,0 +1,31 @@
+{
+  "name": "@openforge/theme-default",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The default OpenForge CMS theme: page, post, and not-found templates built on the starter block set.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openforge/cms-blocks": "workspace:*",
+    "@openforge/theme-sdk": "workspace:*",
+    "react": "19.2.8"
+  },
+  "devDependencies": {
+    "react-dom": "19.2.8"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

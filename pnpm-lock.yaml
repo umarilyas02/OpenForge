@@ -327,6 +327,22 @@ importers:
         specifier: 4.3.3
         version: 4.3.3
 
+  themes/default:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
   tooling/test-utils: {}
 
 packages:
