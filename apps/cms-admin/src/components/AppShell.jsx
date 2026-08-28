@@ -19,6 +19,33 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    href: "/team",
+    label: "Team",
+    icon: (
+      <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
+        <circle cx="6" cy="5" r="2.2" stroke="currentColor" strokeWidth="1.3" />
+        <path
+          d="M2 13.5c0-2.2 1.8-3.8 4-3.8s4 1.6 4 3.8"
+          stroke="currentColor"
+          strokeWidth="1.3"
+        />
+        <circle
+          cx="11.5"
+          cy="5.5"
+          r="1.7"
+          stroke="currentColor"
+          strokeWidth="1.3"
+        />
+        <path
+          d="M9.8 9.9c1.8.1 3.2 1.5 3.2 3.4"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="1.3"
+        />
+      </svg>
+    ),
+  },
 ];
 
 function initialsFor(user) {
