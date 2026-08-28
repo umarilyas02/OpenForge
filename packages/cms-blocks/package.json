@@ -13,7 +13,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node -e \"import('./src/index.js')\"",
+    "build": "esbuild src/index.js --bundle --platform=node --format=esm --jsx=automatic --packages=external --outfile=dist/index.js",
     "lint": "eslint src test",
     "test": "vitest run"
   },
@@ -22,6 +22,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "react-dom": "19.2.8"
   },
   "engines": {
