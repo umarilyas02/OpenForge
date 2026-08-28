@@ -157,14 +157,15 @@ apps/cms-renderer (Next.js, multi-tenant)
 | `themes/*` | Installable themes built on `theme-sdk` and `cms-blocks` (starts with `themes/default`). |
 
 `apps/cms-admin` covers login, sites, content (starter templates plus a
-drag-and-drop block-tree editor drawing on a 20-block library — headings,
-buttons, testimonials, pricing, stats, FAQs, and more, alongside the
-original Hero/Rich Text/Image/CTA/Columns/Footer set), menus, team/role
-management, per-site settings, and per-site appearance (color-token
-overrides). A media library, multi-theme *package* switching, and an org
-switcher/org-creation UI are not built yet — the seed script
-(`tooling/scripts/seed-cms-demo.js`) or direct `packages/db` access still
-covers what the UI doesn't.
+drag-and-drop block-tree editor drawing on a 31-block library — headings,
+buttons, testimonials, pricing, stats, FAQs, badges, cards, ratings,
+progress bars, banners, logo clouds, timelines, avatar groups, and more,
+alongside the original Hero/Rich Text/Image/CTA/Columns/Footer set),
+menus, team/role management, per-site settings, and per-site appearance
+(color-token overrides). A media library, multi-theme *package*
+switching, and an org switcher/org-creation UI are not built yet — the
+seed script (`tooling/scripts/seed-cms-demo.js`) or direct `packages/db`
+access still covers what the UI doesn't.
 
 ## How source editing works
 
@@ -209,7 +210,7 @@ import, enterprise SSO, and Kubernetes support are intentionally outside the
 initial MVP.
 
 Alongside those phases, a first vertical slice of the multi-tenant CMS (site
-resolution, theme rendering, a 20-block library, and a production Docker
+resolution, theme rendering, a 31-block library, and a production Docker
 image for `apps/cms-renderer`) has been built and verified end to end,
 along with a WordPress-style admin UI (`apps/cms-admin`) covering sites,
 content, menus, team, settings, and appearance. An authenticated CRUD API
@@ -228,7 +229,7 @@ production Docker image (`apps/cms-renderer/Dockerfile`) and has been run
 against a live PostgreSQL database, correctly rendering seeded content by
 Host header, and `apps/cms-admin` now provides real login-gated site,
 content, menu, team, and settings management, including a drag-and-drop
-block-tree editor over a 20-block library and per-site appearance
+block-tree editor over a 31-block library and per-site appearance
 (color-token) customization. It is still pre-alpha — no media library, no
 multi-theme *package* switching, no versioned release — but it is
 genuinely runnable today, not a placeholder.
