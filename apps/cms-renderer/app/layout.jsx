@@ -1,3 +1,5 @@
+import "./blocks.css";
+
 export const metadata = {
   title: "OpenForge Site",
 };
