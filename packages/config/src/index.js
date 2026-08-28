@@ -2,6 +2,7 @@ export { ConfigError, invariant } from "./errors.js";
 export {
   aiProvidersEnvSchema,
   apiEnvSchema,
+  cmsRendererEnvSchema,
   previewEnvSchema,
   rootEnvSchema,
   SERVICE_ENV_SCHEMAS,

@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { ConfigError } from "../src/errors.js";
 import { loadEnv } from "../src/load-env.js";
-import { webEnvSchema, workerEnvSchema } from "../src/schema.js";
+import {
+  cmsRendererEnvSchema,
+  webEnvSchema,
+  workerEnvSchema,
+} from "../src/schema.js";
 
 const VALID_WEB_ENV = {
   NODE_ENV: "development",
@@ -51,5 +55,18 @@ describe("loadEnv", () => {
         source: { ...VALID_WEB_ENV, SESSION_SECRET: "too-short" },
       }),
     ).toThrow(ConfigError);
+  });
+
+  it("parses a valid cms-renderer environment", () => {
+    const config = loadEnv({
+      schema: cmsRendererEnvSchema,
+      source: {
+        NODE_ENV: "development",
+        PORT: "3002",
+        DATABASE_URL: "postgres://openforge:pw@localhost:5432/openforge",
+      },
+    });
+
+    expect(config.PORT).toBe(3002);
   });
 });

@@ -105,6 +105,14 @@ export const previewEnvSchema = z
   })
   .strict();
 
+export const cmsRendererEnvSchema = z
+  .object({
+    NODE_ENV: nodeEnvField,
+    PORT: portField,
+    DATABASE_URL: requiredUrl(),
+  })
+  .strict();
+
 export const aiProvidersEnvSchema = z
   .object({
     OPENAI_API_KEY: optionalString(),
@@ -121,5 +129,6 @@ export const SERVICE_ENV_SCHEMAS = Object.freeze({
   worker: workerEnvSchema,
   web: webEnvSchema,
   preview: previewEnvSchema,
+  "cms-renderer": cmsRendererEnvSchema,
   "ai-providers": aiProvidersEnvSchema,
 });
