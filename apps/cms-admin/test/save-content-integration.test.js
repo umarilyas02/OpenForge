@@ -441,5 +441,150 @@ describe.skipIf(!available)(
         await close();
       }
     });
+
+    it("a page built from the new block library (including both slot containers) saves and renders correctly", async () => {
+      const { db, close } = createDbClient({ connectionString });
+
+      try {
+        const [user] = await db
+          .insert(schema.users)
+          .values({
+            email: `block-library-test-${Date.now()}@example.test`,
+            displayName: "Block Library Test",
+            passwordHash: hashPassword("irrelevant-password"),
+          })
+          .returning();
+
+        const [organization] = await db
+          .insert(schema.organizations)
+          .values({
+            name: "Block Library Test Org",
+            slug: `block-library-org-${Date.now()}`,
+            createdBy: user.id,
+          })
+          .returning();
+
+        const [site] = await db
+          .insert(schema.sites)
+          .values({
+            organizationId: organization.id,
+            name: "Block Library Test Site",
+            slug: `block-library-site-${Date.now()}`,
+            createdBy: user.id,
+          })
+          .returning();
+
+        const rawTree = [
+          {
+            blockId: "openforge-cms.heading",
+            blockVersion: 1,
+            props: { text: "Why teams pick OpenForge", level: "h2" },
+          },
+          {
+            blockId: "openforge-cms.stats-row",
+            blockVersion: 1,
+            props: { heading: "By the numbers" },
+            slots: {
+              items: [
+                {
+                  blockId: "openforge-cms.stat",
+                  blockVersion: 1,
+                  props: { value: "99.9%", label: "Uptime" },
+                },
+                {
+                  blockId: "openforge-cms.stat",
+                  blockVersion: 1,
+                  props: { value: "12k", label: "Sites launched" },
+                },
+              ],
+            },
+          },
+          {
+            blockId: "openforge-cms.testimonial",
+            blockVersion: 1,
+            props: {
+              quote: "OpenForge shipped our site in a day.",
+              author: "Alex Rivera",
+            },
+          },
+          {
+            blockId: "openforge-cms.pricing",
+            blockVersion: 1,
+            props: { planName: "Growth", price: "$49/mo" },
+          },
+          {
+            blockId: "openforge-cms.accordion",
+            blockVersion: 1,
+            props: { heading: "Frequently asked" },
+            slots: {
+              items: [
+                {
+                  blockId: "openforge-cms.faq-item",
+                  blockVersion: 1,
+                  props: {
+                    question: "Can I bring my own theme?",
+                    answer: "Yes, themes are developer-authored packages.",
+                  },
+                },
+                {
+                  blockId: "openforge-cms.faq-item",
+                  blockVersion: 1,
+                  props: {
+                    question: "Is there a free tier?",
+                    answer: "Yes, every organization starts on one.",
+                  },
+                },
+              ],
+            },
+          },
+        ];
+
+        const preparedTree = prepareContentTreeForSave(
+          rawTree,
+          defaultThemeBlockRegistry,
+        );
+
+        const [item] = await db
+          .insert(schema.contentItems)
+          .values({
+            siteId: site.id,
+            type: "page",
+            status: "published",
+            slug: "block-library-showcase",
+            title: "Block Library Showcase",
+            blockTree: preparedTree,
+            authorId: user.id,
+            publishedAt: new Date(),
+          })
+          .returning();
+
+        const [readBack] = await db
+          .select()
+          .from(schema.contentItems)
+          .where(eq(schema.contentItems.id, item.id));
+
+        expect(readBack.blockTree[1].slots.items).toHaveLength(2);
+        expect(readBack.blockTree[4].slots.items).toHaveLength(2);
+
+        const renderer = createRenderer({
+          theme: defaultTheme,
+          blockRegistry: defaultThemeBlockRegistry,
+        });
+        const rendered = renderer.renderTree(readBack.blockTree);
+        const html = renderToStaticMarkup(rendered);
+
+        expect(html).toContain("Why teams pick OpenForge");
+        expect(html).toContain('class="of-stats-row-grid"');
+        expect(html).toContain("99.9%");
+        expect(html).toContain("12k");
+        expect(html).toContain("OpenForge shipped our site in a day.");
+        expect(html).toContain('class="of-pricing-name"');
+        expect(html).toContain('class="of-accordion-list"');
+        expect(html).toContain("Can I bring my own theme?");
+        expect(html).toContain("Is there a free tier?");
+      } finally {
+        await close();
+      }
+    });
   },
 );
