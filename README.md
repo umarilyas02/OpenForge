@@ -6,7 +6,10 @@
 
 OpenForge is an open-source visual development environment for building,
 editing, exporting, and deploying production-grade Next.js applications
-without giving up source-code ownership.
+without giving up source-code ownership. Alongside that, it also ships a
+multi-tenant, database-backed CMS surface — closer to WordPress plus
+Gutenberg — for teams that want installable themes and block-based page
+building instead of an exported codebase.
 
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-4169e1.svg)](LICENSE)
 ![Project status: Pre-alpha](https://img.shields.io/badge/status-pre--alpha-d97706.svg)
@@ -42,13 +45,14 @@ they must never become the only usable representation of your application.
 
 ## What we're building
 
-OpenForge is designed around six connected capabilities:
+OpenForge is designed around seven connected capabilities:
 
 | Capability | Direction |
 |---|---|
 | **Visual editor** | Build responsive pages on a canvas while every supported action produces a readable source change. |
 | **Real code workspace** | Edit JavaScript, JSX, styles, and project files with diagnostics, formatting, previews, and source diffs. |
 | **Deterministic compiler** | Parse and transform supported Next.js code through AST tooling while preserving unsupported code safely. |
+| **Multi-tenant CMS** | Create a database-backed site, install a theme, and build pages from reusable blocks within that theme's regions — content renders at request time and coexists with the source-owning editor above. |
 | **Optional AI assistance** | Bring your own OpenAI, Anthropic, Gemini, local, or compatible provider and approve every proposed patch. |
 | **GitHub and Vercel workflows** | Connect repositories, review changes, commit, push, create pull requests, and deploy previews. |
 | **Plugin and skills SDK** | Extend the editor with blocks, templates, validators, integrations, provider adapters, workflows, and focused AI skills. |
@@ -122,6 +126,38 @@ The initial supported project profile targets Next.js App Router, React,
 JavaScript/JSX, Tailwind CSS, CSS Modules, server and client components, GitHub,
 and Vercel.
 
+### CMS surface
+
+The CMS is a separate, coexisting stack: content is database-authoritative
+and rendered at request time, rather than compiled into exported source.
+
+```text
+Request (Host header)
+  |
+  v
+apps/cms-renderer (Next.js, multi-tenant)
+  |
+  +--> resolve site by custom domain or slug subdomain
+  +--> load published content            --> PostgreSQL (packages/db)
+  +--> resolve theme + block components   --> packages/theme-sdk
+  +--> render block tree + token CSS      --> packages/renderer,
+                                               packages/cms-blocks,
+                                               packages/design-tokens
+```
+
+| Area | Responsibility |
+|---|---|
+| `apps/cms-renderer` | Multi-tenant Next.js app: resolves the requesting site and renders its published content. |
+| `packages/db` | Drizzle schema/migrations for tenancy, sessions, sites, content, assets, menus, and theme installations. |
+| `packages/auth` | Password hashing, hashed-token sessions, and cross-tenant authorization. |
+| `packages/theme-sdk` | Theme manifest schema and the runtime registry that resolves a theme's templates and block components. |
+| `packages/cms-blocks` | Real, importable React block components with prop/slot/migration schemas. |
+| `packages/renderer` | Block-tree rendering and per-site design-token CSS. |
+| `themes/*` | Installable themes built on `theme-sdk` and `cms-blocks` (starts with `themes/default`). |
+
+There is no admin UI yet — content is authored directly through `packages/db`
+or a seed script (`tooling/scripts/seed-cms-demo.js`) until that lands.
+
 ## How source editing works
 
 OpenForge connects three representations:
@@ -164,14 +200,25 @@ Real-time multiplayer, a public marketplace, billing, Figma import, WordPress
 import, enterprise SSO, and Kubernetes support are intentionally outside the
 initial MVP.
 
+Alongside those phases, a first vertical slice of the multi-tenant CMS (site
+resolution, theme rendering, starter blocks, and a production Docker image
+for `apps/cms-renderer`) has been built and verified end to end. Its admin
+UI, an authenticated CRUD API, and a theme/template marketplace are not built
+yet — see `progress.md` for exact status and evidence.
+
 ## Project status
 
 OpenForge is currently establishing its repository, architecture boundaries,
-configuration contracts, security model, and contributor workflow.
+configuration contracts, security model, and contributor workflow for the
+visual-editor product. There is no installable release or published package
+for that side yet.
 
-There is no installable release yet. Setup commands and package names will be
-published only after the foundation is executable and reproducible. This avoids
-presenting placeholder commands as a working developer experience.
+The CMS surface is further along: `apps/cms-renderer` builds a real
+production Docker image (`apps/cms-renderer/Dockerfile`) and has been run
+against a live PostgreSQL database, correctly rendering seeded content by
+Host header. It is still pre-alpha — no admin UI, no authenticated write
+API, and no versioned release — but it is genuinely runnable today, not a
+placeholder.
 
 If you want to help shape the project now:
 
