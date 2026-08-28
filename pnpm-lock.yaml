@@ -41,6 +41,9 @@ importers:
       '@openforge/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@openforge/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       '@openforge/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer

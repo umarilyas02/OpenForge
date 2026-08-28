@@ -2,9 +2,12 @@
 
 import { assertSiteAccess } from "@openforge/auth";
 import { schema } from "@openforge/db";
+import { defaultThemeBlockRegistry } from "@openforge/theme-default";
 import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 
+import { prepareContentTreeForSave } from "../../../../../src/lib/content-tree-ops.js";
+import { templatesForType } from "../../../../../src/lib/page-templates.js";
 import { getDb } from "../../../../../src/lib/db.js";
 import { getMemberships, requireUser } from "../../../../../src/lib/session.js";
 
@@ -41,6 +44,7 @@ export async function createContent(siteId, _prevState, formData) {
     .trim()
     .toLowerCase();
   const type = String(formData.get("type") ?? "page");
+  const templateId = String(formData.get("templateId") ?? "blank");
 
   if (!title) return { error: "Title is required." };
   if (!SLUG_PATTERN.test(slug)) {
@@ -51,6 +55,16 @@ export async function createContent(siteId, _prevState, formData) {
   if (!["page", "post"].includes(type)) {
     return { error: "Invalid content type." };
   }
+
+  const template = templatesForType(type).find(
+    (candidate) => candidate.id === templateId,
+  );
+  if (!template) return { error: "Unknown template." };
+
+  const blockTree = prepareContentTreeForSave(
+    template.build(),
+    defaultThemeBlockRegistry,
+  );
 
   const db = getDb();
   let item;
@@ -63,7 +77,7 @@ export async function createContent(siteId, _prevState, formData) {
         status: "draft",
         slug,
         title,
-        blockTree: [],
+        blockTree,
         authorId: user.id,
       })
       .returning();
