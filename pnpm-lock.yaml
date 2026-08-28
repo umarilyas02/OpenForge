@@ -127,6 +127,19 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
+  packages/cms-blocks:
+    dependencies:
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
   packages/compiler:
     dependencies:
       '@babel/parser':

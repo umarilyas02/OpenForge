@@ -1,0 +1,30 @@
+{
+  "name": "@openforge/cms-blocks",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Real, importable React block components and their prop/slot schemas for the OpenForge CMS renderer.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "react-dom": "19.2.8"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
