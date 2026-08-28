@@ -1,0 +1,32 @@
+{
+  "name": "@openforge/cms-admin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Admin UI for the OpenForge CMS: sites, content, and the block-tree page editor.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "eslint app src",
+    "start": "next start",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openforge/auth": "workspace:*",
+    "@openforge/config": "workspace:*",
+    "@openforge/db": "workspace:*",
+    "@openforge/renderer": "workspace:*",
+    "@openforge/theme-default": "workspace:*",
+    "@primer/octicons-react": "19.31.0",
+    "@primer/react": "38.34.0",
+    "drizzle-orm": "0.45.2",
+    "geist": "1.7.2",
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
