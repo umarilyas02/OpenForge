@@ -148,7 +148,7 @@ apps/cms-renderer (Next.js, multi-tenant)
 | Area | Responsibility |
 |---|---|
 | `apps/cms-renderer` | Multi-tenant Next.js app: resolves the requesting site and renders its published content. |
-| `apps/cms-admin` | Login-gated admin UI: sites, content templates, a drag-and-drop block-tree editor, and per-site appearance customization. |
+| `apps/cms-admin` | Login-gated, WordPress-style admin UI: sites, content templates, a drag-and-drop block-tree editor with an Elementor-style block library, menus, team/role management, per-site settings, and appearance customization. |
 | `packages/db` | Drizzle schema/migrations for tenancy, sessions, sites, content, assets, menus, and theme installations. |
 | `packages/auth` | Password hashing, hashed-token sessions, and cross-tenant authorization. |
 | `packages/theme-sdk` | Theme manifest schema and the runtime registry that resolves a theme's templates and block components. |
@@ -157,10 +157,14 @@ apps/cms-renderer (Next.js, multi-tenant)
 | `themes/*` | Installable themes built on `theme-sdk` and `cms-blocks` (starts with `themes/default`). |
 
 `apps/cms-admin` covers login, sites, content (starter templates plus a
-drag-and-drop block-tree editor), and per-site appearance (color-token
-overrides). A media library, multi-theme switching, and org management UI
-are not built yet — the seed script (`tooling/scripts/seed-cms-demo.js`) or
-direct `packages/db` access still covers what the UI doesn't.
+drag-and-drop block-tree editor drawing on a 20-block library — headings,
+buttons, testimonials, pricing, stats, FAQs, and more, alongside the
+original Hero/Rich Text/Image/CTA/Columns/Footer set), menus, team/role
+management, per-site settings, and per-site appearance (color-token
+overrides). A media library, multi-theme *package* switching, and an org
+switcher/org-creation UI are not built yet — the seed script
+(`tooling/scripts/seed-cms-demo.js`) or direct `packages/db` access still
+covers what the UI doesn't.
 
 ## How source editing works
 
@@ -205,10 +209,12 @@ import, enterprise SSO, and Kubernetes support are intentionally outside the
 initial MVP.
 
 Alongside those phases, a first vertical slice of the multi-tenant CMS (site
-resolution, theme rendering, starter blocks, and a production Docker image
-for `apps/cms-renderer`) has been built and verified end to end. Its admin
-UI, an authenticated CRUD API, and a theme/template marketplace are not built
-yet — see `progress.md` for exact status and evidence.
+resolution, theme rendering, a 20-block library, and a production Docker
+image for `apps/cms-renderer`) has been built and verified end to end,
+along with a WordPress-style admin UI (`apps/cms-admin`) covering sites,
+content, menus, team, settings, and appearance. An authenticated CRUD API
+and a theme/template marketplace are not built yet — see `progress.md` for
+exact status and evidence.
 
 ## Project status
 
@@ -220,10 +226,12 @@ for that side yet.
 The CMS surface is further along: `apps/cms-renderer` builds a real
 production Docker image (`apps/cms-renderer/Dockerfile`) and has been run
 against a live PostgreSQL database, correctly rendering seeded content by
-Host header, and `apps/cms-admin` now provides real login-gated site and
-content management, including the block-tree page editor. It is still
-pre-alpha — no media library, no theme customizer, no versioned release —
-but it is genuinely runnable today, not a placeholder.
+Host header, and `apps/cms-admin` now provides real login-gated site,
+content, menu, team, and settings management, including a drag-and-drop
+block-tree editor over a 20-block library and per-site appearance
+(color-token) customization. It is still pre-alpha — no media library, no
+multi-theme *package* switching, no versioned release — but it is
+genuinely runnable today, not a placeholder.
 
 If you want to help shape the project now:
 
