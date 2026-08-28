@@ -69,4 +69,20 @@ describe("loadEnv", () => {
 
     expect(config.PORT).toBe(3002);
   });
+
+  it("ignores ambient OS/tooling variables that aren't part of the schema", () => {
+    const config = loadEnv({
+      schema: cmsRendererEnvSchema,
+      source: {
+        NODE_ENV: "development",
+        PORT: "3002",
+        DATABASE_URL: "postgres://openforge:pw@localhost:5432/openforge",
+        PATH: "/usr/bin",
+        HOME: "/home/openforge",
+        SOME_UNRELATED_TOOL_VAR: "anything",
+      },
+    });
+
+    expect(config.PORT).toBe(3002);
+  });
 });

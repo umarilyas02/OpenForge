@@ -376,6 +376,15 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
+  tooling/scripts:
+    dependencies:
+      '@openforge/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@openforge/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+
   tooling/test-utils: {}
 
 packages:
