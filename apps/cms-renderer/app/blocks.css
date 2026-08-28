@@ -538,3 +538,342 @@ p {
   color: color-mix(in srgb, var(--of-color-ink) 70%, transparent);
   margin: var(--of-space-2) 0 0;
 }
+
+/* Badge */
+
+.of-badge {
+  border-radius: 999px;
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: var(--of-font-weight-strong);
+  padding: 0.25rem 0.75rem;
+}
+
+.of-badge-neutral {
+  background: color-mix(
+    in srgb,
+    var(--of-color-ink) 8%,
+    var(--of-color-background)
+  );
+  color: var(--of-color-ink);
+}
+
+.of-badge-accent {
+  background: color-mix(
+    in srgb,
+    var(--of-color-action) 14%,
+    var(--of-color-background)
+  );
+  color: var(--of-color-action);
+}
+
+.of-badge-success {
+  background: color-mix(in srgb, #1a7f37 14%, var(--of-color-background));
+  color: color-mix(in srgb, #1a7f37 70%, var(--of-color-ink));
+}
+
+.of-badge-warning {
+  background: color-mix(in srgb, #9a6700 14%, var(--of-color-background));
+  color: color-mix(in srgb, #9a6700 70%, var(--of-color-ink));
+}
+
+.of-badge-danger {
+  background: color-mix(in srgb, #cf222e 14%, var(--of-color-background));
+  color: color-mix(in srgb, #cf222e 70%, var(--of-color-ink));
+}
+
+/* Card */
+
+.of-card {
+  border: 1px solid color-mix(in srgb, var(--of-color-ink) 10%, transparent);
+  border-radius: var(--of-radius-card);
+  max-width: 24rem;
+  overflow: hidden;
+  transition: box-shadow 150ms ease;
+}
+
+.of-card:has(.of-card-link:hover) {
+  box-shadow: var(--of-shadow-card);
+}
+
+.of-card-image {
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  width: 100%;
+}
+
+.of-card-body {
+  padding: var(--of-space-4);
+}
+
+.of-card-title {
+  font-size: 1.125rem;
+  margin: 0 0 var(--of-space-2);
+}
+
+.of-card-desc {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  margin: 0 0 var(--of-space-2);
+}
+
+.of-card-link {
+  color: var(--of-color-action);
+  font-size: 0.9375rem;
+  font-weight: var(--of-font-weight-strong);
+}
+
+/* Rating */
+
+.of-rating {
+  align-items: center;
+  display: flex;
+  gap: var(--of-space-2);
+  justify-content: center;
+}
+
+.of-rating-stars {
+  color: color-mix(in srgb, var(--of-color-ink) 20%, transparent);
+  font-size: 1.25rem;
+  letter-spacing: 0.1em;
+}
+
+.of-rating-star-filled {
+  color: var(--of-color-action);
+}
+
+.of-rating-label {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  font-size: 0.9375rem;
+}
+
+/* Progress */
+
+.of-progress {
+  max-width: 32rem;
+}
+
+.of-progress-header {
+  display: flex;
+  font-size: 0.9375rem;
+  justify-content: space-between;
+  margin-bottom: var(--of-space-2);
+}
+
+.of-progress-value {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+}
+
+.of-progress-track {
+  background: color-mix(in srgb, var(--of-color-ink) 10%, transparent);
+  border-radius: 999px;
+  height: 0.5rem;
+  overflow: hidden;
+}
+
+.of-progress-fill {
+  background: var(--of-color-action);
+  border-radius: inherit;
+  height: 100%;
+  transition: width 300ms ease;
+}
+
+/* Banner */
+
+.of-banner {
+  align-items: center;
+  border-radius: var(--of-radius-card);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--of-space-4);
+  justify-content: space-between;
+  padding: var(--of-space-6, var(--of-space-4)) var(--of-space-8);
+}
+
+.of-banner-message {
+  margin: 0;
+}
+
+.of-banner-brand {
+  background: var(--of-color-action);
+  color: var(--of-color-paper);
+}
+
+.of-banner-brand .of-button-secondary {
+  background: var(--of-color-paper);
+  color: var(--of-color-action);
+}
+
+.of-banner-dark {
+  background: var(--of-color-ink);
+  color: var(--of-color-paper);
+}
+
+.of-banner-dark .of-button-secondary {
+  background: color-mix(in srgb, var(--of-color-paper) 16%, transparent);
+  color: var(--of-color-paper);
+}
+
+.of-banner-light {
+  background: color-mix(
+    in srgb,
+    var(--of-color-ink) 5%,
+    var(--of-color-background)
+  );
+  color: var(--of-color-ink);
+}
+
+/* Logo cloud */
+
+.of-logo-cloud {
+  text-align: center;
+}
+
+.of-logo-cloud-viewport {
+  margin-top: var(--of-space-8);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+
+.of-logo-cloud-track {
+  animation: of-logo-cloud-scroll 24s linear infinite;
+  display: flex;
+  gap: var(--of-space-16);
+  width: max-content;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .of-logo-cloud-track {
+    animation: none;
+  }
+}
+
+.of-logo-cloud-track-item {
+  flex: none;
+}
+
+.of-logo-item-image {
+  filter: grayscale(1);
+  height: 2rem;
+  opacity: 0.6;
+  width: auto;
+}
+
+@keyframes of-logo-cloud-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Timeline */
+
+.of-timeline {
+  max-width: 42rem;
+}
+
+.of-timeline-list {
+  display: grid;
+  margin-top: var(--of-space-8);
+}
+
+.of-timeline-step {
+  display: grid;
+  gap: var(--of-space-1, 0.25rem) var(--of-space-4);
+  grid-template-columns: auto 1fr;
+  padding-bottom: var(--of-space-8);
+  position: relative;
+}
+
+.of-timeline-step:last-child {
+  padding-bottom: 0;
+}
+
+.of-timeline-step-marker {
+  background: var(--of-color-action);
+  border-radius: 50%;
+  height: 0.625rem;
+  margin-top: 0.4rem;
+  position: relative;
+  width: 0.625rem;
+}
+
+.of-timeline-step-marker::after {
+  background: color-mix(in srgb, var(--of-color-ink) 12%, transparent);
+  bottom: calc(-1 * var(--of-space-8));
+  content: "";
+  left: 50%;
+  position: absolute;
+  top: 100%;
+  transform: translateX(-50%);
+  width: 1px;
+}
+
+.of-timeline-step:last-child .of-timeline-step-marker::after {
+  content: none;
+}
+
+.of-timeline-step-date {
+  color: var(--of-color-action);
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: var(--of-font-weight-strong);
+}
+
+.of-timeline-step-title {
+  font-size: 1.0625rem;
+  margin: 0;
+}
+
+.of-timeline-step-desc {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  margin: var(--of-space-2) 0 0;
+}
+
+/* Avatar group */
+
+.of-avatar-group {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--of-space-2);
+}
+
+.of-avatar-group-stack {
+  display: flex;
+}
+
+.of-avatar-group-slot {
+  margin-left: -0.75rem;
+}
+
+.of-avatar-group-slot:first-child {
+  margin-left: 0;
+}
+
+.of-avatar-item {
+  border: 2px solid var(--of-color-background);
+  border-radius: 50%;
+  height: 44px;
+  object-fit: cover;
+  width: 44px;
+}
+
+.of-avatar-group-caption {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  font-size: 0.9375rem;
+}

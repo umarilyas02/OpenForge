@@ -26,10 +26,10 @@ function minimalProps(definition) {
 }
 
 describe("official CMS blocks", () => {
-  it("registers all twenty starter blocks with unique ids", () => {
-    expect(registry.list()).toHaveLength(20);
+  it("registers all thirty-one starter blocks with unique ids", () => {
+    expect(registry.list()).toHaveLength(31);
     const ids = new Set(registry.list().map((definition) => definition.id));
-    expect(ids.size).toBe(20);
+    expect(ids.size).toBe(31);
   });
 
   it.each(OFFICIAL_CMS_BLOCKS)(
@@ -105,6 +105,85 @@ describe("official CMS blocks", () => {
     expect(html).toContain("<details");
     expect(html).toContain("Is this real?");
     expect(html).toContain("Yes.");
+  });
+
+  it("renders the Logo Cloud block's nested LogoItem children, duplicated for the marquee loop", () => {
+    const LogoItem = registry.get("openforge-cms.logo-item").component;
+    const LogoCloud = registry.get("openforge-cms.logo-cloud").component;
+
+    const html = renderToStaticMarkup(
+      LogoCloud({
+        heading: "Trusted by",
+        slots: {
+          items: [
+            LogoItem({ image: "https://example.test/a.png", name: "Acme" }),
+            LogoItem({ image: "https://example.test/b.png", name: "Globex" }),
+          ],
+        },
+      }),
+    );
+
+    expect(html).toContain("Trusted by");
+    expect(html.match(/alt="Acme"/gu) ?? []).toHaveLength(2);
+  });
+
+  it("renders the Timeline block's nested TimelineStep children", () => {
+    const TimelineStep = registry.get("openforge-cms.timeline-step").component;
+    const Timeline = registry.get("openforge-cms.timeline").component;
+
+    const html = renderToStaticMarkup(
+      Timeline({
+        heading: "Roadmap",
+        slots: {
+          items: [
+            TimelineStep({ date: "Q1", title: "Launch" }),
+            TimelineStep({ date: "Q2", title: "Scale" }),
+          ],
+        },
+      }),
+    );
+
+    expect(html).toContain("Roadmap");
+    expect(html).toContain("Launch");
+    expect(html).toContain("Scale");
+  });
+
+  it("renders the Avatar Group block's nested AvatarItem children", () => {
+    const AvatarItem = registry.get("openforge-cms.avatar-item").component;
+    const AvatarGroup = registry.get("openforge-cms.avatar-group").component;
+
+    const html = renderToStaticMarkup(
+      AvatarGroup({
+        caption: "Trusted by 200+ teams",
+        slots: {
+          items: [
+            AvatarItem({ image: "https://example.test/a.png", name: "Ada" }),
+            AvatarItem({ image: "https://example.test/b.png", name: "Grace" }),
+          ],
+        },
+      }),
+    );
+
+    expect(html).toContain("Trusted by 200+ teams");
+    expect(html).toContain('alt="Ada"');
+    expect(html).toContain('alt="Grace"');
+  });
+
+  it("renders the Rating block's filled stars up to its value", () => {
+    const Rating = registry.get("openforge-cms.rating").component;
+    const html = renderToStaticMarkup(
+      Rating({ value: "3", label: "3 out of 5" }),
+    );
+    expect(html.match(/of-rating-star-filled/gu) ?? []).toHaveLength(3);
+  });
+
+  it("renders the Progress block's fill width clamped to 0-100", () => {
+    const Progress = registry.get("openforge-cms.progress").component;
+    const html = renderToStaticMarkup(
+      Progress({ label: "Goal", percent: "70" }),
+    );
+    expect(html).toContain('style="width:70%"');
+    expect(html).toContain('aria-valuenow="70"');
   });
 
   it("renders the Heading block's select-controlled level", () => {
