@@ -232,6 +232,12 @@ importers:
 
   packages/storage: {}
 
+  packages/theme-sdk:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
   packages/vercel:
     dependencies:
       '@openforge/integration-security':
