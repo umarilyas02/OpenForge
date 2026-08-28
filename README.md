@@ -148,7 +148,7 @@ apps/cms-renderer (Next.js, multi-tenant)
 | Area | Responsibility |
 |---|---|
 | `apps/cms-renderer` | Multi-tenant Next.js app: resolves the requesting site and renders its published content. |
-| `apps/cms-admin` | Login-gated admin UI: sites, content, and the recursive block-tree page editor. |
+| `apps/cms-admin` | Login-gated admin UI: sites, content templates, a drag-and-drop block-tree editor, and per-site appearance customization. |
 | `packages/db` | Drizzle schema/migrations for tenancy, sessions, sites, content, assets, menus, and theme installations. |
 | `packages/auth` | Password hashing, hashed-token sessions, and cross-tenant authorization. |
 | `packages/theme-sdk` | Theme manifest schema and the runtime registry that resolves a theme's templates and block components. |
@@ -156,10 +156,11 @@ apps/cms-renderer (Next.js, multi-tenant)
 | `packages/renderer` | Block-tree rendering and per-site design-token CSS. |
 | `themes/*` | Installable themes built on `theme-sdk` and `cms-blocks` (starts with `themes/default`). |
 
-`apps/cms-admin` covers login, sites, and content (including the block-tree
-editor). A media library, theme customizer, and org management UI are not
-built yet — the seed script (`tooling/scripts/seed-cms-demo.js`) or direct
-`packages/db` access still covers what the UI doesn't.
+`apps/cms-admin` covers login, sites, content (starter templates plus a
+drag-and-drop block-tree editor), and per-site appearance (color-token
+overrides). A media library, multi-theme switching, and org management UI
+are not built yet — the seed script (`tooling/scripts/seed-cms-demo.js`) or
+direct `packages/db` access still covers what the UI doesn't.
 
 ## How source editing works
 
