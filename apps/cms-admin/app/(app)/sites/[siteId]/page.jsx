@@ -1,6 +1,6 @@
 import { assertSiteAccess } from "@openforge/auth";
 import { schema } from "@openforge/db";
-import { Button, Heading } from "@primer/react";
+import { Button } from "@primer/react";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -33,32 +33,66 @@ export default async function SiteOverviewPage({ params }) {
 
   return (
     <div className="stack">
-      <Link className="muted" href="/sites">
+      <Link className="breadcrumb" href="/sites">
         ← Sites
       </Link>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div className="page-header">
         <div>
-          <Heading as="h1">{site.name}</Heading>
-          <p className="muted">
-            /{site.slug} · {site.status}
+          <h1 className="page-title">{site.name}</h1>
+          <p className="page-subtitle">
+            /{site.slug} ·{" "}
+            <span
+              className={
+                site.status === "published"
+                  ? "badge badge-published"
+                  : "badge badge-draft"
+              }
+            >
+              {site.status}
+            </span>
           </p>
         </div>
-        <Link href={`/sites/${site.id}/content/new`}>
-          <Button variant="primary">New page</Button>
-        </Link>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Link href={`/sites/${site.id}/appearance`}>
+            <Button>Appearance</Button>
+          </Link>
+          <Link href={`/sites/${site.id}/content/new`}>
+            <Button variant="primary">New page</Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="card">
-        {contentItems.length === 0 ? (
-          <p className="muted">No content yet.</p>
-        ) : (
-          contentItems.map((item) => (
-            <div className="list-row" key={item.id}>
+      {contentItems.length === 0 ? (
+        <div className="empty-state">
+          <span className="empty-state-icon" aria-hidden="true">
+            <svg fill="none" height="20" viewBox="0 0 16 16" width="20">
+              <path
+                d="M4 2h5l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Z"
+                stroke="currentColor"
+                strokeWidth="1.3"
+              />
+              <path d="M9 2v3h3" stroke="currentColor" strokeWidth="1.3" />
+            </svg>
+          </span>
+          <p className="empty-state-title">No content yet</p>
+          <p className="empty-state-body">
+            Start from a blank page or a starter template.
+          </p>
+          <Link href={`/sites/${site.id}/content/new`}>
+            <Button variant="primary">New page</Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="card">
+          {contentItems.map((item) => (
+            <Link
+              className="list-row"
+              href={`/sites/${site.id}/content/${item.id}`}
+              key={item.id}
+            >
               <div>
-                <Link href={`/sites/${site.id}/content/${item.id}`}>
-                  <strong>{item.title}</strong>
-                </Link>
-                <div className="muted">
+                <div className="list-row-title">{item.title}</div>
+                <div className="list-row-meta">
                   /{item.slug} · {item.type}
                 </div>
               </div>
@@ -71,10 +105,10 @@ export default async function SiteOverviewPage({ params }) {
               >
                 {item.status}
               </span>
-            </div>
-          ))
-        )}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

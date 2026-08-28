@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Heading, TextInput } from "@primer/react";
+import { Button, TextInput } from "@primer/react";
 import { useActionState } from "react";
 
 import { login } from "./actions.js";
@@ -12,32 +12,40 @@ export default function LoginPage() {
 
   return (
     <div className="page-narrow">
-      <div className="card stack">
-        <Heading as="h1">Sign in</Heading>
+      <div className="card stack" style={{ width: "100%" }}>
+        <div>
+          <span className="app-brand-mark">OF</span>
+        </div>
+        <div>
+          <h1 className="page-title">Sign in</h1>
+          <p className="page-subtitle">OpenForge CMS admin</p>
+        </div>
         <form action={formAction} className="stack">
           <div className="form-field">
             <label htmlFor="email">Email</label>
             <TextInput
+              autoComplete="email"
+              block
               id="email"
               name="email"
-              type="email"
               required
-              autoComplete="email"
+              type="email"
             />
           </div>
           <div className="form-field">
             <label htmlFor="password">Password</label>
             <TextInput
+              autoComplete="current-password"
+              block
               id="password"
               name="password"
-              type="password"
               required
-              autoComplete="current-password"
+              type="password"
             />
           </div>
           {state.error ? <p className="form-error">{state.error}</p> : null}
           <div className="form-actions">
-            <Button type="submit" disabled={pending} variant="primary">
+            <Button block disabled={pending} type="submit" variant="primary">
               {pending ? "Signing in…" : "Sign in"}
             </Button>
           </div>

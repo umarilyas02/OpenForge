@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Checkbox, Heading, TextInput } from "@primer/react";
+import { Button, Checkbox, TextInput } from "@primer/react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { BlockList } from "./BlockList.jsx";
@@ -47,49 +48,72 @@ export function ContentEditor({
 
   return (
     <div className="stack">
-      <Heading as="h1">{title || "Untitled"}</Heading>
-
-      <div className="card stack">
-        <div className="form-field">
-          <label htmlFor="title">Title</label>
-          <TextInput
-            id="title"
-            onChange={(event) => setTitle(event.target.value)}
-            value={title}
-          />
+      <Link className="breadcrumb" href={`/sites/${siteId}`}>
+        ← Back
+      </Link>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">{title || "Untitled"}</h1>
+          <p className="page-subtitle">/{slug || "…"}</p>
         </div>
-        <div className="form-field">
-          <label htmlFor="slug">Slug</label>
-          <TextInput
-            id="slug"
-            onChange={(event) => setSlug(event.target.value)}
-            value={slug}
-          />
-        </div>
-        <label style={{ alignItems: "center", display: "flex", gap: 8 }}>
-          <Checkbox
-            checked={published}
-            onChange={(event) => setPublished(event.target.checked)}
-          />
-          Published
-        </label>
       </div>
 
-      <div className="card">
-        <BlockList
-          allowedBlockIds={allowedBlockIds}
-          catalog={catalog}
-          nodes={blockTree}
-          onChange={setBlockTree}
-        />
-      </div>
+      <div className="editor-layout">
+        <div className="block-canvas">
+          <BlockList
+            allowedBlockIds={allowedBlockIds}
+            catalog={catalog}
+            nodes={blockTree}
+            onChange={setBlockTree}
+          />
+        </div>
 
-      {error ? <p className="form-error">{error}</p> : null}
-      {savedAt ? <p className="muted">Saved.</p> : null}
-      <div className="form-actions">
-        <Button disabled={pending} onClick={handleSave} variant="primary">
-          {pending ? "Saving…" : "Save"}
-        </Button>
+        <aside className="editor-rail card stack">
+          <div className="editor-rail-section">
+            <p className="editor-rail-label">Page</p>
+            <div className="stack">
+              <div className="form-field">
+                <label htmlFor="title">Title</label>
+                <TextInput
+                  block
+                  id="title"
+                  onChange={(event) => setTitle(event.target.value)}
+                  value={title}
+                />
+              </div>
+              <div className="form-field">
+                <label htmlFor="slug">Slug</label>
+                <TextInput
+                  block
+                  id="slug"
+                  onChange={(event) => setSlug(event.target.value)}
+                  value={slug}
+                />
+              </div>
+              <div className="toggle-row">
+                <Checkbox
+                  checked={published}
+                  id="published"
+                  onChange={(event) => setPublished(event.target.checked)}
+                />
+                <label htmlFor="published">Published</label>
+              </div>
+            </div>
+          </div>
+
+          <div className="editor-rail-section stack-sm">
+            {error ? <p className="form-error">{error}</p> : null}
+            {savedAt ? <p className="toast-success">✓ Saved</p> : null}
+            <Button
+              block
+              disabled={pending}
+              onClick={handleSave}
+              variant="primary"
+            >
+              {pending ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </aside>
       </div>
     </div>
   );

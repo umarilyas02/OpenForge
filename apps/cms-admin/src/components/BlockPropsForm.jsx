@@ -8,22 +8,20 @@ export function BlockPropsForm({ definition, props, onChange }) {
   }
 
   return (
-    <div className="stack" style={{ marginTop: 8 }}>
+    <div className="stack-sm">
       {definition.editableFields.map((field) => {
         const value = props[field.path] ?? "";
 
         if (field.control === "boolean") {
           return (
-            <label
-              key={field.path}
-              style={{ alignItems: "center", display: "flex", gap: 8 }}
-            >
+            <div className="toggle-row" key={field.path}>
               <Checkbox
                 checked={Boolean(value)}
+                id={`field-${field.path}`}
                 onChange={(event) => setField(field.path, event.target.checked)}
               />
-              {field.label}
-            </label>
+              <label htmlFor={`field-${field.path}`}>{field.label}</label>
+            </div>
           );
         }
 
@@ -35,9 +33,11 @@ export function BlockPropsForm({ definition, props, onChange }) {
                 {field.required ? " *" : ""}
               </label>
               <Textarea
+                block
                 id={`field-${field.path}`}
-                value={value}
                 onChange={(event) => setField(field.path, event.target.value)}
+                rows={3}
+                value={value}
               />
             </div>
           );
@@ -50,9 +50,10 @@ export function BlockPropsForm({ definition, props, onChange }) {
               {field.required ? " *" : ""}
             </label>
             <TextInput
+              block
               id={`field-${field.path}`}
-              value={value}
               onChange={(event) => setField(field.path, event.target.value)}
+              value={value}
             />
           </div>
         );
