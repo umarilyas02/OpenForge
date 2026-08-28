@@ -237,6 +237,28 @@ importers:
         specifier: workspace:*
         version: link:../config
 
+  packages/renderer:
+    dependencies:
+      '@openforge/design-tokens':
+        specifier: workspace:*
+        version: link:../design-tokens
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../theme-sdk
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
   packages/schemas:
     dependencies:
       zod:
