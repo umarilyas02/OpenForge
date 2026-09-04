@@ -37,11 +37,11 @@ export default async function SitesPage() {
               />
             </svg>
           </span>
-          <p className="empty-state-title">No organization yet</p>
+          <p className="empty-state-title">Account setup incomplete</p>
           <p className="empty-state-body">
-            You don&apos;t belong to an active organization. Create one and add
-            yourself as a member via <code>tooling/scripts</code>, then reload
-            this page.
+            Your account isn&apos;t fully set up yet. Run{" "}
+            <code>node tooling/scripts/create-user.js</code> to finish setup,
+            then reload this page.
           </p>
         </div>
       </div>

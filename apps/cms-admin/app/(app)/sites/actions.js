@@ -35,7 +35,7 @@ export async function createSite(_prevState, formData) {
   if (!membership) {
     return {
       error:
-        "You don't belong to an active organization yet — create one via the seed script.",
+        "Your account isn't fully set up yet — run tooling/scripts/create-user.js to finish setup.",
     };
   }
 
