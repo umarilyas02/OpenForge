@@ -1,12 +1,17 @@
 import { assertSiteAccess } from "@openforge/auth";
 import { schema } from "@openforge/db";
-import { Button } from "@primer/react";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { NewPageForm } from "../../../../../src/components/NewPageForm.jsx";
 import { getDb } from "../../../../../src/lib/db.js";
 import { getMemberships, requireUser } from "../../../../../src/lib/session.js";
+import {
+  getWorkspaceManager,
+  listPages,
+} from "../../../../../src/lib/site-workspace.js";
+import { createPage } from "./pages/actions.js";
 
 export default async function SiteOverviewPage({ params }) {
   const { siteId } = await params;
@@ -26,19 +31,15 @@ export default async function SiteOverviewPage({ params }) {
     notFound();
   }
 
-  const contentItems = await db
-    .select()
-    .from(schema.contentItems)
-    .where(eq(schema.contentItems.siteId, site.id));
-
-  const stats = {
-    total: contentItems.length,
-    pages: contentItems.filter((item) => item.type === "page").length,
-    posts: contentItems.filter((item) => item.type === "post").length,
-    published: contentItems.filter((item) => item.status === "published")
-      .length,
-    draft: contentItems.filter((item) => item.status === "draft").length,
-  };
+  const manager = getWorkspaceManager();
+  let pages = [];
+  let workspaceError = null;
+  try {
+    const files = await manager.readFiles(site.slug);
+    pages = listPages(files);
+  } catch (error) {
+    workspaceError = error.message;
+  }
 
   return (
     <div className="stack">
@@ -58,27 +59,12 @@ export default async function SiteOverviewPage({ params }) {
             </span>
           </p>
         </div>
-        <Link href={`/sites/${site.id}/content/new`}>
-          <Button variant="primary">New page</Button>
-        </Link>
       </div>
 
       <div className="stats-row">
         <div className="stat-card">
-          <span className="stat-card-value">{stats.pages}</span>
+          <span className="stat-card-value">{pages.length}</span>
           <span className="stat-card-label">Pages</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-card-value">{stats.posts}</span>
-          <span className="stat-card-label">Posts</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-card-value">{stats.published}</span>
-          <span className="stat-card-label">Published</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-card-value">{stats.draft}</span>
-          <span className="stat-card-label">Draft</span>
         </div>
       </div>
 
@@ -97,7 +83,11 @@ export default async function SiteOverviewPage({ params }) {
         </Link>
       </div>
 
-      {contentItems.length === 0 ? (
+      {workspaceError ? (
+        <p className="form-error">
+          Could not read this site&apos;s project files: {workspaceError}
+        </p>
+      ) : pages.length === 0 ? (
         <div className="empty-state">
           <span className="empty-state-icon" aria-hidden="true">
             <svg fill="none" height="20" viewBox="0 0 16 16" width="20">
@@ -109,41 +99,25 @@ export default async function SiteOverviewPage({ params }) {
               <path d="M9 2v3h3" stroke="currentColor" strokeWidth="1.3" />
             </svg>
           </span>
-          <p className="empty-state-title">No content yet</p>
+          <p className="empty-state-title">No pages yet</p>
           <p className="empty-state-body">
-            Start from a blank page or a starter template.
+            Create the homepage to get started.
           </p>
-          <Link href={`/sites/${site.id}/content/new`}>
-            <Button variant="primary">New page</Button>
-          </Link>
         </div>
       ) : (
         <div className="card">
-          {contentItems.map((item) => (
-            <Link
-              className="list-row"
-              href={`/sites/${site.id}/content/${item.id}`}
-              key={item.id}
-            >
+          {pages.map((page) => (
+            <div className="list-row" key={page.filePath}>
               <div>
-                <div className="list-row-title">{item.title}</div>
-                <div className="list-row-meta">
-                  /{item.slug} · {item.type}
-                </div>
+                <div className="list-row-title">{page.urlPath}</div>
+                <div className="list-row-meta">{page.filePath}</div>
               </div>
-              <span
-                className={
-                  item.status === "published"
-                    ? "badge badge-published"
-                    : "badge badge-draft"
-                }
-              >
-                {item.status}
-              </span>
-            </Link>
+            </div>
           ))}
         </div>
       )}
+
+      <NewPageForm createPage={createPage} siteId={site.id} />
     </div>
   );
 }

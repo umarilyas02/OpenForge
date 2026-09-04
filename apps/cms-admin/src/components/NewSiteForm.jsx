@@ -21,7 +21,8 @@ export function NewSiteForm({ createSite }) {
         <div>
           <h1 className="page-title">New site</h1>
           <p className="page-subtitle">
-            Installs the default theme automatically.
+            Creates a real Next.js project for this site, seeded with a starter
+            page.
           </p>
         </div>
       </div>

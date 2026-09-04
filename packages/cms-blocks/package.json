@@ -8,10 +8,12 @@
   "exports": {
     ".": "./src/index.js",
     "./blocks.css": "./src/blocks.css",
-    "./generate-standalone-block": "./src/generate-standalone-block.js"
+    "./generate-standalone-block": "./src/generate-standalone-block.js",
+    "./standalone/*.jsx": "./dist/standalone/*.jsx"
   },
   "files": [
     "src",
+    "dist/standalone",
     "README.md"
   ],
   "scripts": {

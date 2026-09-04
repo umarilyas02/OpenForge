@@ -118,6 +118,7 @@ export const cmsAdminEnvSchema = z
     NODE_ENV: nodeEnvField,
     PORT: portField,
     DATABASE_URL: requiredUrl(),
+    SITES_STORAGE_PATH: optionalString(),
   })
   .strict();
 

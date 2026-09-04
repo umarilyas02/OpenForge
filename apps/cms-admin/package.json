@@ -20,6 +20,7 @@
     "@openforge/design-tokens": "workspace:*",
     "@openforge/renderer": "workspace:*",
     "@openforge/theme-default": "workspace:*",
+    "@openforge/workspace": "workspace:*",
     "@primer/octicons-react": "19.31.0",
     "@primer/react": "38.34.0",
     "drizzle-orm": "0.45.2",

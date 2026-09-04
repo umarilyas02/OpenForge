@@ -53,6 +53,9 @@ importers:
       '@openforge/theme-default':
         specifier: workspace:*
         version: link:../../themes/default
+      '@openforge/workspace':
+        specifier: workspace:*
+        version: link:../../packages/workspace
       '@primer/octicons-react':
         specifier: 19.31.0
         version: 19.31.0(react@19.2.8)
