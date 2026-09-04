@@ -13,8 +13,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@babel/parser": "8.0.4",
+    "@babel/types": "8.0.4",
     "@openforge/auth": "workspace:*",
     "@openforge/cms-blocks": "workspace:*",
+    "@openforge/compiler": "workspace:*",
     "@openforge/config": "workspace:*",
     "@openforge/db": "workspace:*",
     "@openforge/design-tokens": "workspace:*",

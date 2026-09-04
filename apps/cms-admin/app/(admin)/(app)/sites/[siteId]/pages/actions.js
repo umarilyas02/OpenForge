@@ -10,6 +10,7 @@ import {
   getMemberships,
   requireUser,
 } from "../../../../../../src/lib/session.js";
+import { componentPathForBlock } from "../../../../../../src/lib/block-files.js";
 import { getWorkspaceManager } from "../../../../../../src/lib/site-workspace.js";
 
 const PATH_SEGMENT_PATTERN = /^[a-z0-9][a-z0-9-]*(\/[a-z0-9][a-z0-9-]*)*$/u;
@@ -74,7 +75,7 @@ export async function createPage(siteId, _prevState, formData) {
     return { error: `A page already exists at "${rawPath || "/"}".` };
   }
 
-  const source = `import RichText from "${importPrefix}components/openforge/RichText.jsx";
+  const source = `import RichText from "${importPrefix}${componentPathForBlock("openforge-cms.rich-text")}";
 
 export default function Page() {
   return <RichText content="New page. Edit me from the canvas or right here in the code." />;

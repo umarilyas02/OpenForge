@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { componentPathForBlock } from "./block-files.js";
+
 // Plain relative paths, not `import.meta.resolve("@openforge/cms-blocks/...")`:
 // confirmed live that a standalone production build's file tracer doesn't
 // resolve @openforge/cms-blocks as a package at all when it's only ever
@@ -85,9 +87,12 @@ export async function buildStarterFiles(site) {
     },
     {
       path: "app/page.jsx",
-      source: `import Hero from "../components/openforge/Hero.jsx";\nimport RichText from "../components/openforge/RichText.jsx";\n\nexport default function Page() {\n  return (\n    <>\n      <Hero heading=${JSON.stringify(`Welcome to ${site.name}`)} ctaLabel="Get started" ctaHref="#" />\n      <RichText content="Edit this page from the admin, or right here in the code — they stay in sync." />\n    </>\n  );\n}\n`,
+      source: `import Hero from "../${componentPathForBlock("openforge-cms.hero")}";\nimport RichText from "../${componentPathForBlock("openforge-cms.rich-text")}";\n\nexport default function Page() {\n  return (\n    <>\n      <Hero heading=${JSON.stringify(`Welcome to ${site.name}`)} ctaLabel="Get started" ctaHref="#" />\n      <RichText content="Edit this page from the admin, or right here in the code — they stay in sync." />\n    </>\n  );\n}\n`,
     },
-    { path: "components/openforge/Hero.jsx", source: heroSource },
-    { path: "components/openforge/RichText.jsx", source: richTextSource },
+    { path: componentPathForBlock("openforge-cms.hero"), source: heroSource },
+    {
+      path: componentPathForBlock("openforge-cms.rich-text"),
+      source: richTextSource,
+    },
   ];
 }

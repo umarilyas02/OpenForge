@@ -32,12 +32,21 @@ importers:
 
   apps/cms-admin:
     dependencies:
+      '@babel/parser':
+        specifier: 8.0.4
+        version: 8.0.4
+      '@babel/types':
+        specifier: 8.0.4
+        version: 8.0.4
       '@openforge/auth':
         specifier: workspace:*
         version: link:../../packages/auth
       '@openforge/cms-blocks':
         specifier: workspace:*
         version: link:../../packages/cms-blocks
+      '@openforge/compiler':
+        specifier: workspace:*
+        version: link:../../packages/compiler
       '@openforge/config':
         specifier: workspace:*
         version: link:../../packages/config
