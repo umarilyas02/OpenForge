@@ -1,4 +1,4 @@
-import "./blocks.css";
+import "@openforge/cms-blocks/blocks.css";
 import "./tailwind.css";
 
 export const metadata = {

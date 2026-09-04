@@ -1,0 +1,34 @@
+/* No Preflight, same reasoning as apps/cms-renderer/app/tailwind.css: this
+   route also loads @openforge/cms-blocks/blocks.css, which already
+   establishes its own base resets and typography on the --of-* token
+   system. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* packages/cms-blocks is a sibling workspace package, outside this app's
+   own directory tree, so Tailwind's automatic source detection won't find
+   it without an explicit @source. */
+@source "../../../../packages/cms-blocks/src/**/*.jsx";
+
+@theme {
+  --animate-marquee-slow: marquee-text 45s linear infinite;
+  --animate-marquee-normal: marquee-text 28s linear infinite;
+  --animate-marquee-fast: marquee-text 14s linear infinite;
+}
+
+@keyframes marquee-text {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-slow,
+  .animate-marquee-normal,
+  .animate-marquee-fast {
+    animation: none;
+  }
+}

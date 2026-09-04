@@ -9,10 +9,10 @@ import { invariant } from "./errors.js";
  * which region; the block registry validates and migrates each instance's
  * props before the theme's component ever sees them.
  *
- * @param {{ theme: { getBlockComponent: Function }, blockRegistry: { migrateInstance: Function, validateProps: Function } }} options
+ * @param {{ theme: { getBlockComponent: Function }, blockRegistry: { migrateInstance: Function, validateProps: Function }, wrapNode?: (element: unknown, path: (string|number)[], migrated: { blockId: string, blockVersion: number, props: object }) => unknown }} options
  */
-export function createRenderer({ theme, blockRegistry }) {
-  function renderNode(node) {
+export function createRenderer({ theme, blockRegistry, wrapNode }) {
+  function renderNode(node, path = []) {
     const migrated = blockRegistry.migrateInstance({
       blockId: node.blockId,
       blockVersion: node.blockVersion,
@@ -26,11 +26,16 @@ export function createRenderer({ theme, blockRegistry }) {
     const slots = {};
     for (const [slotName, children] of Object.entries(node.slots ?? {})) {
       slots[slotName] = children.map((child, index) =>
-        createElement(Fragment, { key: index }, renderNode(child)),
+        createElement(
+          Fragment,
+          { key: index },
+          renderNode(child, [...path, "slots", slotName, index]),
+        ),
       );
     }
 
-    return createElement(Component, { ...migrated.props, slots });
+    const element = createElement(Component, { ...migrated.props, slots });
+    return wrapNode ? wrapNode(element, path, migrated) : element;
   }
 
   /**
@@ -48,7 +53,7 @@ export function createRenderer({ theme, blockRegistry }) {
       Fragment,
       null,
       ...nodes.map((node, index) =>
-        createElement(Fragment, { key: index }, renderNode(node)),
+        createElement(Fragment, { key: index }, renderNode(node, [index])),
       ),
     );
   }

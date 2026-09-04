@@ -35,6 +35,9 @@ importers:
       '@openforge/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
       '@openforge/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -71,6 +74,13 @@ importers:
       react-dom:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: 4.3.3
+        version: 4.3.3
+      tailwindcss:
+        specifier: 4.3.3
+        version: 4.3.3
 
   apps/cms-renderer:
     dependencies:

@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@openforge/auth": "workspace:*",
+    "@openforge/cms-blocks": "workspace:*",
     "@openforge/config": "workspace:*",
     "@openforge/db": "workspace:*",
     "@openforge/design-tokens": "workspace:*",
@@ -29,5 +30,9 @@
   },
   "engines": {
     "node": ">=24.11.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "tailwindcss": "4.3.3"
   }
 }

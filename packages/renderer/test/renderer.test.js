@@ -114,4 +114,69 @@ describe("createRenderer", () => {
 
     expect(() => renderer.renderTree([])).toThrow(RendererError);
   });
+
+  it("calls wrapNode with the correct path for every node, including nested slot children", () => {
+    const calls = [];
+    const renderer = createRenderer({
+      theme,
+      blockRegistry,
+      wrapNode: (element, path, migrated) => {
+        calls.push({ path, blockId: migrated.blockId });
+        return element;
+      },
+    });
+
+    markup(
+      renderer.renderTree([
+        {
+          blockId: "openforge-cms.hero",
+          blockVersion: 1,
+          props: { heading: "Hello" },
+        },
+        {
+          blockId: "openforge-cms.columns",
+          blockVersion: 1,
+          props: { heading: "Features" },
+          slots: {
+            items: [
+              {
+                blockId: "openforge-cms.rich-text",
+                blockVersion: 1,
+                props: { content: "Column one" },
+              },
+            ],
+          },
+        },
+      ]),
+    );
+
+    expect(calls).toEqual([
+      { path: [0], blockId: "openforge-cms.hero" },
+      { path: [1, "slots", "items", 0], blockId: "openforge-cms.rich-text" },
+      { path: [1], blockId: "openforge-cms.columns" },
+    ]);
+  });
+
+  it("renders byte-identical output whether or not wrapNode is provided", () => {
+    const tree = [
+      {
+        blockId: "openforge-cms.hero",
+        blockVersion: 1,
+        props: { heading: "Hello" },
+      },
+    ];
+
+    const withoutHook = markup(
+      createRenderer({ theme, blockRegistry }).renderTree(tree),
+    );
+    const withPassthroughHook = markup(
+      createRenderer({
+        theme,
+        blockRegistry,
+        wrapNode: (element) => element,
+      }).renderTree(tree),
+    );
+
+    expect(withPassthroughHook).toBe(withoutHook);
+  });
 });
