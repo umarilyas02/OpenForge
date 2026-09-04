@@ -2,38 +2,8 @@
 
 import { useState } from "react";
 
+import { BlockPalette } from "./BlockPalette.jsx";
 import { BlockPropsForm } from "./BlockPropsForm.jsx";
-
-function AddBlockPicker({ allowedBlockIds, catalog, onAdd }) {
-  const options = catalog.filter((definition) =>
-    allowedBlockIds.includes(definition.id),
-  );
-
-  if (options.length === 0) return null;
-
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-      {options.map((definition) => (
-        <button
-          className="add-block-btn"
-          key={definition.id}
-          onClick={() => onAdd(definition.id)}
-          type="button"
-        >
-          <svg fill="none" height="12" viewBox="0 0 16 16" width="12">
-            <path
-              d="M8 3v10M3 8h10"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="1.5"
-            />
-          </svg>
-          {definition.name}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function DragHandle({ onDragStartAllowed }) {
   return (
@@ -262,7 +232,7 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
         );
       })}
 
-      <AddBlockPicker
+      <BlockPalette
         allowedBlockIds={allowedBlockIds}
         catalog={catalog}
         onAdd={addNode}

@@ -29,10 +29,16 @@ export default function CanvasPage() {
       setError(null);
       setTree(event.data.tree);
       setTokenOverrides(event.data.tokenOverrides ?? {});
+      // Acknowledge so the parent can stop its retry loop — see
+      // CanvasEditor.jsx's comment on why a single post-on-load isn't
+      // reliable enough on its own.
+      window.parent.postMessage(
+        { type: "of-canvas-ack" },
+        window.location.origin,
+      );
     }
 
     window.addEventListener("message", handleMessage);
-    window.parent.postMessage({ type: "of-canvas-ready" }, "*");
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
@@ -46,7 +52,7 @@ export default function CanvasPage() {
           event.stopPropagation();
           window.parent.postMessage(
             { type: "of-canvas-select", path, blockId: migrated.blockId },
-            "*",
+            window.location.origin,
           );
         }}
         style={{ display: "contents" }}
@@ -96,7 +102,10 @@ export default function CanvasPage() {
   return (
     <div
       onClick={() =>
-        window.parent.postMessage({ type: "of-canvas-select", path: null }, "*")
+        window.parent.postMessage(
+          { type: "of-canvas-select", path: null },
+          window.location.origin,
+        )
       }
     >
       {/* Token CSS is generated and validated by packages/design-tokens, never raw user input. */}
