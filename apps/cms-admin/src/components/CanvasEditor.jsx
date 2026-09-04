@@ -33,12 +33,14 @@ export function CanvasEditor({
         setCanvasAcked(true);
       } else if (event.data?.type === "of-canvas-select") {
         setSelectedPath(event.data.path);
+      } else if (event.data?.type === "of-canvas-reorder") {
+        onChange(event.data.tree);
       }
     }
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, [onChange]);
 
   useEffect(() => {
     function sendTree() {
