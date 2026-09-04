@@ -1,39 +1,8 @@
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-
-import { componentPathForBlock } from "./block-files.js";
-
-// Plain relative paths, not `import.meta.resolve("@openforge/cms-blocks/...")`:
-// confirmed live that a standalone production build's file tracer doesn't
-// resolve @openforge/cms-blocks as a package at all when it's only ever
-// reached via a dynamic, block-id-parameterized specifier (the whole point,
-// since any of the 38 blocks can be inserted into a site) — the package
-// silently isn't copied into .next/standalone/node_modules, and site
-// creation fails at runtime with no build-time warning. next.config.js's
-// outputFileTracingIncludes instead copies these files to a path that
-// mirrors the monorepo's own layout, which a plain relative path (computed
-// from this file's own location) resolves identically in both the source
-// tree and the deployed standalone tree.
-const CMS_BLOCKS_STANDALONE_DIR = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../packages/cms-blocks/dist/standalone",
-);
-const CMS_BLOCKS_CSS_PATH = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../packages/cms-blocks/src/blocks.css",
-);
-
-/**
- * @param {string} blockFileName e.g. "hero.jsx"
- */
-async function readStandaloneBlock(blockFileName) {
-  return readFile(path.join(CMS_BLOCKS_STANDALONE_DIR, blockFileName), "utf8");
-}
-
-async function readBlocksCss() {
-  return readFile(CMS_BLOCKS_CSS_PATH, "utf8");
-}
+import {
+  componentPathForBlock,
+  readBlocksCss,
+  readStandaloneBlockSource,
+} from "./block-files.js";
 
 /**
  * Builds the initial file set for a brand-new site: a minimal, real,
@@ -43,12 +12,18 @@ async function readBlocksCss() {
  * from then on, the project IS the site; there is no separate database
  * representation of its content.
  *
+ * Every page's root is a real, non-self-closing <main> element (not a bare
+ * `<>...</>` fragment) so it always has a valid @openforge/compiler
+ * insertion target: a Fragment can only be targeted with "before"/"after",
+ * not "inside-start"/"inside-end", so a page emptied down to zero blocks
+ * would have nowhere for the next inserted block to land.
+ *
  * @param {{ name: string, slug: string }} site
  */
 export async function buildStarterFiles(site) {
   const [heroSource, richTextSource, blocksCss] = await Promise.all([
-    readStandaloneBlock("hero.jsx"),
-    readStandaloneBlock("rich-text.jsx"),
+    readStandaloneBlockSource("openforge-cms.hero"),
+    readStandaloneBlockSource("openforge-cms.rich-text"),
     readBlocksCss(),
   ]);
 
@@ -87,7 +62,7 @@ export async function buildStarterFiles(site) {
     },
     {
       path: "app/page.jsx",
-      source: `import Hero from "../${componentPathForBlock("openforge-cms.hero")}";\nimport RichText from "../${componentPathForBlock("openforge-cms.rich-text")}";\n\nexport default function Page() {\n  return (\n    <>\n      <Hero heading=${JSON.stringify(`Welcome to ${site.name}`)} ctaLabel="Get started" ctaHref="#" />\n      <RichText content="Edit this page from the admin, or right here in the code — they stay in sync." />\n    </>\n  );\n}\n`,
+      source: `import Hero from "../${componentPathForBlock("openforge-cms.hero")}";\nimport RichText from "../${componentPathForBlock("openforge-cms.rich-text")}";\n\nexport default function Page() {\n  return (\n    <main>\n      <Hero heading=${JSON.stringify(`Welcome to ${site.name}`)} ctaLabel="Get started" ctaHref="#" />\n      <RichText content="Edit this page from the admin, or right here in the code — they stay in sync." />\n    </main>\n  );\n}\n`,
     },
     { path: componentPathForBlock("openforge-cms.hero"), source: heroSource },
     {

@@ -87,9 +87,9 @@ export default function Page() {
     expect(tree[0].slots.items[0].id).toBeTruthy();
   });
 
-  it("skips JSX elements that don't resolve to a known components/openforge block", () => {
+  it("walks into a non-block wrapper element's children (matching a real page's <main> root)", () => {
     const files = [
-      { path: "package.json", source: '{"name":"skip-test"}' },
+      { path: "package.json", source: '{"name":"wrapper-test"}' },
       {
         path: "app/page.jsx",
         source: `import RichText from "../${componentPathForBlock("openforge-cms.rich-text")}";
@@ -106,7 +106,32 @@ export default function Page() {
     ];
 
     const tree = parsePageToBlockTree(files, "app/page.jsx");
-    expect(tree).toEqual([]);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].blockId).toBe("openforge-cms.rich-text");
+  });
+
+  it("skips a JSX element that doesn't resolve to a known components/openforge block", () => {
+    const files = [
+      { path: "package.json", source: '{"name":"skip-test"}' },
+      {
+        path: "app/page.jsx",
+        source: `import RichText from "../${componentPathForBlock("openforge-cms.rich-text")}";
+
+export default function Page() {
+  return (
+    <main>
+      <span>Not a block</span>
+      <RichText content="kept" />
+    </main>
+  );
+}
+`,
+      },
+    ];
+
+    const tree = parsePageToBlockTree(files, "app/page.jsx");
+    expect(tree).toHaveLength(1);
+    expect(tree[0].blockId).toBe("openforge-cms.rich-text");
   });
 
   it("throws when the page path doesn't exist in the given files", () => {

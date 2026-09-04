@@ -1,6 +1,30 @@
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
 const COMPONENTS_DIR = "components/openforge";
 const BLOCK_ID_PREFIX = "openforge-cms.";
 const COMPONENT_PATH_PATTERN = /^components\/openforge\/([a-z0-9-]+)\.jsx$/u;
+
+// Plain relative paths, not `import.meta.resolve("@openforge/cms-blocks/...")`:
+// confirmed live that a standalone production build's file tracer doesn't
+// resolve @openforge/cms-blocks as a package at all when it's only ever
+// reached via a dynamic, block-id-parameterized specifier (the whole point,
+// since any of the 38 blocks can be inserted into a site) — the package
+// silently isn't copied into .next/standalone/node_modules, and site
+// creation fails at runtime with no build-time warning. next.config.js's
+// outputFileTracingIncludes instead copies these files to a path that
+// mirrors the monorepo's own layout, which a plain relative path (computed
+// from this file's own location) resolves identically in both the source
+// tree and the deployed standalone tree.
+const CMS_BLOCKS_STANDALONE_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../../packages/cms-blocks/dist/standalone",
+);
+const CMS_BLOCKS_CSS_PATH = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../../packages/cms-blocks/src/blocks.css",
+);
 
 /**
  * Every block a site imports lives at `components/openforge/<kebab-id>.jsx`
@@ -37,4 +61,16 @@ export function standaloneFileNameForBlock(blockId) {
     throw new Error(`Unrecognized block id: ${blockId}`);
   }
   return `${blockId.slice(BLOCK_ID_PREFIX.length)}.jsx`;
+}
+
+/** The generated, dependency-free component source for a block, ready to be written into a site's own files. */
+export async function readStandaloneBlockSource(blockId) {
+  return readFile(
+    path.join(CMS_BLOCKS_STANDALONE_DIR, standaloneFileNameForBlock(blockId)),
+    "utf8",
+  );
+}
+
+export async function readBlocksCss() {
+  return readFile(CMS_BLOCKS_CSS_PATH, "utf8");
 }

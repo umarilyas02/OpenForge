@@ -190,6 +190,115 @@ export function parsePageToBlockTree(files, pagePath) {
   const root = findPageRootJsx(ast);
   if (!root) return [];
 
-  const topLevel = root.type === "JSXFragment" ? elementChildren(root) : [root];
-  return topLevel.map(buildNode).filter(Boolean);
+  // If the root JSX itself is a recognized block, the page is that one
+  // block with no wrapper. Otherwise (the normal case: a <main> wrapper,
+  // or a bare <>...</> fragment) its direct children are the top-level
+  // blocks.
+  const rootAsBlock = buildNode(root);
+  if (rootAsBlock) return [rootAsBlock];
+  return elementChildren(root).map(buildNode).filter(Boolean);
+}
+
+/**
+ * The node id of a page's own root JSX element (its `<main>` wrapper, in
+ * every page this app generates) — the insertion target for appending a
+ * new top-level block, since a Fragment root can only be targeted with
+ * "before"/"after", not "inside-end", leaving nowhere to insert into a
+ * page that's been emptied down to zero blocks.
+ *
+ * @param {Array<{path: string, source: string}>} files
+ * @param {string} pagePath
+ * @returns {string}
+ */
+export function findPageRootNodeId(files, pagePath) {
+  const page = files.find((file) => file.path === pagePath);
+  if (!page) {
+    throw new Error(`Page not found in workspace: ${pagePath}`);
+  }
+
+  const ast = parseSource(pagePath, page.source);
+  const root = findPageRootJsx(ast);
+  if (!root) {
+    throw new Error(`Page has no JSX root: ${pagePath}`);
+  }
+
+  const index = buildProjectIndex({ files });
+  const match = index.nodes.find(
+    (node) =>
+      node.filePath === pagePath &&
+      node.range?.start === root.start &&
+      node.range?.end === root.end,
+  );
+  if (!match) {
+    throw new Error(`Could not resolve the page root's node id: ${pagePath}`);
+  }
+  return match.id;
+}
+
+/**
+ * Finds one node (by the id parsePageToBlockTree assigned it) anywhere in
+ * a block tree, including inside slots.
+ *
+ * @param {object[]} tree
+ * @param {string} nodeId
+ * @returns {object|null}
+ */
+export function findNodeById(tree, nodeId) {
+  for (const node of tree) {
+    if (node.id === nodeId) return node;
+    for (const children of Object.values(node.slots ?? {})) {
+      const match = findNodeById(children, nodeId);
+      if (match) return match;
+    }
+  }
+  return null;
+}
+
+/**
+ * A node's position in a tree, independent of its (buildProjectIndex-
+ * derived) id — adding an import shifts every later node's id in a file,
+ * since a node's id is partly derived from its component's position among
+ * the file's top-level statements. locateNodeAddress/resolveNodeAddress
+ * bridge a node's identity across that kind of shift: capture the address
+ * before a mutation that might renumber ids, then resolve it again after,
+ * against a freshly re-parsed tree.
+ *
+ * @param {object[]} tree
+ * @param {string} nodeId
+ * @returns {Array<number|{slotName: string, index: number}>|null}
+ */
+export function locateNodeAddress(tree, nodeId) {
+  for (let i = 0; i < tree.length; i += 1) {
+    const address = searchFromNode(tree[i], nodeId, [i]);
+    if (address) return address;
+  }
+  return null;
+}
+
+function searchFromNode(node, nodeId, address) {
+  if (node.id === nodeId) return address;
+  for (const [slotName, children] of Object.entries(node.slots ?? {})) {
+    for (let i = 0; i < children.length; i += 1) {
+      const found = searchFromNode(children[i], nodeId, [
+        ...address,
+        { slotName, index: i },
+      ]);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+/**
+ * @param {object[]} tree
+ * @param {Array<number|{slotName: string, index: number}>} address
+ * @returns {object|null}
+ */
+export function resolveNodeAddress(tree, address) {
+  if (!Array.isArray(address) || address.length === 0) return null;
+  let node = tree[address[0]];
+  for (let i = 1; i < address.length && node; i += 1) {
+    node = node.slots?.[address[i].slotName]?.[address[i].index];
+  }
+  return node ?? null;
 }

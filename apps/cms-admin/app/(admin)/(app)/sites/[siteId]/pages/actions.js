@@ -78,7 +78,11 @@ export async function createPage(siteId, _prevState, formData) {
   const source = `import RichText from "${importPrefix}${componentPathForBlock("openforge-cms.rich-text")}";
 
 export default function Page() {
-  return <RichText content="New page. Edit me from the canvas or right here in the code." />;
+  return (
+    <main>
+      <RichText content="New page. Edit me from the canvas or right here in the code." />
+    </main>
+  );
 }
 `;
 
