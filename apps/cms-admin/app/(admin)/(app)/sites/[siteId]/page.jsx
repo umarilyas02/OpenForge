@@ -107,12 +107,16 @@ export default async function SiteOverviewPage({ params }) {
       ) : (
         <div className="card">
           {pages.map((page) => (
-            <div className="list-row" key={page.filePath}>
+            <Link
+              className="list-row"
+              href={`/sites/${site.id}/pages/editor?file=${encodeURIComponent(page.filePath)}`}
+              key={page.filePath}
+            >
               <div>
                 <div className="list-row-title">{page.urlPath}</div>
                 <div className="list-row-meta">{page.filePath}</div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

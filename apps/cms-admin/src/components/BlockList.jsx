@@ -31,43 +31,45 @@ function DragHandle({ onDragStartAllowed }) {
  * non-pointer fallback), removal, and — for blocks that declare slots — a
  * nested BlockList per slot scoped to that slot's acceptedTypes.
  *
- * @param {{ nodes: object[], onChange: (nodes: object[]) => void, allowedBlockIds: string[], catalog: object[] }} props
+ * Every interaction here is applied immediately as a real edit to the
+ * site's own files — there's no local tree mutation or a "Save" step.
+ * `containerNodeId` is this list's own container (the page's root node for
+ * a top-level BlockList, or the parent block's node id for a slot's), used
+ * when adding a new block here.
+ *
+ * @param {{
+ *   nodes: object[],
+ *   containerNodeId: string,
+ *   allowedBlockIds: string[],
+ *   catalog: object[],
+ *   onPropsChange: (nodeId: string, nextProps: object) => void,
+ *   onInsert: (blockId: string, containerNodeId: string) => void,
+ *   onRemove: (nodeId: string) => void,
+ *   onMove: (movedNodeId: string, destinationNodeId: string, position: "before"|"after") => void,
+ * }} props
  */
-export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
+export function BlockList({
+  nodes,
+  containerNodeId,
+  allowedBlockIds,
+  catalog,
+  onPropsChange,
+  onInsert,
+  onRemove,
+  onMove,
+}) {
   const [dragIndex, setDragIndex] = useState(null);
   const [dragAllowed, setDragAllowed] = useState(false);
   const [dropTarget, setDropTarget] = useState(null);
 
-  function updateNode(index, updater) {
-    onChange(
-      nodes.map((node, i) => (i === index ? updater({ ...node }) : node)),
+  function moveAdjacent(index, direction) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= nodes.length) return;
+    onMove(
+      nodes[index].id,
+      nodes[targetIndex].id,
+      direction < 0 ? "before" : "after",
     );
-  }
-
-  function removeNode(index) {
-    onChange(nodes.filter((_, i) => i !== index));
-  }
-
-  function moveNode(index, direction) {
-    const target = index + direction;
-    if (target < 0 || target >= nodes.length) return;
-    const next = [...nodes];
-    [next[index], next[target]] = [next[target], next[index]];
-    onChange(next);
-  }
-
-  function addNode(blockId) {
-    const definition = catalog.find((entry) => entry.id === blockId);
-    if (!definition) return;
-    onChange([
-      ...nodes,
-      {
-        blockId,
-        blockVersion: definition.version,
-        props: { ...definition.defaultProps },
-        slots: {},
-      },
-    ]);
   }
 
   function resetDrag() {
@@ -99,17 +101,10 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
       resetDrag();
       return;
     }
-    let targetIndex =
-      dropTarget.position === "before"
-        ? dropTarget.index
-        : dropTarget.index + 1;
-    if (dragIndex < targetIndex) targetIndex -= 1;
-
-    if (targetIndex !== dragIndex) {
-      const next = [...nodes];
-      const [moved] = next.splice(dragIndex, 1);
-      next.splice(targetIndex, 0, moved);
-      onChange(next);
+    const movedNodeId = nodes[dragIndex].id;
+    const destinationNodeId = nodes[dropTarget.index].id;
+    if (destinationNodeId !== movedNodeId) {
+      onMove(movedNodeId, destinationNodeId, dropTarget.position);
     }
     resetDrag();
   }
@@ -124,7 +119,7 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
           dropTarget?.index === index && dropTarget.position === "after";
 
         return (
-          <div key={`${node.blockId}-${index}`}>
+          <div key={node.id ?? `${node.blockId}-${index}`}>
             {showIndicatorBefore ? <div className="drop-indicator" /> : null}
             <div
               className="block-card"
@@ -147,7 +142,7 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
                     aria-label="Move up"
                     className="icon-btn-sm"
                     disabled={index === 0}
-                    onClick={() => moveNode(index, -1)}
+                    onClick={() => moveAdjacent(index, -1)}
                     type="button"
                   >
                     <svg fill="none" height="12" viewBox="0 0 16 16" width="12">
@@ -164,7 +159,7 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
                     aria-label="Move down"
                     className="icon-btn-sm"
                     disabled={index === nodes.length - 1}
-                    onClick={() => moveNode(index, 1)}
+                    onClick={() => moveAdjacent(index, 1)}
                     type="button"
                   >
                     <svg fill="none" height="12" viewBox="0 0 16 16" width="12">
@@ -181,7 +176,7 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
                     aria-label="Remove block"
                     className="icon-btn-sm"
                     data-danger="true"
-                    onClick={() => removeNode(index)}
+                    onClick={() => onRemove(node.id)}
                     type="button"
                   >
                     <svg fill="none" height="12" viewBox="0 0 16 16" width="12">
@@ -199,9 +194,7 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
               {definition ? (
                 <BlockPropsForm
                   definition={definition}
-                  onChange={(nextProps) =>
-                    updateNode(index, (n) => ({ ...n, props: nextProps }))
-                  }
+                  onChange={(nextProps) => onPropsChange(node.id, nextProps)}
                   props={node.props}
                 />
               ) : (
@@ -216,13 +209,12 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
                   <BlockList
                     allowedBlockIds={slot.acceptedTypes}
                     catalog={catalog}
+                    containerNodeId={node.id}
                     nodes={node.slots?.[slot.name] ?? []}
-                    onChange={(children) =>
-                      updateNode(index, (n) => ({
-                        ...n,
-                        slots: { ...n.slots, [slot.name]: children },
-                      }))
-                    }
+                    onInsert={onInsert}
+                    onMove={onMove}
+                    onPropsChange={onPropsChange}
+                    onRemove={onRemove}
                   />
                 </div>
               ))}
@@ -235,7 +227,7 @@ export function BlockList({ nodes, onChange, allowedBlockIds, catalog }) {
       <BlockPalette
         allowedBlockIds={allowedBlockIds}
         catalog={catalog}
-        onAdd={addNode}
+        onAdd={(blockId) => onInsert(blockId, containerNodeId)}
       />
     </div>
   );

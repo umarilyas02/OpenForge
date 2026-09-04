@@ -2,9 +2,57 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { getNodeAtPath, setNodeAtPath } from "../lib/tree-path.js";
+import { getNodeAtPath } from "../lib/tree-path.js";
 import { BlockPalette } from "./BlockPalette.jsx";
 import { BlockPropsForm } from "./BlockPropsForm.jsx";
+
+/** /canvas renders through @openforge/renderer's strict content-tree schema, which only allows {blockId, blockVersion, props, slots} — this app's own `id` field (added so edits can target a real compiler node) has to come off before the tree crosses that boundary. */
+function stripNodeIds(tree) {
+  return tree.map((node) => ({
+    blockId: node.blockId,
+    blockVersion: node.blockVersion,
+    props: node.props,
+    slots: Object.fromEntries(
+      Object.entries(node.slots ?? {}).map(([slotName, children]) => [
+        slotName,
+        stripNodeIds(children),
+      ]),
+    ),
+  }));
+}
+
+function findNodeById(tree, nodeId) {
+  for (const node of tree) {
+    if (node.id === nodeId) return node;
+    for (const children of Object.values(node.slots ?? {})) {
+      const match = findNodeById(children, nodeId);
+      if (match) return match;
+    }
+  }
+  return null;
+}
+
+/** Identifies the one top-level node whose position changed, and which of its new neighbors to anchor the move to. Reorder in /canvas only ever moves one top-level item via a single splice, so exactly one such pair always exists. */
+function diffTopLevelReorder(previousTree, nextTree) {
+  for (let i = 0; i < nextTree.length; i += 1) {
+    if (nextTree[i].id !== previousTree[i]?.id) {
+      const movedNodeId = nextTree[i].id;
+      if (i > 0) {
+        return {
+          movedNodeId,
+          destinationNodeId: nextTree[i - 1].id,
+          position: "after",
+        };
+      }
+      return {
+        movedNodeId,
+        destinationNodeId: nextTree[1]?.id,
+        position: "before",
+      };
+    }
+  }
+  return null;
+}
 
 /**
  * The live-canvas view: a block palette on the left, the real rendered page
@@ -14,17 +62,36 @@ import { BlockPropsForm } from "./BlockPropsForm.jsx";
  * back by path — see apps/cms-admin/app/(canvas)/canvas/page.jsx for the
  * other side of this bridge.
  *
- * @param {{ blockTree: object[], onChange: (nodes: object[]) => void, allowedBlockIds: string[], catalog: object[] }} props
+ * Every interaction here is applied immediately as a real edit to the
+ * site's own files (there is no separate "Save" step) — onPropsChange,
+ * onInsert, onRemove, and onMove all persist through a compiler operation
+ * and hand back the freshly re-parsed tree, which becomes `tree` on the
+ * next render.
+ *
+ * @param {{
+ *   tree: object[],
+ *   pageRootNodeId: string,
+ *   allowedBlockIds: string[],
+ *   catalog: object[],
+ *   onPropsChange: (nodeId: string, nextProps: object) => void,
+ *   onInsert: (blockId: string, containerNodeId: string) => void,
+ *   onRemove: (nodeId: string) => void,
+ *   onMove: (movedNodeId: string, destinationNodeId: string, position: "before"|"after") => void,
+ * }} props
  */
 export function CanvasEditor({
-  blockTree,
-  onChange,
+  tree,
+  pageRootNodeId,
   allowedBlockIds,
   catalog,
+  onPropsChange,
+  onInsert,
+  onRemove,
+  onMove,
 }) {
   const iframeRef = useRef(null);
   const [canvasAcked, setCanvasAcked] = useState(false);
-  const [selectedPath, setSelectedPath] = useState(null);
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
 
   useEffect(() => {
     function handleMessage(event) {
@@ -32,20 +99,26 @@ export function CanvasEditor({
       if (event.data?.type === "of-canvas-ack") {
         setCanvasAcked(true);
       } else if (event.data?.type === "of-canvas-select") {
-        setSelectedPath(event.data.path);
+        const node = event.data.path
+          ? getNodeAtPath(tree, event.data.path)
+          : null;
+        setSelectedNodeId(node?.id ?? null);
       } else if (event.data?.type === "of-canvas-reorder") {
-        onChange(event.data.tree);
+        const move = diffTopLevelReorder(tree, event.data.tree);
+        if (move && move.destinationNodeId) {
+          onMove(move.movedNodeId, move.destinationNodeId, move.position);
+        }
       }
     }
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [onChange]);
+  }, [tree, onMove]);
 
   useEffect(() => {
     function sendTree() {
       iframeRef.current?.contentWindow?.postMessage(
-        { type: "of-canvas-tree", tree: blockTree },
+        { type: "of-canvas-tree", tree: stripNodeIds(tree) },
         window.location.origin,
       );
     }
@@ -65,24 +138,10 @@ export function CanvasEditor({
       clearInterval(retry);
       clearTimeout(giveUp);
     };
-  }, [canvasAcked, blockTree]);
+  }, [canvasAcked, tree]);
 
-  function addNode(blockId) {
-    const definition = catalog.find((entry) => entry.id === blockId);
-    if (!definition) return;
-    onChange([
-      ...blockTree,
-      {
-        blockId,
-        blockVersion: definition.version,
-        props: { ...definition.defaultProps },
-        slots: {},
-      },
-    ]);
-  }
-
-  const selectedNode = selectedPath
-    ? getNodeAtPath(blockTree, selectedPath)
+  const selectedNode = selectedNodeId
+    ? findNodeById(tree, selectedNodeId)
     : null;
   const selectedDefinition = selectedNode
     ? catalog.find((entry) => entry.id === selectedNode.blockId)
@@ -95,7 +154,7 @@ export function CanvasEditor({
         <BlockPalette
           allowedBlockIds={allowedBlockIds}
           catalog={catalog}
-          onAdd={addNode}
+          onAdd={(blockId) => onInsert(blockId, pageRootNodeId)}
         />
       </aside>
 
@@ -115,15 +174,21 @@ export function CanvasEditor({
             <BlockPropsForm
               definition={selectedDefinition}
               onChange={(nextProps) =>
-                onChange(
-                  setNodeAtPath(blockTree, selectedPath, (node) => ({
-                    ...node,
-                    props: nextProps,
-                  })),
-                )
+                onPropsChange(selectedNode.id, nextProps)
               }
               props={selectedNode.props}
             />
+            <button
+              className="icon-btn-sm"
+              data-danger="true"
+              onClick={() => {
+                onRemove(selectedNode.id);
+                setSelectedNodeId(null);
+              }}
+              type="button"
+            >
+              Remove block
+            </button>
           </>
         ) : (
           <p className="muted">Select a block on the canvas to edit it.</p>
