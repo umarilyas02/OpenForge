@@ -7,3 +7,4 @@ export {
 } from "./content-tree.js";
 export { createRenderer } from "./renderer.js";
 export { renderSiteStyles } from "./site-styles.js";
+export { styleOverrideToCss } from "./style.js";

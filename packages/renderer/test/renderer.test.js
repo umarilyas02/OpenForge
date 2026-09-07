@@ -179,4 +179,71 @@ describe("createRenderer", () => {
 
     expect(withPassthroughHook).toBe(withoutHook);
   });
+
+  it("applies a block's universal style/className overrides without the block component knowing about them", () => {
+    const renderer = createRenderer({ theme, blockRegistry });
+
+    const html = markup(
+      renderer.renderTree([
+        {
+          blockId: "openforge-cms.hero",
+          blockVersion: 1,
+          props: {
+            heading: "Hello",
+            style: {
+              typography: { fontSize: "24px" },
+              color: { text: "#ff0000" },
+            },
+            className: "my-custom-class",
+          },
+        },
+      ]),
+    );
+
+    expect(html).toContain("my-custom-class");
+    expect(html).toContain("font-size:24px");
+    expect(html).toContain("color:#ff0000");
+  });
+
+  it("adds no extra wrapper element when a block has no style/className overrides", () => {
+    const withStyle = markup(
+      createRenderer({ theme, blockRegistry }).renderTree([
+        {
+          blockId: "openforge-cms.hero",
+          blockVersion: 1,
+          props: { heading: "Hello", style: { color: { text: "#111" } } },
+        },
+      ]),
+    );
+    const withoutStyle = markup(
+      createRenderer({ theme, blockRegistry }).renderTree([
+        { blockId: "openforge-cms.hero", blockVersion: 1, props: { heading: "Hello" } },
+      ]),
+    );
+
+    expect(withStyle).toContain("<div style=");
+    expect(withoutStyle).not.toContain("<div style=");
+  });
+
+  it("never forwards style/className to the block component's own props", () => {
+    const html = markup(
+      createRenderer({ theme, blockRegistry }).renderTree([
+        {
+          blockId: "openforge-cms.hero",
+          blockVersion: 1,
+          props: {
+            heading: "Hello",
+            style: { color: { text: "#111" } },
+            className: "outer-only",
+          },
+        },
+      ]),
+    );
+
+    // The Hero component's own root is a <section class="of-block
+    // of-hero">; the override className must land only on the wrapping
+    // <div>, never merged into the block's own class list.
+    expect(html).toContain('class="of-block of-hero"');
+    expect(html).not.toContain("of-hero outer-only");
+  });
 });

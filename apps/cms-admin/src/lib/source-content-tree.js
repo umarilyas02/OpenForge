@@ -72,6 +72,42 @@ function findImportedLocalTargets(ast, filePath) {
   return targets;
 }
 
+/**
+ * Reads a literal expression's plain JS value, or `undefined` if it isn't
+ * one of the literal shapes @openforge/compiler's set-jsx-attribute can
+ * write (see renderAttribute in apply-editor-operation.js): string,
+ * number, boolean, null, or a plain (optionally one-level-nested) object
+ * of those — e.g. a block's `style={{"typography":{"fontSize":"18px"}}}`
+ * override.
+ */
+function extractLiteralValue(expression) {
+  if (expression.type === "NullLiteral") return null;
+  if (
+    ["StringLiteral", "NumericLiteral", "BooleanLiteral"].includes(
+      expression.type,
+    )
+  ) {
+    return expression.value;
+  }
+  if (expression.type === "ObjectExpression") {
+    const object = {};
+    for (const property of expression.properties) {
+      if (property.type !== "ObjectProperty" || property.computed) continue;
+      const key =
+        property.key.type === "StringLiteral"
+          ? property.key.value
+          : property.key.type === "Identifier"
+            ? property.key.name
+            : null;
+      if (key === null) continue;
+      const value = extractLiteralValue(property.value);
+      if (value !== undefined) object[key] = value;
+    }
+    return object;
+  }
+  return undefined;
+}
+
 /** Literal-only, mirroring the values @openforge/compiler's set-jsx-attribute can write. */
 function extractProps(openingElement) {
   const props = {};
@@ -84,15 +120,8 @@ function extractProps(openingElement) {
     } else if (attribute.value.type === "StringLiteral") {
       props[name] = attribute.value.value;
     } else if (attribute.value.type === "JSXExpressionContainer") {
-      const expression = attribute.value.expression;
-      if (expression.type === "NullLiteral") props[name] = null;
-      else if (
-        ["StringLiteral", "NumericLiteral", "BooleanLiteral"].includes(
-          expression.type,
-        )
-      ) {
-        props[name] = expression.value;
-      }
+      const value = extractLiteralValue(attribute.value.expression);
+      if (value !== undefined) props[name] = value;
     }
   }
   return props;

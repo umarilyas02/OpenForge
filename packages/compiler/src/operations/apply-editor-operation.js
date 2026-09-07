@@ -585,6 +585,13 @@ function renderAttribute(name, value) {
   if (typeof value === "string") {
     return `${name}=${JSON.stringify(value)}`;
   }
+  if (value !== null && typeof value === "object") {
+    // JSON's object-literal syntax is a valid subset of JS object-literal
+    // syntax for the plain string/number leaves jsxAttributeObjectValue
+    // allows, so this always round-trips into a legal JSX expression
+    // container: style={{"typography":{"fontSize":"18px"}}}.
+    return `${name}={${JSON.stringify(value)}}`;
+  }
   return `${name}={${value === null ? "null" : String(value)}}`;
 }
 

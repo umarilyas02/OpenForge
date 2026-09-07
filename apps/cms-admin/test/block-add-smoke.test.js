@@ -2,6 +2,7 @@ import { rm } from "node:fs/promises";
 
 import { createRenderer } from "@openforge/renderer";
 import { defaultTheme, defaultThemeBlockRegistry } from "@openforge/theme-default";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 const BASE_PATH = "./data/test-block-add-smoke";
@@ -18,7 +19,9 @@ const { buildStarterFiles } = await import("../src/lib/starter-template.js");
 const { findPageRootNodeId, parsePageToBlockTree } = await import(
   "../src/lib/source-content-tree.js"
 );
-const { insertBlock } = await import("../src/lib/source-content-actions.js");
+const { insertBlock, setBlockProps } = await import(
+  "../src/lib/source-content-actions.js"
+);
 
 const manager = getWorkspaceManager();
 const SITE_SLUG = "block-add-smoke-site";
@@ -125,5 +128,39 @@ describe("adding a block from the palette actually works end-to-end", () => {
     expect(() =>
       renderer.renderNode(finalAccordion, [afterFaqItem.indexOf(finalAccordion)]),
     ).not.toThrow();
+  });
+
+  it("a Style-tab edit (BlockPropsForm's onChange) persists through the real compiler pipeline and actually renders", async () => {
+    const beforeFiles = await manager.readFiles(SITE_SLUG);
+    const rootId = findPageRootNodeId(beforeFiles, PAGE_PATH);
+    const { tree } = await insertAndRender("openforge-cms.badge", rootId);
+    const badge = tree.find((node) => node.blockId === "openforge-cms.badge");
+    expect(badge).toBeDefined();
+
+    // Exactly what BlockPropsForm.jsx's setStyleField/setClassName produce.
+    await setBlockProps(SITE_SLUG, PAGE_PATH, badge.id, {
+      ...badge.props,
+      style: {
+        typography: { fontSize: "22px" },
+        color: { text: "#ff0000" },
+      },
+      className: "my-custom-class",
+    });
+
+    const files = await manager.readFiles(SITE_SLUG);
+    const source = files.find((file) => file.path === PAGE_PATH).source;
+    expect(source).toContain('style={{"typography"');
+    expect(source).toContain("my-custom-class");
+
+    const finalTree = parsePageToBlockTree(files, PAGE_PATH);
+    const styledBadge = finalTree.find(
+      (node) => node.blockId === "openforge-cms.badge",
+    );
+    const html = renderToStaticMarkup(
+      renderer.renderNode(styledBadge, [finalTree.indexOf(styledBadge)]),
+    );
+    expect(html).toContain("my-custom-class");
+    expect(html).toContain("font-size:22px");
+    expect(html).toContain("color:#ff0000");
   });
 });

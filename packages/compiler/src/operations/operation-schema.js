@@ -18,6 +18,20 @@ const attributeName = z
   .string()
   .regex(/^[A-Za-z_$][\w$.-]*$/u, "Invalid JSX attribute name.");
 
+const jsxAttributeLeafValue = z.union([z.string(), z.number().finite()]);
+/**
+ * A plain, one-level-nested object of string/number leaves — enough to
+ * express a style-override bag (e.g. `{ typography: { fontSize: "18px" },
+ * color: { text: "#111" } }`) as a JSX attribute value, without opening the
+ * door to arbitrary deep structures, functions, or anything else that
+ * couldn't round-trip through JSON.stringify into a valid JS object
+ * literal (see renderAttribute in apply-editor-operation.js).
+ */
+const jsxAttributeObjectValue = z.record(
+  z.string(),
+  z.union([jsxAttributeLeafValue, z.record(z.string(), jsxAttributeLeafValue)]),
+);
+
 const setJsxAttributeOperation = z
   .object({
     ...baseOperation,
@@ -31,6 +45,7 @@ const setJsxAttributeOperation = z
           z.number().finite(),
           z.boolean(),
           z.null(),
+          jsxAttributeObjectValue,
         ]),
       })
       .strict(),

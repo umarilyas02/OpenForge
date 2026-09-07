@@ -2,6 +2,7 @@ import { createElement, Fragment } from "react";
 
 import { parseContentTree } from "./content-tree.js";
 import { invariant } from "./errors.js";
+import { styleOverrideToCss } from "./style.js";
 
 /**
  * Create a block-tree renderer bound to one theme and one block registry.
@@ -22,6 +23,8 @@ export function createRenderer({ theme, blockRegistry, wrapNode }) {
     blockRegistry.validateProps(migrated.blockId, migrated.props);
 
     const Component = theme.getBlockComponent(migrated.blockId);
+    const { style: styleOverride, className: classNameOverride, ...contentProps } =
+      migrated.props;
 
     const slots = {};
     for (const [slotName, children] of Object.entries(node.slots ?? {})) {
@@ -34,8 +37,30 @@ export function createRenderer({ theme, blockRegistry, wrapNode }) {
       );
     }
 
-    const element = createElement(Component, { ...migrated.props, slots });
-    return wrapNode ? wrapNode(element, path, migrated) : element;
+    const element = createElement(Component, { ...contentProps, slots });
+
+    // `style`/`className` are a universal cross-cutting concern (the
+    // admin's Style/Advanced tabs), not part of any block's own prop
+    // schema — applied here, once, for every block, rather than requiring
+    // each of the 38+ block components to know about them. Only wraps when
+    // there's actually something to apply, so a block with no overrides
+    // renders exactly as it always has (no extra DOM node, no risk to
+    // existing `.of-block + .of-block` / theme CSS selectors).
+    const css = styleOverrideToCss(styleOverride);
+    const className =
+      typeof classNameOverride === "string" && classNameOverride.trim()
+        ? classNameOverride.trim()
+        : null;
+    const styled =
+      css || className
+        ? createElement(
+            "div",
+            { className: className ?? undefined, style: css ?? undefined },
+            element,
+          )
+        : element;
+
+    return wrapNode ? wrapNode(styled, path, migrated) : styled;
   }
 
   /**

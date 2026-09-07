@@ -130,6 +130,38 @@ describe("applyEditorOperation", () => {
     expect(restored.files[0].source).toBe(source);
   });
 
+  it("sets a nested-object attribute value as a valid JSX expression container", async () => {
+    const source =
+      "export function Button() {\n  return <button>Save</button>;\n}\n";
+    const files = [{ path: "components/Button.jsx", source }];
+    const button = findNode(files, "button");
+
+    const styleValue = {
+      typography: { fontSize: "18px", fontWeight: 600 },
+      color: { text: "#111111" },
+    };
+    const result = await applyEditorOperation({
+      files,
+      currentRevision: 0,
+      operation: {
+        schemaVersion: 1,
+        baseRevision: 0,
+        filePath: "components/Button.jsx",
+        type: "set-jsx-attribute",
+        target: { nodeId: button.id },
+        payload: { name: "style", value: styleValue },
+      },
+    });
+
+    expect(result.files[0].source).toContain(
+      `style={${JSON.stringify(styleValue)}}`,
+    );
+    // The transformed source must itself be re-parseable — proves this is
+    // valid JS/JSX, not just a string that happens to look right.
+    const reindexed = buildProjectIndex({ files: result.files });
+    expect(reindexed.nodes.some((node) => node.filePath === "components/Button.jsx")).toBe(true);
+  });
+
   it("replaces direct JSX text and escapes structural characters", async () => {
     const files = [{ path: PAGE_PATH, source: PAGE_SOURCE }];
     const heading = findNode(files, "h1");

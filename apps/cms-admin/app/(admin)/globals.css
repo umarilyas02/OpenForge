@@ -1184,6 +1184,101 @@ a.list-row:hover,
   width: 100%;
 }
 
+/* ---------- Block props panel: Content / Style / Advanced tabs ---------- */
+
+.props-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.props-tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex: 1;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: var(--space-2) 0;
+  transition: color var(--transition-fast);
+}
+
+.props-tabs button:hover {
+  color: var(--text);
+}
+
+.props-tabs button[data-active="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.style-group {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+.style-group:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.style-group-title {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 0 var(--space-2);
+  text-transform: uppercase;
+}
+
+.style-group-body {
+  display: grid;
+  gap: var(--space-2) var(--space-3);
+  grid-template-columns: 1fr 1fr;
+}
+
+.style-field {
+  display: grid;
+  gap: 4px;
+}
+
+.style-field[data-span="2"] {
+  grid-column: span 2;
+}
+
+.style-field label {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.style-field input[type="text"],
+.style-field select {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--text-sm);
+  min-height: 30px;
+  padding: 4px var(--space-2);
+  width: 100%;
+}
+
+.style-field input[type="text"]:focus-visible,
+.style-field select:focus-visible {
+  border-color: var(--accent);
+}
+
+.style-field input[type="color"] {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  height: 30px;
+  padding: 2px;
+  width: 100%;
+}
+
 @media (min-width: 1200px) {
   .canvas-editor {
     align-items: start;
