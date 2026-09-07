@@ -96,6 +96,9 @@ preview-output/
 credentials.json
 service-account*.json
 
+# Local tooling caches
+.impeccable/
+
 # Editors and operating systems
 .DS_Store
 Thumbs.db

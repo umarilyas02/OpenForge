@@ -3,8 +3,10 @@ import { schema } from "@openforge/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
+import { AddUserForm } from "../../../../../../src/components/AddUserForm.jsx";
 import { getDb } from "../../../../../../src/lib/db.js";
 import { getMemberships, requireUser } from "../../../../../../src/lib/session.js";
+import { addUser } from "./actions.js";
 
 export default async function UsersPage({ params }) {
   const { siteId } = await params;
@@ -64,6 +66,8 @@ export default async function UsersPage({ params }) {
           </div>
         ))}
       </div>
+
+      <AddUserForm addUser={addUser} siteId={site.id} />
     </div>
   );
 }
