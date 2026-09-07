@@ -573,13 +573,16 @@ a {
 }
 
 .user-menu-logout {
+  align-items: center;
   background: none;
   border: 0;
   border-radius: var(--radius);
   border-top: 1px solid var(--border);
   color: var(--danger);
   cursor: pointer;
+  display: flex;
   font-size: var(--text-sm);
+  gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   text-align: left;
   transition: background var(--transition-fast);
@@ -796,7 +799,7 @@ a.list-row:hover,
 
 .empty-state {
   align-items: center;
-  border: 1px dashed var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
@@ -807,13 +810,13 @@ a.list-row:hover,
 
 .empty-state-icon {
   align-items: center;
-  background: var(--surface-raised);
-  border-radius: 50%;
   color: var(--text-muted);
   display: flex;
-  height: 44px;
   justify-content: center;
-  width: 44px;
+}
+
+.empty-illustration {
+  margin-bottom: var(--space-2);
 }
 
 .empty-state-title {

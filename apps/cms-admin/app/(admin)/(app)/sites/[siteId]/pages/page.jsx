@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { EmptyIllustration } from "../../../../../../src/components/EmptyIllustration.jsx";
 import { NewPageForm } from "../../../../../../src/components/NewPageForm.jsx";
 import { getDb } from "../../../../../../src/lib/db.js";
 import { getMemberships, requireUser } from "../../../../../../src/lib/session.js";
@@ -59,16 +60,7 @@ export default async function AllPagesPage({ params }) {
         </p>
       ) : pages.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-state-icon" aria-hidden="true">
-            <svg fill="none" height="20" viewBox="0 0 16 16" width="20">
-              <path
-                d="M4 2h5l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Z"
-                stroke="currentColor"
-                strokeWidth="1.3"
-              />
-              <path d="M9 2v3h3" stroke="currentColor" strokeWidth="1.3" />
-            </svg>
-          </span>
+          <EmptyIllustration variant="pages" />
           <p className="empty-state-title">No pages yet</p>
           <p className="empty-state-body">
             Create the homepage to get started.

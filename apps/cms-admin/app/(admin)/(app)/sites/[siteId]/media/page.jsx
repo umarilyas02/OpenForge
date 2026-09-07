@@ -3,6 +3,7 @@ import { schema } from "@openforge/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
+import { EmptyIllustration } from "../../../../../../src/components/EmptyIllustration.jsx";
 import { getDb } from "../../../../../../src/lib/db.js";
 import { getMemberships, requireUser } from "../../../../../../src/lib/session.js";
 
@@ -56,13 +57,7 @@ export default async function MediaLibraryPage({ params }) {
 
       {sorted.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-state-icon" aria-hidden="true">
-            <svg fill="none" height="20" viewBox="0 0 16 16" width="20">
-              <rect height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3" width="12" x="2" y="2.5" />
-              <circle cx="5.5" cy="6" r="1.2" stroke="currentColor" strokeWidth="1.2" />
-              <path d="M3 11.5l3.2-3.2a1 1 0 0 1 1.4 0L11 11.5M9 9.5l1-1a1 1 0 0 1 1.4 0L13 10.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.3" />
-            </svg>
-          </span>
+          <EmptyIllustration variant="media" />
           <p className="empty-state-title">No media yet</p>
           <p className="empty-state-body">
             Files uploaded from the block editor will appear here.

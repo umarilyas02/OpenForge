@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -134,21 +135,7 @@ export function AppShell({
                   {siteSwitcher.current.domain || " "}
                 </span>
               </span>
-              <svg
-                className="site-switcher-chevron"
-                fill="none"
-                height="12"
-                viewBox="0 0 16 16"
-                width="12"
-              >
-                <path
-                  d="M4 6l4 4 4-4"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.5"
-                />
-              </svg>
+              <ChevronDown className="site-switcher-chevron" size={14} />
             </button>
             {switcherOpen ? (
               <div className="site-switcher-menu">
@@ -205,22 +192,11 @@ export function AppShell({
                   type="button"
                 >
                   <span className="app-nav-group-label">{group.label}</span>
-                  <svg
+                  <ChevronDown
                     className="app-nav-group-chevron"
                     data-open={isOpen}
-                    fill="none"
-                    height="12"
-                    viewBox="0 0 16 16"
-                    width="12"
-                  >
-                    <path
-                      d="M4 6l4 4 4-4"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
+                    size={14}
+                  />
                 </button>
                 {isOpen ? (
                   <ul className="app-nav-list">
@@ -260,14 +236,7 @@ export function AppShell({
             onClick={() => setMobileOpen(true)}
             type="button"
           >
-            <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-              <path
-                d="M2 4h12M2 8h12M2 12h12"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="1.4"
-              />
-            </svg>
+            <Menu size={18} strokeWidth={1.75} />
           </button>
           <div className="app-topbar-spacer" />
           <div className="app-topbar-actions">
@@ -292,20 +261,7 @@ export function AppShell({
                 <span className="user-menu-name">
                   {user.displayName || user.email}
                 </span>
-                <svg
-                  fill="none"
-                  height="12"
-                  viewBox="0 0 16 16"
-                  width="12"
-                >
-                  <path
-                    d="M4 6l4 4 4-4"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.5"
-                  />
-                </svg>
+                <ChevronDown size={14} />
               </button>
               {userMenuOpen ? (
                 <div className="user-menu-panel">
@@ -314,6 +270,7 @@ export function AppShell({
                   </div>
                   <form action={logout}>
                     <button className="user-menu-logout" type="submit">
+                      <LogOut size={14} strokeWidth={1.75} />
                       Sign out
                     </button>
                   </form>

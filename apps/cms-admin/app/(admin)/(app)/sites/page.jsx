@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 
 import { AppShell } from "../../../../src/components/AppShell.jsx";
+import { EmptyIllustration } from "../../../../src/components/EmptyIllustration.jsx";
 import { getDb } from "../../../../src/lib/db.js";
 import { getMemberships, requireUser } from "../../../../src/lib/session.js";
 import { logout } from "../actions.js";
@@ -62,23 +63,7 @@ export default async function SitesPage() {
             </div>
           </div>
           <div className="empty-state">
-            <span className="empty-state-icon" aria-hidden="true">
-              <svg fill="none" height="20" viewBox="0 0 16 16" width="20">
-                <circle
-                  cx="8"
-                  cy="8"
-                  r="6"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                />
-                <path
-                  d="M8 5v3l2 2"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeWidth="1.3"
-                />
-              </svg>
-            </span>
+            <EmptyIllustration variant="clock" />
             <p className="empty-state-title">Account setup incomplete</p>
             <p className="empty-state-body">
               Your account isn&apos;t fully set up yet. Run{" "}
@@ -114,20 +99,7 @@ export default async function SitesPage() {
 
         {sites.length === 0 ? (
           <div className="empty-state">
-            <span className="empty-state-icon" aria-hidden="true">
-              <svg fill="none" height="20" viewBox="0 0 16 16" width="20">
-                <rect
-                  height="10"
-                  rx="1.5"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                  width="12"
-                  x="2"
-                  y="3"
-                />
-                <path d="M2 6.5h12" stroke="currentColor" strokeWidth="1.3" />
-              </svg>
-            </span>
+            <EmptyIllustration variant="browser" />
             <p className="empty-state-title">Create your first site</p>
             <p className="empty-state-body">
               A site gets a theme, its own pages and posts, and a domain or

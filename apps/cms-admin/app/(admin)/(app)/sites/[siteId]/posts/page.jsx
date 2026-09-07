@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { EmptyIllustration } from "../../../../../../src/components/EmptyIllustration.jsx";
 import { getDb } from "../../../../../../src/lib/db.js";
 import { getMemberships, requireUser } from "../../../../../../src/lib/session.js";
 
@@ -59,11 +60,7 @@ export default async function AllPostsPage({ params }) {
 
       {sorted.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-state-icon" aria-hidden="true">
-            <svg fill="none" height="20" viewBox="0 0 16 16" width="20">
-              <path d="M3 3h10M3 3v10h10V3M3 3l4.5 5L3 13M8 13h5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.3" />
-            </svg>
-          </span>
+          <EmptyIllustration variant="pages" />
           <p className="empty-state-title">No posts yet</p>
           <p className="empty-state-body">
             Posts are content entries of type &quot;post&quot; — write your

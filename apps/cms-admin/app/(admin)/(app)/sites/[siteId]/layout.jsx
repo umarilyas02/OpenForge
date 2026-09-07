@@ -1,6 +1,18 @@
 import { assertSiteAccess } from "@openforge/auth";
 import { schema } from "@openforge/db";
 import { eq } from "drizzle-orm";
+import {
+  LayoutDashboard,
+  Newspaper,
+  Image,
+  FileText,
+  LayoutList,
+  Palette,
+  Plug,
+  Users as UsersIcon,
+  Wrench,
+  Settings as SettingsIcon,
+} from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { AppShell } from "../../../../../src/components/AppShell.jsx";
@@ -9,71 +21,19 @@ import { getMemberships, requireUser } from "../../../../../src/lib/session.js";
 import { buildSiteUrl } from "../../../../../src/lib/site-url.js";
 import { logout } from "../../actions.js";
 
+const ICON_PROPS = { size: 16, strokeWidth: 1.75 };
+
 const ICONS = {
-  dashboard: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <rect height="6" rx="1" stroke="currentColor" strokeWidth="1.3" width="6" x="2" y="2" />
-      <rect height="6" rx="1" stroke="currentColor" strokeWidth="1.3" width="6" x="8" y="2" />
-      <rect height="6" rx="1" stroke="currentColor" strokeWidth="1.3" width="6" x="2" y="8" />
-      <rect height="6" rx="1" stroke="currentColor" strokeWidth="1.3" width="6" x="8" y="8" />
-    </svg>
-  ),
-  posts: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <path d="M3 3h10M3 3v10h10V3M3 3l4.5 5L3 13M8 13h5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.3" />
-    </svg>
-  ),
-  media: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <rect height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3" width="12" x="2" y="2.5" />
-      <circle cx="5.5" cy="6" r="1.2" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M3 11.5l3.2-3.2a1 1 0 0 1 1.4 0L11 11.5M9 9.5l1-1a1 1 0 0 1 1.4 0L13 10.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.3" />
-    </svg>
-  ),
-  pages: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <path d="M4 2h5l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M9 2v3h3" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
-  ),
-  content: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <path d="M2 4h12M2 8h8M2 12h5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
-    </svg>
-  ),
-  appearance: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 2v3M8 11v3M2 8h3M11 8h3" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
-    </svg>
-  ),
-  extensions: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <path d="M6 2.5h4v2.3a1.2 1.2 0 0 0 1.2 1.2H13.5v4h-2.3a1.2 1.2 0 0 0-1.2 1.2v2.3h-4v-2.3a1.2 1.2 0 0 0-1.2-1.2H2.5v-4h2.3A1.2 1.2 0 0 0 6 4.8V2.5Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.3" />
-    </svg>
-  ),
-  users: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <circle cx="6" cy="5.5" r="2.3" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M1.8 13.5c.6-2.4 2.2-3.7 4.2-3.7s3.6 1.3 4.2 3.7M10.5 3.2c1.2.3 2 1.4 2 2.7s-.8 2.4-2 2.7M12 9.9c1.6.4 2.6 1.5 3 3.4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
-    </svg>
-  ),
-  tools: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <path d="M9.5 6.5 12.8 3.2a3 3 0 0 1 1 4l-.3.3-4 4M9.5 6.5 3.2 12.8a1.4 1.4 0 0 0 2 2L11 8.5M9.5 6.5 8 5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.3" />
-    </svg>
-  ),
-  settings: (
-    <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-      <circle cx="8" cy="8" r="2.2" stroke="currentColor" strokeWidth="1.3" />
-      <path
-        d="M8 1.5v2M8 12.5v2M2.6 4.6l1.4 1.4M12 10l1.4 1.4M1.5 8h2M12.5 8h2M2.6 11.4l1.4-1.4M12 6l1.4-1.4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.3"
-      />
-    </svg>
-  ),
+  dashboard: <LayoutDashboard {...ICON_PROPS} />,
+  posts: <Newspaper {...ICON_PROPS} />,
+  media: <Image {...ICON_PROPS} />,
+  pages: <FileText {...ICON_PROPS} />,
+  content: <LayoutList {...ICON_PROPS} />,
+  appearance: <Palette {...ICON_PROPS} />,
+  extensions: <Plug {...ICON_PROPS} />,
+  users: <UsersIcon {...ICON_PROPS} />,
+  tools: <Wrench {...ICON_PROPS} />,
+  settings: <SettingsIcon {...ICON_PROPS} />,
 };
 
 function navGroupsFor(siteId) {
