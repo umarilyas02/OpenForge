@@ -40,7 +40,7 @@ export const pricingBlock = createCmsBlock({
     name: "Pricing",
     description: "A single pricing plan card.",
     tags: ["pricing", "conversion"],
-    defaultProps: { featured: false },
+    defaultProps: { planName: "Starter", price: "$0/mo", featured: false },
     editableFields: [
       { path: "planName", label: "Plan name", control: "text", required: true },
       { path: "price", label: "Price", control: "text", required: true },

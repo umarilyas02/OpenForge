@@ -36,7 +36,7 @@ export const progressBlock = createCmsBlock({
     name: "Progress",
     description: "A labeled progress bar for a skill, goal, or funding target.",
     tags: ["content", "progress"],
-    defaultProps: { percent: "50" },
+    defaultProps: { label: "Progress", percent: "50" },
     editableFields: [
       { path: "label", label: "Label", control: "text", required: true },
       {

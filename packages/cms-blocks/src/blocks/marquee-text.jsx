@@ -35,7 +35,7 @@ export const marqueeTextBlock = createCmsBlock({
     description:
       "A continuously scrolling line of text, e.g. a tagline ticker.",
     tags: ["content", "layout", "tailwind"],
-    defaultProps: { speed: "normal" },
+    defaultProps: { text: "Scrolling announcement text", speed: "normal" },
     editableFields: [
       { path: "text", label: "Text", control: "text", required: true },
       {

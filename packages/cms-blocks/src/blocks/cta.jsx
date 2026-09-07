@@ -19,7 +19,7 @@ export const ctaBlock = createCmsBlock({
     name: "Call to Action",
     description: "A heading with a single prominent action button.",
     tags: ["conversion", "cta"],
-    defaultProps: {},
+    defaultProps: { buttonLabel: "Learn more", buttonHref: "#" },
     editableFields: [
       { path: "heading", label: "Heading", control: "text", required: false },
       {

@@ -22,7 +22,7 @@ export const iconBoxBlock = createCmsBlock({
     name: "Icon Box",
     description: "An icon or emoji with a title and short description.",
     tags: ["content", "icon"],
-    defaultProps: { layout: "icon-top" },
+    defaultProps: { icon: "★", title: "Feature title", layout: "icon-top" },
     editableFields: [
       { path: "icon", label: "Icon (emoji)", control: "text", required: true },
       { path: "title", label: "Title", control: "text", required: true },

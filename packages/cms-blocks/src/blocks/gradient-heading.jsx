@@ -30,7 +30,7 @@ export const gradientHeadingBlock = createCmsBlock({
     name: "Gradient Heading",
     description: "A large heading with a gradient-clipped text fill.",
     tags: ["text", "heading", "tailwind"],
-    defaultProps: { level: "h2", tone: "sunset" },
+    defaultProps: { text: "Gradient heading", level: "h2", tone: "sunset" },
     editableFields: [
       { path: "text", label: "Text", control: "text", required: true },
       {

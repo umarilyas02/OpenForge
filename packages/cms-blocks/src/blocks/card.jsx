@@ -26,7 +26,7 @@ export const cardBlock = createCmsBlock({
     description:
       "A general-purpose content card with an optional image and link.",
     tags: ["content", "card"],
-    defaultProps: {},
+    defaultProps: { title: "Card title" },
     editableFields: [
       { path: "image", label: "Image", control: "image", required: false },
       { path: "title", label: "Title", control: "text", required: true },

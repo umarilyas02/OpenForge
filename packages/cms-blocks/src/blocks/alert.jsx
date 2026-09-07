@@ -16,7 +16,7 @@ export const alertBlock = createCmsBlock({
     name: "Alert",
     description: "A short highlighted message or callout.",
     tags: ["content", "alert"],
-    defaultProps: { tone: "info" },
+    defaultProps: { message: "This is an alert message.", tone: "info" },
     editableFields: [
       {
         path: "message",

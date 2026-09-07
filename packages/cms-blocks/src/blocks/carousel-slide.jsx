@@ -25,7 +25,10 @@ export const carouselSlideBlock = createCmsBlock({
     name: "Carousel Slide",
     description: "A single image slide. Used inside Carousel.",
     tags: ["media", "tailwind"],
-    defaultProps: {},
+    defaultProps: {
+      image:
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23e2e2e2'/%3E%3C/svg%3E",
+    },
     editableFields: [
       { path: "image", label: "Image", control: "image", required: true },
       { path: "caption", label: "Caption", control: "text", required: false },

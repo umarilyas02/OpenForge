@@ -16,7 +16,7 @@ export const badgeBlock = createCmsBlock({
     name: "Badge",
     description: 'A small inline label, e.g. "New" or "Beta".',
     tags: ["content", "label"],
-    defaultProps: { tone: "neutral" },
+    defaultProps: { text: "New", tone: "neutral" },
     editableFields: [
       { path: "text", label: "Text", control: "text", required: true },
       {

@@ -17,7 +17,7 @@ export const statBlock = createCmsBlock({
     name: "Stat",
     description: "A single number-and-label statistic. Used inside Stats Row.",
     tags: ["stats"],
-    defaultProps: {},
+    defaultProps: { value: "100+", label: "Label" },
     editableFields: [
       { path: "value", label: "Value", control: "text", required: true },
       { path: "label", label: "Label", control: "text", required: true },

@@ -23,7 +23,7 @@ export const timelineStepBlock = createCmsBlock({
     name: "Timeline Step",
     description: "A single dated milestone. Used inside Timeline.",
     tags: ["timeline"],
-    defaultProps: {},
+    defaultProps: { title: "Milestone title" },
     editableFields: [
       {
         path: "date",

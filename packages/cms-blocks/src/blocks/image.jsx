@@ -19,7 +19,10 @@ export const imageBlock = createCmsBlock({
     name: "Image",
     description: "A single image with required alt text.",
     tags: ["media", "image"],
-    defaultProps: { alt: "" },
+    defaultProps: {
+      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23e2e2e2'/%3E%3C/svg%3E",
+      alt: "Placeholder image",
+    },
     editableFields: [
       { path: "src", label: "Image", control: "image", required: true },
       { path: "alt", label: "Alt text", control: "text", required: true },

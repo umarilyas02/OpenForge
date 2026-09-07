@@ -17,7 +17,10 @@ export const faqItemBlock = createCmsBlock({
     name: "FAQ Item",
     description: "A single question and answer. Used inside Accordion.",
     tags: ["faq"],
-    defaultProps: {},
+    defaultProps: {
+      question: "Question goes here?",
+      answer: "Answer goes here.",
+    },
     editableFields: [
       { path: "question", label: "Question", control: "text", required: true },
       { path: "answer", label: "Answer", control: "textarea", required: true },

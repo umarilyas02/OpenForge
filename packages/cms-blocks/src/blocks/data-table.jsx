@@ -62,7 +62,9 @@ export const dataTableBlock = createCmsBlock({
     description:
       "A simple data table with comma-separated headers and piped rows.",
     tags: ["content", "table", "tailwind"],
-    defaultProps: {},
+    defaultProps: {
+      rows: "Row 1, Col A|Row 1, Col B\nRow 2, Col A|Row 2, Col B",
+    },
     editableFields: [
       { path: "heading", label: "Heading", control: "text", required: false },
       {

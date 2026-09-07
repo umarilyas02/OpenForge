@@ -6,7 +6,7 @@ import {
   defaultTheme,
   defaultThemeBlockRegistry,
 } from "@openforge/theme-default";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 const DRAG_HIGHLIGHT_STYLE_ID = "of-canvas-drag-highlight";
 
@@ -161,16 +161,37 @@ export default function CanvasPage() {
     overrides: tokenOverrides,
   });
 
-  let body;
-  try {
-    body = renderer.renderTree(tree);
-  } catch (renderError) {
-    return (
-      <p style={{ color: "#b91c1c", fontFamily: "sans-serif", padding: 24 }}>
-        {renderError.message}
-      </p>
-    );
-  }
+  // Each top-level block is rendered in its own try/catch — a block with
+  // invalid props (e.g. a required field cleared from the props panel)
+  // shows an inline error in its own place instead of blanking every other
+  // block on the canvas. renderNode is the same per-node path renderTree
+  // uses internally (see packages/renderer/src/renderer.js), so wrapNode
+  // (click-to-select, drag reorder) behaves identically either way.
+  const nodes = Array.isArray(tree) ? tree : [];
+  const body = nodes.map((node, index) => {
+    try {
+      return (
+        <Fragment key={index}>{renderer.renderNode(node, [index])}</Fragment>
+      );
+    } catch (renderError) {
+      return (
+        <div
+          key={index}
+          style={{
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            borderRadius: 8,
+            color: "#b91c1c",
+            fontFamily: "sans-serif",
+            margin: "8px 0",
+            padding: 16,
+          }}
+        >
+          {renderError.message}
+        </div>
+      );
+    }
+  });
 
   const draggedSelector =
     dragIndex !== null

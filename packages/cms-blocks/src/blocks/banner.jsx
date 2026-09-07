@@ -22,7 +22,7 @@ export const bannerBlock = createCmsBlock({
     description:
       "A full-width announcement bar with an optional call to action.",
     tags: ["layout", "banner", "conversion"],
-    defaultProps: { tone: "brand" },
+    defaultProps: { message: "Announcement message goes here.", tone: "brand" },
     editableFields: [
       { path: "message", label: "Message", control: "text", required: true },
       {

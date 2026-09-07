@@ -47,7 +47,7 @@ export const spotlightCardBlock = createCmsBlock({
     name: "Spotlight Card",
     description: "A card with a soft gradient glow that brightens on hover.",
     tags: ["content", "card", "tailwind"],
-    defaultProps: { tone: "violet" },
+    defaultProps: { title: "Card title", tone: "violet" },
     editableFields: [
       { path: "icon", label: "Icon (emoji)", control: "text", required: false },
       { path: "title", label: "Title", control: "text", required: true },

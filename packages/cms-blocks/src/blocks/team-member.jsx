@@ -21,7 +21,7 @@ export const teamMemberBlock = createCmsBlock({
     name: "Team Member",
     description: "A person's photo, name, role, and short bio.",
     tags: ["team", "content"],
-    defaultProps: {},
+    defaultProps: { name: "Team member name" },
     editableFields: [
       { path: "name", label: "Name", control: "text", required: true },
       { path: "role", label: "Role", control: "text", required: false },

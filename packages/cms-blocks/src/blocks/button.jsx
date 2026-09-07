@@ -18,7 +18,7 @@ export const buttonBlock = createCmsBlock({
     name: "Button",
     description: "A single standalone button.",
     tags: ["conversion", "button"],
-    defaultProps: { variant: "primary" },
+    defaultProps: { label: "Button", href: "#", variant: "primary" },
     editableFields: [
       { path: "label", label: "Label", control: "text", required: true },
       { path: "href", label: "Link", control: "url", required: true },

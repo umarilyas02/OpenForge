@@ -27,7 +27,7 @@ export const footerBlock = createCmsBlock({
     name: "Footer",
     description: "A site footer with optional links and a copyright line.",
     tags: ["footer", "navigation"],
-    defaultProps: {},
+    defaultProps: { copyrightText: "© 2026 Your Company. All rights reserved." },
     editableFields: [
       {
         path: "copyrightText",

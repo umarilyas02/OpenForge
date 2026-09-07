@@ -20,7 +20,7 @@ export const richTextBlock = createCmsBlock({
     name: "Rich Text",
     description: "Plain-text content rendered as paragraphs.",
     tags: ["content", "text"],
-    defaultProps: { content: "" },
+    defaultProps: { content: "Click to edit this text." },
     editableFields: [
       {
         path: "content",

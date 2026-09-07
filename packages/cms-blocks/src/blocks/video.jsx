@@ -27,7 +27,7 @@ export const videoBlock = createCmsBlock({
     name: "Video",
     description: "An embedded video (YouTube, Vimeo, or any embeddable URL).",
     tags: ["media", "video"],
-    defaultProps: {},
+    defaultProps: { videoUrl: "#" },
     editableFields: [
       { path: "videoUrl", label: "Embed URL", control: "url", required: true },
       { path: "caption", label: "Caption", control: "text", required: false },

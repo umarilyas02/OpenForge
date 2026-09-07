@@ -316,4 +316,21 @@ describe("official CMS blocks", () => {
   it("throws for an unknown block id", () => {
     expect(() => registry.get("openforge-cms.does-not-exist")).toThrow();
   });
+
+  it.each(OFFICIAL_CMS_BLOCKS)(
+    "$definition.id's own defaultProps satisfy its required fields",
+    (block) => {
+      // A block inserted from the admin's palette is written to source with
+      // exactly its defaultProps and nothing else (see insertBlock /
+      // renderBlockJsx in apps/cms-admin's source-content-actions.js) — so
+      // if defaultProps doesn't already satisfy every required field, the
+      // block is invalid from the moment it's added, and
+      // createRenderer().renderTree() (packages/renderer) throws on it
+      // immediately, blanking the whole canvas instead of showing the new
+      // block.
+      expect(() =>
+        registry.validateProps(block.definition.id, block.definition.defaultProps),
+      ).not.toThrow();
+    },
+  );
 });

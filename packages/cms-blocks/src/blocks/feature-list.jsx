@@ -46,7 +46,9 @@ export const featureListBlock = createCmsBlock({
     name: "Feature List",
     description: "A checklist of features or benefits, one per line.",
     tags: ["content", "list", "tailwind"],
-    defaultProps: {},
+    defaultProps: {
+      items: "First feature\nSecond feature\nThird feature",
+    },
     editableFields: [
       { path: "heading", label: "Heading", control: "text", required: false },
       {

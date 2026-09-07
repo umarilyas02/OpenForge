@@ -17,7 +17,7 @@ export const headingBlock = createCmsBlock({
     name: "Heading",
     description: "A standalone section heading.",
     tags: ["text", "heading"],
-    defaultProps: { level: "h2", align: "left" },
+    defaultProps: { text: "Section heading", level: "h2", align: "left" },
     editableFields: [
       { path: "text", label: "Text", control: "text", required: true },
       {

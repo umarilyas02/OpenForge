@@ -25,7 +25,10 @@ export const testimonialBlock = createCmsBlock({
     name: "Testimonial",
     description: "A quote with an attributed author.",
     tags: ["social-proof", "testimonial"],
-    defaultProps: {},
+    defaultProps: {
+      quote: "This product changed how we work.",
+      author: "Jane Doe",
+    },
     editableFields: [
       { path: "quote", label: "Quote", control: "textarea", required: true },
       { path: "author", label: "Author", control: "text", required: true },
