@@ -59,6 +59,9 @@ importers:
       '@openforge/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
+      '@openforge/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       '@openforge/theme-default':
         specifier: workspace:*
         version: link:../../themes/default
