@@ -1,10 +1,7 @@
 "use server";
 
 import { assertSiteAccess } from "@openforge/auth";
-import {
-  defaultDesignTokens,
-  validateTokenValue,
-} from "@openforge/design-tokens";
+import { defaultDesignTokens, validateTokenValue } from "@openforge/design-tokens";
 import { schema } from "@openforge/db";
 import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
@@ -15,18 +12,20 @@ import {
   requireUser,
 } from "../../../../../../src/lib/session.js";
 
-const COLOR_TOKEN_NAMES = new Set(
-  defaultDesignTokens.tokens
-    .filter((token) => token.type === "color")
-    .map((token) => token.name),
+const TOKENS_BY_NAME = new Map(
+  defaultDesignTokens.tokens.map((token) => [token.name, token]),
 );
 
 /**
+ * Saves user-supplied overrides for any design token (color, spacing,
+ * radius, typography, shadow) on a site's theme installation. Every
+ * editable field on the Design Tokens page shares this one action.
+ *
  * @param {string} siteId
  * @param {{ error: string | null }} _prevState
  * @param {FormData} formData
  */
-export async function saveAppearance(siteId, _prevState, formData) {
+export async function saveDesignTokens(siteId, _prevState, formData) {
   const user = await requireUser();
   const db = getDb();
 
@@ -51,14 +50,20 @@ export async function saveAppearance(siteId, _prevState, formData) {
 
   const overrides = { ...(installation.config ?? {}) };
 
-  for (const name of COLOR_TOKEN_NAMES) {
+  for (const [name, token] of TOKENS_BY_NAME) {
     const value = formData.get(name);
     if (typeof value !== "string" || value === "") continue;
 
     try {
-      validateTokenValue({ type: "color", value, tokens: [] });
+      validateTokenValue({
+        type: token.type,
+        value,
+        tokens: defaultDesignTokens.tokens,
+      });
     } catch {
-      return { error: `"${value}" is not a valid color for ${name}.` };
+      return {
+        error: `"${value}" is not a valid ${token.type} value for ${token.cssVariable}.`,
+      };
     }
     overrides[name] = value;
   }
@@ -68,5 +73,5 @@ export async function saveAppearance(siteId, _prevState, formData) {
     .set({ config: overrides })
     .where(eq(schema.themeInstallations.siteId, site.id));
 
-  redirect(`/sites/${site.id}/appearance?saved=1`);
+  redirect(`/sites/${site.id}/appearance/design-tokens?saved=1`);
 }

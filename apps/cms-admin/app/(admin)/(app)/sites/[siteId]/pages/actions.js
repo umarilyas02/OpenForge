@@ -11,6 +11,7 @@ import {
   requireUser,
 } from "../../../../../../src/lib/session.js";
 import { componentPathForBlock } from "../../../../../../src/lib/block-files.js";
+import { commitSiteChanges } from "../../../../../../src/lib/site-git.js";
 import { getWorkspaceManager } from "../../../../../../src/lib/site-workspace.js";
 
 const PATH_SEGMENT_PATTERN = /^[a-z0-9][a-z0-9-]*(\/[a-z0-9][a-z0-9-]*)*$/u;
@@ -92,9 +93,10 @@ export default function Page() {
       path: filePath,
       source,
     });
+    await commitSiteChanges(state.rootPath, `Add page: ${rawPath || "/"}`);
   } catch (error) {
     return { error: `Could not create the page: ${error.message}` };
   }
 
-  redirect(`/sites/${site.id}`);
+  redirect(`/sites/${site.id}/pages`);
 }

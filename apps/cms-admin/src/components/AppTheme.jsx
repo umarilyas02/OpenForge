@@ -4,7 +4,7 @@ import { BaseStyles, ThemeProvider } from "@primer/react";
 
 export function AppTheme({ children }) {
   return (
-    <ThemeProvider colorMode="dark" nightScheme="dark_dimmed">
+    <ThemeProvider colorMode="light">
       <BaseStyles>{children}</BaseStyles>
     </ThemeProvider>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, TextInput } from "@primer/react";
+import { useSearchParams } from "next/navigation";
 import { use, useActionState, useState } from "react";
 
 import { templatesForType } from "../../../../../../../src/lib/page-templates.js";
@@ -10,7 +11,10 @@ const initialState = { error: null };
 
 export default function NewContentPage({ params }) {
   const { siteId } = use(params);
-  const [type, setType] = useState("page");
+  const searchParams = useSearchParams();
+  const [type, setType] = useState(
+    searchParams.get("type") === "post" ? "post" : "page",
+  );
   const [templateId, setTemplateId] = useState("blank");
   const action = createContent.bind(null, siteId);
   const [state, formAction, pending] = useActionState(action, initialState);
