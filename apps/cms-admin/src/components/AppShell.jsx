@@ -112,25 +112,6 @@ export function AppShell({
         />
       ) : null}
 
-      <div className="app-topbar-mobile">
-        <button
-          aria-label="Open navigation"
-          className="icon-button"
-          onClick={() => setMobileOpen(true)}
-          type="button"
-        >
-          <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-            <path
-              d="M2 4h12M2 8h12M2 12h12"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="1.4"
-            />
-          </svg>
-        </button>
-        <span className="app-brand-mark">OF</span>
-      </div>
-
       <nav aria-label="Primary" className="app-sidebar" data-open={mobileOpen}>
         <div className="app-brand-block">
           <span className="app-brand-word">OpenForge</span>
@@ -273,6 +254,21 @@ export function AppShell({
 
       <div className="app-main">
         <div className="app-topbar">
+          <button
+            aria-label="Open navigation"
+            className="icon-button app-topbar-menu-button"
+            onClick={() => setMobileOpen(true)}
+            type="button"
+          >
+            <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
+              <path
+                d="M2 4h12M2 8h12M2 12h12"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeWidth="1.4"
+              />
+            </svg>
+          </button>
           <div className="app-topbar-spacer" />
           <div className="app-topbar-actions">
             {viewSiteHref ? (

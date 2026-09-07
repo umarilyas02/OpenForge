@@ -240,9 +240,9 @@ a {
   background: none;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  color: var(--text-inverse-muted);
+  color: var(--text-muted);
   cursor: pointer;
-  display: inline-flex;
+  display: none;
   flex-shrink: 0;
   height: 30px;
   justify-content: center;
@@ -253,12 +253,12 @@ a {
 }
 
 .icon-button:hover {
-  background: var(--surface-sidebar-hover);
-  color: var(--text-inverse);
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
 .icon-button:active {
-  background: var(--surface-sidebar-active);
+  background: var(--border);
 }
 
 /* ---------- Site switcher ---------- */
@@ -474,19 +474,6 @@ a {
   height: 100%;
   min-width: 0;
   overflow-y: auto;
-}
-
-.app-topbar-mobile {
-  align-items: center;
-  background: var(--surface-sidebar);
-  border-bottom: 1px solid #262626;
-  color: var(--text-inverse);
-  display: none;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
 }
 
 /* ---------- Topbar (light, main content) ---------- */
@@ -1647,8 +1634,8 @@ a.list-row:hover,
     z-index: var(--z-modal-backdrop);
   }
 
-  .app-topbar-mobile {
-    display: flex;
+  .app-topbar-menu-button {
+    display: inline-flex;
   }
 
   .page {
