@@ -3,6 +3,7 @@ import { schema } from "@openforge/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
+import { ActivateThemeForm } from "../../../../../../../src/components/ActivateThemeForm.jsx";
 import { getDb } from "../../../../../../../src/lib/db.js";
 import {
   getMemberships,
@@ -74,9 +75,10 @@ export default async function ThemesPage({ params }) {
           <p className="page-eyebrow">Appearance / Themes</p>
           <h1 className="page-title">Themes</h1>
           <p className="page-subtitle">
-            The theme controls layout, block palette, and default colors for
-            /{site.slug}. Switching themes resets any custom color overrides
-            saved on the Design Tokens page.
+            Activating a theme replaces /{site.slug}&apos;s pages,
+            navigation, and footer with that theme&apos;s starter content —
+            like a WordPress theme&apos;s demo import. Your current pages
+            and custom color overrides are not kept.
           </p>
         </div>
       </div>
@@ -100,11 +102,12 @@ export default async function ThemesPage({ params }) {
               {isActive ? (
                 <span className="badge badge-published">Active</span>
               ) : (
-                <form action={installTheme.bind(null, site.id, manifest.id)}>
-                  <button className="btn btn-ghost" type="submit">
-                    Activate
-                  </button>
-                </form>
+                <ActivateThemeForm
+                  installTheme={installTheme}
+                  siteId={site.id}
+                  themeId={manifest.id}
+                  themeName={manifest.name}
+                />
               )}
             </div>
           );

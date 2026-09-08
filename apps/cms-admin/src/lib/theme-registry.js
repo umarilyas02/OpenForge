@@ -1,16 +1,40 @@
 import { OFFICIAL_CMS_BLOCKS, createCmsBlockRegistry } from "@openforge/cms-blocks";
 import { createThemeRegistry } from "@openforge/theme-sdk";
-import { agencyTheme } from "@openforge/theme-agency";
+import { agencyTheme, exampleSite as agencyExampleSite } from "@openforge/theme-agency";
 import { defaultTheme } from "@openforge/theme-default";
-import { ecommerceTheme } from "@openforge/theme-ecommerce";
-import { educationTheme } from "@openforge/theme-education";
-import { healthcareTheme } from "@openforge/theme-healthcare";
-import { magazineTheme } from "@openforge/theme-magazine";
-import { nonprofitTheme } from "@openforge/theme-nonprofit";
-import { portfolioTheme } from "@openforge/theme-portfolio";
-import { realestateTheme } from "@openforge/theme-realestate";
-import { restaurantTheme } from "@openforge/theme-restaurant";
-import { saasTheme } from "@openforge/theme-saas";
+import {
+  ecommerceTheme,
+  exampleSite as ecommerceExampleSite,
+} from "@openforge/theme-ecommerce";
+import {
+  educationTheme,
+  exampleSite as educationExampleSite,
+} from "@openforge/theme-education";
+import {
+  exampleSite as healthcareExampleSite,
+  healthcareTheme,
+} from "@openforge/theme-healthcare";
+import {
+  exampleSite as magazineExampleSite,
+  magazineTheme,
+} from "@openforge/theme-magazine";
+import {
+  exampleSite as nonprofitExampleSite,
+  nonprofitTheme,
+} from "@openforge/theme-nonprofit";
+import {
+  exampleSite as portfolioExampleSite,
+  portfolioTheme,
+} from "@openforge/theme-portfolio";
+import {
+  exampleSite as realestateExampleSite,
+  realestateTheme,
+} from "@openforge/theme-realestate";
+import {
+  exampleSite as restaurantExampleSite,
+  restaurantTheme,
+} from "@openforge/theme-restaurant";
+import { exampleSite as saasExampleSite, saasTheme } from "@openforge/theme-saas";
 
 export const DEFAULT_THEME_ID = "openforge-theme.default";
 
@@ -24,6 +48,27 @@ export const DEFAULT_THEME_ID = "openforge-theme.default";
 export const cmsBlockRegistry = createCmsBlockRegistry(OFFICIAL_CMS_BLOCKS);
 
 export const themeRegistry = createThemeRegistry();
+
+/**
+ * `theme.exampleSite` isn't a thing -- `createTheme()`'s return value has
+ * no such field, and `exampleSite` is a separate named export per theme
+ * package. Tracked here, alongside the theme, keyed by manifest id. The
+ * default theme has none (it predates the example-site kits and is the
+ * "start from a blank starter" option); every other theme has one built
+ * for it -- see each theme's own src/example-site.js.
+ */
+const EXAMPLE_SITES_BY_THEME_ID = {
+  "openforge-theme.saas": saasExampleSite,
+  "openforge-theme.portfolio": portfolioExampleSite,
+  "openforge-theme.ecommerce": ecommerceExampleSite,
+  "openforge-theme.restaurant": restaurantExampleSite,
+  "openforge-theme.agency": agencyExampleSite,
+  "openforge-theme.healthcare": healthcareExampleSite,
+  "openforge-theme.education": educationExampleSite,
+  "openforge-theme.nonprofit": nonprofitExampleSite,
+  "openforge-theme.realestate": realestateExampleSite,
+  "openforge-theme.magazine": magazineExampleSite,
+};
 
 for (const theme of [
   defaultTheme,
@@ -54,4 +99,13 @@ export function getTheme(themeId) {
     }
   }
   return themeRegistry.get(DEFAULT_THEME_ID);
+}
+
+/**
+ * @param {string} themeId
+ * @returns {unknown | null} the theme's raw exampleSite export, or null if
+ *   it doesn't have one (currently just the Default theme).
+ */
+export function getExampleSiteFor(themeId) {
+  return EXAMPLE_SITES_BY_THEME_ID[themeId] ?? null;
 }

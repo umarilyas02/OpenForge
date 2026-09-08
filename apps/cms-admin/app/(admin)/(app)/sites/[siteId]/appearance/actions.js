@@ -11,10 +11,15 @@ import {
   getMemberships,
   requireUser,
 } from "../../../../../../src/lib/session.js";
+import { commitSiteChanges, initSiteGit } from "../../../../../../src/lib/site-git.js";
+import { buildStarterFiles } from "../../../../../../src/lib/starter-template.js";
+import { buildThemeSiteFiles } from "../../../../../../src/lib/theme-site-generator.js";
 import {
   DEFAULT_THEME_ID,
+  getExampleSiteFor,
   themeRegistry,
 } from "../../../../../../src/lib/theme-registry.js";
+import { getWorkspaceManager } from "../../../../../../src/lib/site-workspace.js";
 
 const TOKENS_BY_NAME = new Map(
   defaultDesignTokens.tokens.map((token) => [token.name, token]),
@@ -89,11 +94,21 @@ export async function saveDesignTokens(siteId, _prevState, formData) {
 }
 
 /**
- * Installs/activates a theme on a site (upserting the site's single
- * `theme_installations` row). Switching to a *different* theme resets any
- * saved custom token overrides, since they were tuned against the old
- * theme's base palette and could look broken against the new one;
- * re-activating the theme that's already active is a no-op for `config`.
+ * Installs/activates a theme on a site: WordPress-style, this replaces the
+ * site's actual pages, navigation, and footer with the theme's real
+ * example content (see theme-site-generator.js) -- not just a token/color
+ * change. This is destructive: any hand-edited page content is overwritten
+ * and the site's local git history is reset to one fresh "Activate <theme>"
+ * commit, same as a WordPress theme's one-click demo-content import. The
+ * UI must confirm with the user before calling this.
+ *
+ * Generates every file in memory first and only touches the real workspace
+ * or the database once that fully succeeds, so a failure here never leaves
+ * the site half-migrated.
+ *
+ * Switching to a *different* theme also resets any saved custom token
+ * overrides, since they were tuned against the old theme's base palette;
+ * re-activating the theme that's already active is a no-op.
  *
  * @param {string} siteId
  * @param {string} themeId
@@ -125,6 +140,18 @@ export async function installTheme(siteId, themeId) {
   if (existing?.themeId === theme.manifest.id) {
     redirect(`/sites/${site.id}/appearance/themes`);
   }
+
+  const exampleSite = getExampleSiteFor(theme.manifest.id);
+  const files = exampleSite
+    ? await buildThemeSiteFiles(theme, exampleSite, site)
+    : await buildStarterFiles(site);
+
+  const manager = getWorkspaceManager();
+  await manager.cleanup(site.slug).catch(() => {});
+  await manager.create(site.slug, files);
+  const { rootPath } = await manager.describe(site.slug);
+  await initSiteGit(rootPath);
+  await commitSiteChanges(rootPath, `Activate ${theme.manifest.name} theme`);
 
   await db
     .insert(schema.themeInstallations)
