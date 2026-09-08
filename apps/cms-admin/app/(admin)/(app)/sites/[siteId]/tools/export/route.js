@@ -13,6 +13,7 @@ import {
   requireUser,
 } from "../../../../../../../src/lib/session.js";
 import { getWorkspaceManager } from "../../../../../../../src/lib/site-workspace.js";
+import { isUuid } from "../../../../../../../src/lib/uuid.js";
 
 /**
  * Streams a `.tar.gz` of a site's real workspace files (its actual Next.js
@@ -22,6 +23,9 @@ import { getWorkspaceManager } from "../../../../../../../src/lib/site-workspace
  */
 export async function GET(_request, { params }) {
   const { siteId } = await params;
+  if (!isUuid(siteId)) {
+    return new Response("Not found", { status: 404 });
+  }
   const user = await requireUser();
 
   const db = getDb();

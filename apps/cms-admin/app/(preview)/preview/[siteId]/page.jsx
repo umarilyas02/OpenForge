@@ -21,6 +21,7 @@ import {
   getWorkspaceManager,
   listPages,
 } from "../../../../src/lib/site-workspace.js";
+import { isUuid } from "../../../../src/lib/uuid.js";
 
 const renderer = createRenderer({
   theme: defaultTheme,
@@ -38,6 +39,7 @@ const renderer = createRenderer({
 export default async function SitePreviewPage({ params, searchParams }) {
   const { siteId } = await params;
   const { page: requestedPage } = await searchParams;
+  if (!isUuid(siteId)) notFound();
   const user = await requireUser();
 
   const db = getDb();
