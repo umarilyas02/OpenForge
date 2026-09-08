@@ -154,7 +154,9 @@ apps/cms-renderer (Next.js, multi-tenant)
 | `packages/auth` | Password hashing, hashed-token sessions, and cross-tenant authorization. |
 | `packages/theme-sdk` | Theme manifest schema and the runtime registry that resolves a theme's templates and block components. |
 | `packages/cms-blocks` | Real, importable React block components with prop/slot/migration schemas. |
+| `packages/component-library` | A growing, self-contained catalog of real-world component variants (nav, footer, hero, blog, product, grid, custom) — an additional, curated source of page content alongside `cms-blocks`; not yet wired into the canvas palette. |
 | `packages/renderer` | Block-tree rendering and per-site design-token CSS. |
+| `packages/storage` | Asset upload, image analysis, variant generation, and signed-URL contracts backing the media library. |
 | `themes/*` | Installable themes built on `theme-sdk` and `cms-blocks` (starts with `themes/default`). |
 
 `apps/cms-admin` is built for a single person to run locally or deploy
@@ -173,8 +175,18 @@ implementations on the design-token CSS system; a subset (Spotlight Card,
 Gradient Heading, Marquee Text, Feature List, Data Table, Carousel) are
 instead Tailwind-styled, bringing the shadcn/ReactBits visual language as
 a distinct, coexisting option — both are real, dependency-light
-components, not copies of those libraries' actual code. A media library
-and multi-theme *package* switching are not built yet — the seed script
+components, not copies of those libraries' actual code. A real media
+library backs image uploads with automatic variant generation, alt-text
+analysis, and signed URLs, stored in PostgreSQL plus local blob storage.
+Every site is also a real, local Git repository — every content and
+block edit is committed automatically, with the resulting history visible
+under Settings — which backs a downloadable project export (a real
+`.tar.gz` of the site's actual Next.js source) and a GitHub push (connect
+a repository with a personal access token, encrypted at rest and never
+written to the workspace's own `.git/config`) so a site can leave the
+admin UI as ordinary source code. A read-only `/preview` route renders
+every real page through the same block-tree renderer as production.
+Multi-theme *package* switching is not built yet — the seed script
 (`tooling/scripts/seed-cms-demo.js`) or direct `packages/db` access still
 covers what the UI doesn't.
 
@@ -224,8 +236,12 @@ Alongside those phases, a first vertical slice of the CMS surface (site
 resolution, theme rendering, a 38-block library, and a production Docker
 image for `apps/cms-renderer`) has been built and verified end to end,
 along with a single-user, WordPress-style admin UI (`apps/cms-admin`)
-covering sites, a live-canvas drag-and-drop content editor, menus,
-settings, and appearance. An authenticated CRUD API and a theme/template
+covering sites, a live-canvas drag-and-drop content editor, a real media
+library, menus, settings, appearance, project export, and GitHub push.
+Each site is backed by its own real Git repository, giving every edit a
+genuine commit history. A curated `component-library` catalog of
+real-world component variants exists as a package but is not yet wired
+into the canvas palette. An authenticated CRUD API and a theme/template
 marketplace are not built yet — see `progress.md` for exact status and
 evidence.
 
@@ -241,10 +257,11 @@ production Docker image (`apps/cms-renderer/Dockerfile`) and has been run
 against a live PostgreSQL database, correctly rendering seeded content by
 Host header, and `apps/cms-admin` now provides real login-gated site,
 content, menu, and settings management for a single user, including a
-live-canvas drag-and-drop editor over a 38-block library and per-site
-appearance (color-token) customization. It is still pre-alpha — no media
-library, no multi-theme *package* switching, no versioned release — but
-it is genuinely runnable today, not a placeholder.
+live-canvas drag-and-drop editor over a 38-block library, a real media
+library, per-site appearance (color-token) customization, per-site Git
+history, project export, and GitHub push. It is still pre-alpha — no
+multi-theme *package* switching, no versioned release — but it is
+genuinely runnable today, not a placeholder.
 
 If you want to help shape the project now:
 
