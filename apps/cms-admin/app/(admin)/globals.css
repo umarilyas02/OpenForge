@@ -1535,6 +1535,41 @@ a.list-row:hover,
   }
 }
 
+/* Structured-content editor (ContentEditor.jsx) — a separate, still-current
+   editing surface (site content items, not file-backed pages) that keeps
+   its own title-row + form-fields-card layout. */
+.editor-meta-bar {
+  align-items: end;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.editor-meta-bar-actions {
+  align-items: center;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+.editor-meta-bar-row {
+  align-items: center;
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .editor-meta-bar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editor-meta-bar-actions {
+    justify-content: flex-start;
+  }
+}
+
 .editor-layout {
   display: grid;
   gap: var(--space-6);

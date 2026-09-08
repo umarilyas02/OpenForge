@@ -4,7 +4,6 @@ import { Redo2, Undo2 } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { PREVIEW_WIDTHS } from "../lib/preview-modes.js";
-import { BlockList } from "./BlockList.jsx";
 import { CanvasEditor } from "./CanvasEditor.jsx";
 
 /**
@@ -30,7 +29,6 @@ import { CanvasEditor } from "./CanvasEditor.jsx";
  *   pagePath: string,
  *   pageTitle: string,
  *   initialTree: object[],
- *   initialPageRootNodeId: string,
  *   initialSource: string,
  *   initialThemeId: string,
  *   initialTokenOverrides: object,
@@ -51,7 +49,6 @@ export function SourceContentEditor({
   pagePath,
   pageTitle,
   initialTree,
-  initialPageRootNodeId,
   initialSource,
   initialThemeId,
   initialTokenOverrides,
@@ -67,13 +64,11 @@ export function SourceContentEditor({
   restorePageSourceAction,
 }) {
   const [tree, setTree] = useState(initialTree);
-  const [pageRootNodeId, setPageRootNodeId] = useState(initialPageRootNodeId);
   const [source, setSource] = useState(initialSource);
   const [themeId, setThemeId] = useState(initialThemeId);
   const [tokenOverrides, setTokenOverrides] = useState(initialTokenOverrides);
   const [past, setPast] = useState([]);
   const [future, setFuture] = useState([]);
-  const [view, setView] = useState("canvas");
   const [previewMode, setPreviewMode] = useState("desktop");
   const [error, setError] = useState(null);
   const [pending, startTransition] = useTransition();
@@ -95,7 +90,6 @@ export function SourceContentEditor({
 
   function applyState(result) {
     setTree(result.tree);
-    setPageRootNodeId(result.pageRootNodeId);
     setSource(result.source);
     if (result.themeId !== undefined) setThemeId(result.themeId);
     if (result.tokenOverrides !== undefined) setTokenOverrides(result.tokenOverrides);
@@ -224,74 +218,42 @@ export function SourceContentEditor({
             </button>
           </div>
 
-          {view === "canvas" ? (
-            <div className="canvas-device-toggle" role="tablist">
-              {Object.entries(PREVIEW_WIDTHS).map(([mode, config]) => {
-                const Icon = config.icon;
-                return (
-                  <button
-                    aria-selected={previewMode === mode}
-                    data-active={previewMode === mode}
-                    key={mode}
-                    onClick={() => setPreviewMode(mode)}
-                    role="tab"
-                    title={config.label}
-                    type="button"
-                  >
-                    <Icon size={15} strokeWidth={1.75} />
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
+          <div className="canvas-device-toggle" role="tablist">
+            {Object.entries(PREVIEW_WIDTHS).map(([mode, config]) => {
+              const Icon = config.icon;
+              return (
+                <button
+                  aria-selected={previewMode === mode}
+                  data-active={previewMode === mode}
+                  key={mode}
+                  onClick={() => setPreviewMode(mode)}
+                  role="tab"
+                  title={config.label}
+                  type="button"
+                >
+                  <Icon size={15} strokeWidth={1.75} />
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="editor-toolbar-actions">
           {error ? <p className="form-error">{error}</p> : null}
           {pending ? <p className="muted">Saving…</p> : null}
-          <div className="editor-view-toggle">
-            <button
-              data-active={view === "canvas"}
-              onClick={() => setView("canvas")}
-              type="button"
-            >
-              Canvas
-            </button>
-            <button
-              data-active={view === "layers"}
-              onClick={() => setView("layers")}
-              type="button"
-            >
-              Layers
-            </button>
-          </div>
         </div>
       </div>
 
-      {view === "canvas" ? (
-        <CanvasEditor
-          allowedBlockIds={allowedBlockIds}
-          catalog={catalog}
-          libraryCatalog={libraryCatalog}
-          previewMode={previewMode}
-          themeId={themeId}
-          tokenOverrides={tokenOverrides}
-          tree={tree}
-          {...handlers}
-        />
-      ) : (
-        <div className="editor-layout">
-          <div className="block-canvas">
-            <BlockList
-              allowedBlockIds={allowedBlockIds}
-              catalog={catalog}
-              containerNodeId={pageRootNodeId}
-              nodes={tree}
-              {...handlers}
-            />
-          </div>
-        </div>
-      )}
+      <CanvasEditor
+        allowedBlockIds={allowedBlockIds}
+        catalog={catalog}
+        libraryCatalog={libraryCatalog}
+        previewMode={previewMode}
+        themeId={themeId}
+        tokenOverrides={tokenOverrides}
+        tree={tree}
+        {...handlers}
+      />
     </div>
   );
 }
