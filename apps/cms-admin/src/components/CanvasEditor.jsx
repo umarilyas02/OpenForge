@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Trash2 } from "lucide-react";
+import { ChevronRight, Copy, MousePointerClick, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { PREVIEW_WIDTHS } from "../lib/preview-modes.js";
@@ -191,6 +191,10 @@ export function CanvasEditor({
   return (
     <div className="canvas-editor">
       <aside className="canvas-palette">
+        <div className="canvas-rail-header">
+          <p className="canvas-rail-eyebrow">Insert</p>
+        </div>
+
         <div className="palette-tabs" role="tablist">
           {PALETTE_TABS.map((tab) => (
             <button
@@ -218,16 +222,16 @@ export function CanvasEditor({
         ) : paletteTab === "blocks" ? (
           <LibraryPalette catalog={libraryCatalog} onAdd={onInsertLibraryComponent} />
         ) : (
-          <p className="muted">
+          <p className="canvas-rail-note">
             Site-wide globals (header, footer, design tokens) will show up here.
           </p>
         )}
       </aside>
 
       <div className="canvas-center">
-        {ancestorNodes.length > 0 ? (
-          <div className="canvas-breadcrumb">
-            {ancestorNodes.map((node, index) => {
+        <div className="canvas-breadcrumb">
+          {ancestorNodes.length > 0 ? (
+            ancestorNodes.map((node, index) => {
               const definition = catalog.find(
                 (entry) => entry.id === node.blockId,
               );
@@ -245,15 +249,20 @@ export function CanvasEditor({
                     {definition?.name ?? node.blockId}
                   </button>
                   {isLast ? null : (
-                    <span aria-hidden="true" className="canvas-breadcrumb-sep">
-                      /
-                    </span>
+                    <ChevronRight
+                      aria-hidden="true"
+                      className="canvas-breadcrumb-sep"
+                      size={12}
+                      strokeWidth={2}
+                    />
                   )}
                 </span>
               );
-            })}
-          </div>
-        ) : null}
+            })
+          ) : (
+            <span className="canvas-breadcrumb-empty">No selection</span>
+          )}
+        </div>
 
         <div className="canvas-frame-wrap" data-mode={previewMode}>
           <div
@@ -273,7 +282,10 @@ export function CanvasEditor({
       <aside className="canvas-inspector">
         {selectedNode && selectedDefinition ? (
           <>
-            <p className="editor-rail-label">{selectedDefinition.name}</p>
+            <div className="canvas-rail-header">
+              <p className="canvas-rail-eyebrow">Selected</p>
+              <p className="canvas-rail-title">{selectedDefinition.name}</p>
+            </div>
             <BlockPropsForm
               definition={selectedDefinition}
               key={selectedNode.id}
@@ -307,7 +319,12 @@ export function CanvasEditor({
             </div>
           </>
         ) : (
-          <p className="muted">Select a block on the canvas to edit it.</p>
+          <div className="canvas-inspector-empty">
+            <span className="canvas-inspector-empty-icon">
+              <MousePointerClick size={18} strokeWidth={1.75} />
+            </span>
+            <p>Select a block on the canvas to edit its content and styles.</p>
+          </div>
         )}
       </aside>
     </div>

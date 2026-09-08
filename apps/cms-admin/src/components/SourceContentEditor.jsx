@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ExternalLink, Redo2, Undo2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, ExternalLink, Redo2, Undo2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 
@@ -201,11 +201,17 @@ export function SourceContentEditor({
             href={`/sites/${siteId}/pages`}
             title="Back to pages"
           >
-            <ArrowLeft size={16} strokeWidth={1.75} />
+            <ArrowLeft size={16} strokeWidth={2} />
           </Link>
+          <span aria-hidden="true" className="editor-toolbar-rule" />
           <div className="editor-toolbar-breadcrumb">
             <Link href={`/sites/${siteId}/pages`}>Pages</Link>
-            <span aria-hidden="true">/</span>
+            <ChevronRight
+              aria-hidden="true"
+              className="editor-toolbar-crumb-sep"
+              size={13}
+              strokeWidth={2}
+            />
             <span className="editor-toolbar-title" title={pagePath}>
               {pageTitle}
             </span>
@@ -213,65 +219,91 @@ export function SourceContentEditor({
         </div>
 
         <div className="editor-toolbar-center">
-          <div className="editor-history-actions">
-            <button
-              className="icon-btn-sm"
-              disabled={past.length === 0}
-              onClick={undo}
-              title="Undo (Ctrl+Z)"
-              type="button"
-            >
-              <Undo2 size={14} strokeWidth={1.75} />
-            </button>
-            <button
-              className="icon-btn-sm"
-              disabled={future.length === 0}
-              onClick={redo}
-              title="Redo (Ctrl+Shift+Z)"
-              type="button"
-            >
-              <Redo2 size={14} strokeWidth={1.75} />
-            </button>
-          </div>
+          <div className="editor-toolbar-cluster">
+            <div className="editor-history-actions">
+              <button
+                className="toolbar-icon-btn"
+                disabled={past.length === 0}
+                onClick={undo}
+                title="Undo (Ctrl+Z)"
+                type="button"
+              >
+                <Undo2 size={15} strokeWidth={2} />
+              </button>
+              <button
+                className="toolbar-icon-btn"
+                disabled={future.length === 0}
+                onClick={redo}
+                title="Redo (Ctrl+Shift+Z)"
+                type="button"
+              >
+                <Redo2 size={15} strokeWidth={2} />
+              </button>
+            </div>
 
-          <div className="canvas-device-toggle" role="tablist">
-            {Object.entries(PREVIEW_WIDTHS).map(([mode, config]) => {
-              const Icon = config.icon;
-              return (
-                <button
-                  aria-selected={previewMode === mode}
-                  data-active={previewMode === mode}
-                  key={mode}
-                  onClick={() => setPreviewMode(mode)}
-                  role="tab"
-                  title={config.label}
-                  type="button"
-                >
-                  <Icon size={15} strokeWidth={1.75} />
-                </button>
-              );
-            })}
+            <span aria-hidden="true" className="editor-toolbar-cluster-rule" />
+
+            <div
+              aria-label="Canvas viewport"
+              className="canvas-device-toggle"
+              role="tablist"
+            >
+              {Object.entries(PREVIEW_WIDTHS).map(([mode, config]) => {
+                const Icon = config.icon;
+                return (
+                  <button
+                    aria-selected={previewMode === mode}
+                    data-active={previewMode === mode}
+                    key={mode}
+                    onClick={() => setPreviewMode(mode)}
+                    role="tab"
+                    title={config.label}
+                    type="button"
+                  >
+                    <Icon size={15} strokeWidth={2} />
+                  </button>
+                );
+              })}
+            </div>
+
+            <span aria-hidden="true" className="editor-toolbar-cluster-rule" />
+
+            <p className="editor-toolbar-readout">
+              <span className="editor-toolbar-readout-label">
+                {PREVIEW_WIDTHS[previewMode].label}
+              </span>
+              <span className="editor-toolbar-readout-value">
+                {PREVIEW_WIDTHS[previewMode].width === "100%"
+                  ? "Fluid"
+                  : PREVIEW_WIDTHS[previewMode].width}
+              </span>
+            </p>
           </div>
         </div>
 
         <div className="editor-toolbar-actions">
-          {error ? (
-            <p className="form-error">{error}</p>
-          ) : (
-            <p className="editor-toolbar-status">
-              {pending ? "Saving…" : "Saved"}
-            </p>
-          )}
+          <p
+            className="editor-toolbar-status"
+            data-state={error ? "error" : pending ? "saving" : "saved"}
+            title={error ?? undefined}
+          >
+            <span aria-hidden="true" className="editor-toolbar-status-dot" />
+            {error ? error : pending ? "Saving…" : "Saved"}
+          </p>
+          <span aria-hidden="true" className="editor-toolbar-rule" />
           <a
-            className="btn btn-ghost"
+            className="btn btn-ghost editor-toolbar-btn"
             href={`/preview/${siteId}`}
             rel="noreferrer"
             target="_blank"
           >
             Preview
-            <ExternalLink size={14} strokeWidth={1.75} />
+            <ExternalLink size={13} strokeWidth={2} />
           </a>
-          <Link className="btn btn-primary" href={`/sites/${siteId}/settings`}>
+          <Link
+            className="btn btn-primary editor-toolbar-btn editor-toolbar-publish"
+            href={`/sites/${siteId}/settings`}
+          >
             Publish
           </Link>
         </div>
