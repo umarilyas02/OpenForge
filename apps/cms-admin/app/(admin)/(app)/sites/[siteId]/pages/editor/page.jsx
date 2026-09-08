@@ -23,10 +23,8 @@ export default async function PageEditorRoute({ params, searchParams }) {
   const { file } = await searchParams;
   if (!file) notFound();
 
-  const { tree, pageRootNodeId, source } = await getPageEditorState(
-    siteId,
-    file,
-  );
+  const { tree, pageRootNodeId, source, themeId, tokenOverrides } =
+    await getPageEditorState(siteId, file);
   const catalog = serializeBlockDefinitions(
     ALL_BLOCK_IDS,
     defaultThemeBlockRegistry,
@@ -42,6 +40,8 @@ export default async function PageEditorRoute({ params, searchParams }) {
       initialSource={source}
       initialTree={tree}
       insertBlockAction={insertBlockAction}
+      initialThemeId={themeId}
+      initialTokenOverrides={tokenOverrides}
       insertLibraryComponentAction={insertLibraryComponentAction}
       libraryCatalog={libraryCatalog}
       moveBlockAction={moveBlockAction}

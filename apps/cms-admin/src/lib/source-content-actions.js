@@ -3,6 +3,7 @@ import {
   CompilerOperationError,
   applyEditorOperation,
   applyVisualOperation,
+  buildProjectIndex,
 } from "@openforge/compiler";
 
 import {
@@ -266,13 +267,19 @@ export async function ensureBlockAvailable(siteSlug, pagePath, blockId) {
  * findPageRootNodeId) for a top-level insert from the palette, or a
  * slot-bearing block's own node id for inserting into that block's slot.
  *
- * `containerNodeId` must be current as of this call (read from a tree
- * fetched after any prior save — never reused across two calls in a row).
- * Internally, this locates the container by structural address before
- * ensureBlockAvailable runs and re-resolves it after, since adding an
- * import (the first time a block type is used on this page) shifts every
- * other node id in the file — but that only protects this one call; a
- * second insertBlock call still needs its own fresh containerNodeId.
+ * `containerNodeId` is `null`/`undefined` for a top-level insert rather than
+ * a snapshotted root id: node ids are positional (see buildProjectIndex),
+ * so adding an import — which every *previous* queued insert of a
+ * newly-used block type does — shifts every id in the file, including the
+ * page root's. A client-cached root id from before an earlier queued insert
+ * finished would then no longer equal the real root, this call would
+ * mistake it for a (nonexistent) slot container, and it would fail. Always
+ * re-resolving "root" fresh, right here, makes rapid sequential top-level
+ * inserts (the palette's common case) immune to that regardless of how
+ * stale the caller's last-seen root id is. A slot insert still needs its
+ * own fresh containerNodeId — locateNodeAddress/resolveNodeAddress below
+ * only protect *this* call's own two reads, not a second insertBlock call
+ * racing behind it.
  */
 export async function insertBlock(
   siteSlug,
@@ -284,11 +291,14 @@ export async function insertBlock(
   const manager = getWorkspaceManager();
 
   const beforeFiles = await manager.readFiles(siteSlug);
-  const isRoot = containerNodeId === findPageRootNodeId(beforeFiles, pagePath);
+  const beforeIndex = buildProjectIndex({ files: beforeFiles });
+  const isRoot =
+    containerNodeId == null ||
+    containerNodeId === findPageRootNodeId(beforeFiles, pagePath, beforeIndex);
   const address = isRoot
     ? null
     : locateNodeAddress(
-        parsePageToBlockTree(beforeFiles, pagePath),
+        parsePageToBlockTree(beforeFiles, pagePath, beforeIndex),
         containerNodeId,
       );
   if (!isRoot && !address) {
@@ -299,9 +309,11 @@ export async function insertBlock(
 
   const state = await manager.describe(siteSlug);
   const files = await manager.readFiles(siteSlug);
+  const index = buildProjectIndex({ files });
   const resolvedContainerNodeId = isRoot
-    ? findPageRootNodeId(files, pagePath)
-    : resolveNodeAddress(parsePageToBlockTree(files, pagePath), address)?.id;
+    ? findPageRootNodeId(files, pagePath, index)
+    : resolveNodeAddress(parsePageToBlockTree(files, pagePath, index), address)
+        ?.id;
   if (!resolvedContainerNodeId) {
     throw new Error(
       `Container no longer resolvable after ensuring block availability: ${containerNodeId}`,

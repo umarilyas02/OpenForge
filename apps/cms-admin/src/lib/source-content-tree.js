@@ -170,17 +170,23 @@ function findPageRootJsx(ast) {
  * `components/openforge/<block-id>.jsx` file; anything else is skipped,
  * since a block-composed page is only ever built from the known library.
  *
+ * `index` lets a caller that already built one (e.g. buildEditorIndex, when
+ * it's about to call this and findPageRootNodeId back to back on the same
+ * files) pass it through instead of paying for buildProjectIndex's full
+ * project walk a second time.
+ *
  * @param {Array<{path: string, source: string}>} files
  * @param {string} pagePath
+ * @param {ReturnType<typeof buildProjectIndex>} [index]
  * @returns {object[]}
  */
-export function parsePageToBlockTree(files, pagePath) {
+export function parsePageToBlockTree(files, pagePath, index) {
   const page = files.find((file) => file.path === pagePath);
   if (!page) {
     throw new Error(`Page not found in workspace: ${pagePath}`);
   }
 
-  const index = buildProjectIndex({ files });
+  index ??= buildProjectIndex({ files });
   const nodeIdByRange = new Map(
     index.nodes
       .filter((node) => node.filePath === pagePath && node.range)
@@ -237,9 +243,10 @@ export function parsePageToBlockTree(files, pagePath) {
  *
  * @param {Array<{path: string, source: string}>} files
  * @param {string} pagePath
+ * @param {ReturnType<typeof buildProjectIndex>} [index]
  * @returns {string}
  */
-export function findPageRootNodeId(files, pagePath) {
+export function findPageRootNodeId(files, pagePath, index) {
   const page = files.find((file) => file.path === pagePath);
   if (!page) {
     throw new Error(`Page not found in workspace: ${pagePath}`);
@@ -251,7 +258,7 @@ export function findPageRootNodeId(files, pagePath) {
     throw new Error(`Page has no JSX root: ${pagePath}`);
   }
 
-  const index = buildProjectIndex({ files });
+  index ??= buildProjectIndex({ files });
   const match = index.nodes.find(
     (node) =>
       node.filePath === pagePath &&

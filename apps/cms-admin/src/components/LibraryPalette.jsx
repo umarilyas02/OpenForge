@@ -17,10 +17,12 @@ import { getLibraryCategoryMeta, groupLibraryByCategory } from "../lib/library-p
  * {blockId, props} tree node.
  *
  * Known gap: because it isn't a tree node, an inserted library component
- * doesn't show up in this canvas's live iframe preview (which only ever
- * renders the recognized block tree) — only in the page's real, published
- * output. `lastInserted` surfaces that plainly instead of leaving a click
- * that visibly did nothing.
+ * doesn't show up in this canvas's live iframe preview, and — since
+ * app/(preview)/preview/[siteId]/page.jsx parses a page with the exact same
+ * parsePageToBlockTree — not in the read-only Preview route either. It only
+ * shows up once the site is actually exported/deployed. `lastInserted`
+ * surfaces that plainly instead of leaving a click that visibly did
+ * nothing.
  *
  * @param {{ catalog: object[], onAdd: (componentId: string) => void }} props
  */
@@ -62,9 +64,11 @@ export function LibraryPalette({ catalog, onAdd }) {
 
       {lastInserted ? (
         <p className="palette-insert-note">
-          Added &ldquo;{lastInserted}&rdquo; to the page. It&rsquo;s written into the
-          site&rsquo;s real files but won&rsquo;t appear on this canvas — open
-          Preview to see it rendered.
+          Added &ldquo;{lastInserted}&rdquo; to the page&rsquo;s real files (import
+          + component added, committed). It isn&rsquo;t part of the block tree
+          yet, so it won&rsquo;t show here or in Preview — you&rsquo;ll see it once
+          the site is exported/deployed. Making it a real, visible canvas block
+          is a planned follow-up.
         </p>
       ) : null}
 

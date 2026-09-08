@@ -124,23 +124,28 @@ export async function applyEditorOperation({
       : candidate,
   );
 
-  await withTemporaryProject(nextFiles, async (workspacePath) => {
-    for (const validator of validators) {
-      try {
-        await validator({
-          workspacePath,
-          files: nextFiles,
-          operation,
-        });
-      } catch (error) {
-        throw new CompilerOperationError(
-          "OF_OPERATION_VALIDATION_FAILED",
-          "A temporary-workspace validator rejected the operation.",
-          { cause: error instanceof Error ? error.message : String(error) },
-        );
+  // withTemporaryProject materializes every file to disk and tears it down
+  // again — real I/O with no payoff when there's nothing to validate against
+  // it, and this runs on every single edit.
+  if (validators.length > 0) {
+    await withTemporaryProject(nextFiles, async (workspacePath) => {
+      for (const validator of validators) {
+        try {
+          await validator({
+            workspacePath,
+            files: nextFiles,
+            operation,
+          });
+        } catch (error) {
+          throw new CompilerOperationError(
+            "OF_OPERATION_VALIDATION_FAILED",
+            "A temporary-workspace validator rejected the operation.",
+            { cause: error instanceof Error ? error.message : String(error) },
+          );
+        }
       }
-    }
-  });
+    });
+  }
 
   const nextRevision = currentRevision + 1;
   const inverseOperation = transformation.inverseOperation

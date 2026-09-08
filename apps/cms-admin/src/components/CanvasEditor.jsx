@@ -78,10 +78,11 @@ function diffTopLevelReorder(previousTree, nextTree) {
  *
  * @param {{
  *   tree: object[],
- *   pageRootNodeId: string,
  *   allowedBlockIds: string[],
  *   catalog: object[],
  *   libraryCatalog: object[],
+ *   themeId: string,
+ *   tokenOverrides: object,
  *   onPropsChange: (nodeId: string, nextProps: object) => void,
  *   onInsert: (blockId: string, containerNodeId: string) => void,
  *   onInsertLibraryComponent: (componentId: string) => void,
@@ -97,10 +98,11 @@ const PALETTE_TABS = [
 
 export function CanvasEditor({
   tree,
-  pageRootNodeId,
   allowedBlockIds,
   catalog,
   libraryCatalog,
+  themeId,
+  tokenOverrides,
   onPropsChange,
   onInsert,
   onInsertLibraryComponent,
@@ -148,7 +150,12 @@ export function CanvasEditor({
   useEffect(() => {
     function sendTree() {
       iframeRef.current?.contentWindow?.postMessage(
-        { type: "of-canvas-tree", tree: stripNodeIds(tree) },
+        {
+          type: "of-canvas-tree",
+          themeId,
+          tokenOverrides,
+          tree: stripNodeIds(tree),
+        },
         window.location.origin,
       );
     }
@@ -168,7 +175,7 @@ export function CanvasEditor({
       clearInterval(retry);
       clearTimeout(giveUp);
     };
-  }, [canvasAcked, tree]);
+  }, [canvasAcked, tree, themeId, tokenOverrides]);
 
   const selectedNode = selectedNodeId
     ? findNodeById(tree, selectedNodeId)
@@ -199,7 +206,10 @@ export function CanvasEditor({
           <BlockPalette
             allowedBlockIds={allowedBlockIds}
             catalog={catalog}
-            onAdd={(blockId) => onInsert(blockId, pageRootNodeId)}
+            // null, not the (possibly stale-by-now) pageRootNodeId snapshot
+            // — see insertBlock's own comment on why "root" is resolved
+            // fresh server-side rather than trusted from the client.
+            onAdd={(blockId) => onInsert(blockId, null)}
           />
         ) : paletteTab === "blocks" ? (
           <LibraryPalette catalog={libraryCatalog} onAdd={onInsertLibraryComponent} />

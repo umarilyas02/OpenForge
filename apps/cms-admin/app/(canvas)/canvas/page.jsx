@@ -2,14 +2,11 @@
 
 import { defaultDesignTokens } from "@openforge/design-tokens";
 import { createRenderer, renderSiteStyles } from "@openforge/renderer";
-import {
-  defaultTheme,
-  defaultThemeBlockRegistry,
-} from "@openforge/theme-default";
 import { Copy, Grip, X } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 
 import { getBlockPaletteMeta } from "../../../src/lib/block-palette-meta.js";
+import { cmsBlockRegistry, getTheme } from "../../../src/lib/theme-registry.js";
 
 const DRAG_HIGHLIGHT_STYLE_ID = "of-canvas-drag-highlight";
 
@@ -48,6 +45,7 @@ function getSelectionRect(path) {
  */
 export default function CanvasPage() {
   const [tree, setTree] = useState(null);
+  const [themeId, setThemeId] = useState(null);
   const [tokenOverrides, setTokenOverrides] = useState({});
   const [error, setError] = useState(null);
   const [dragIndex, setDragIndex] = useState(null);
@@ -62,6 +60,7 @@ export default function CanvasPage() {
       if (event.data?.type !== "of-canvas-tree") return;
       setError(null);
       setTree(event.data.tree);
+      setThemeId(event.data.themeId ?? null);
       setTokenOverrides(event.data.tokenOverrides ?? {});
       // Acknowledge so the parent can stop its retry loop — see
       // CanvasEditor.jsx's comment on why a single post-on-load isn't
@@ -100,9 +99,18 @@ export default function CanvasPage() {
     };
   }, [selectedPath, tree]);
 
+  // Also tells the parent, not just this frame's own state — CanvasEditor.jsx
+  // keeps its own selectedNodeId (driving the inspector panel) and previously
+  // never heard about a duplicate/remove-triggered clear, so it could go on
+  // showing a form for a node id that, after the tree re-parses and every
+  // later id shifts, might now belong to a completely different block.
   function clearSelection() {
     setSelectedPath(null);
     setSelectedBlockId(null);
+    window.parent.postMessage(
+      { type: "of-canvas-select", path: null },
+      window.location.origin,
+    );
   }
 
   function handleRemoveSelected() {
@@ -221,9 +229,15 @@ export default function CanvasPage() {
     );
   }
 
+  // Resolved from the message the parent sends (the site's real active
+  // theme, see loadThemeState in the editor route's actions.js) rather than
+  // always the default theme — the canvas previously rendered every site
+  // with the same fixed palette/manifest no matter which theme it actually
+  // has installed, so it visibly disagreed with Preview and the real site.
+  const theme = getTheme(themeId);
   const renderer = createRenderer({
-    theme: defaultTheme,
-    blockRegistry: defaultThemeBlockRegistry,
+    theme,
+    blockRegistry: cmsBlockRegistry,
     wrapNode,
   });
   const css = renderSiteStyles({
@@ -282,7 +296,7 @@ export default function CanvasPage() {
   const selectedMeta = selectedBlockId ? getBlockPaletteMeta(selectedBlockId) : null;
   const SelectedIcon = selectedMeta?.icon;
   const selectedName =
-    (selectedBlockId && defaultThemeBlockRegistry.get(selectedBlockId)?.definition?.name) ||
+    (selectedBlockId && cmsBlockRegistry.get(selectedBlockId)?.definition?.name) ||
     "Block";
 
   // Anchored with position:fixed directly off the measured rect (viewport
@@ -300,15 +314,7 @@ export default function CanvasPage() {
     : 0;
 
   return (
-    <div
-      onClick={() => {
-        clearSelection();
-        window.parent.postMessage(
-          { type: "of-canvas-select", path: null },
-          window.location.origin,
-        );
-      }}
-    >
+    <div onClick={clearSelection}>
       {/* Token CSS is generated and validated by packages/design-tokens, never raw user input. */}
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <style

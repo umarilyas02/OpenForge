@@ -1,6 +1,7 @@
 "use server";
 
 import { assertSiteAccess } from "@openforge/auth";
+import { buildProjectIndex } from "@openforge/compiler";
 import { schema } from "@openforge/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -17,6 +18,7 @@ import {
   findPageRootNodeId,
   parsePageToBlockTree,
 } from "../../../../../../../src/lib/source-content-tree.js";
+import { getTheme } from "../../../../../../../src/lib/theme-registry.js";
 
 async function loadAuthorizedSite(siteId, user) {
   const db = getDb();
@@ -35,15 +37,49 @@ async function loadAuthorizedSite(siteId, user) {
   return site;
 }
 
+/**
+ * A site's active theme id and resolved token overrides (its theme's own
+ * defaults merged with anything saved on the Design Tokens page) — the same
+ * computation the read-only /preview route uses. The canvas previously
+ * always rendered with the hardcoded default theme and no overrides at all
+ * (CanvasEditor.jsx never sent any), so a site on a non-default theme, or
+ * with any token customization, saw a different page while editing than
+ * what Preview and the real site actually show.
+ */
+async function loadThemeState(siteId) {
+  const db = getDb();
+  const [installation] = await db
+    .select()
+    .from(schema.themeInstallations)
+    .where(eq(schema.themeInstallations.siteId, siteId));
+  const theme = getTheme(installation?.themeId);
+  return {
+    themeId: theme.manifest.id,
+    tokenOverrides: {
+      ...theme.manifest.defaultTokenOverrides,
+      ...(installation?.config ?? {}),
+    },
+  };
+}
+
 export async function getPageEditorState(siteId, pagePath) {
   const user = await requireUser();
   const site = await loadAuthorizedSite(siteId, user);
-  const files = await getWorkspaceManager().readFiles(site.slug);
+  const [files, themeState] = await Promise.all([
+    getWorkspaceManager().readFiles(site.slug),
+    loadThemeState(siteId),
+  ]);
+
+  // One project-wide AST walk shared by both reads below, instead of each
+  // independently re-parsing every file in the workspace — this runs after
+  // every single edit, so the saving compounds with site size.
+  const index = buildProjectIndex({ files });
 
   return {
-    tree: parsePageToBlockTree(files, pagePath),
-    pageRootNodeId: findPageRootNodeId(files, pagePath),
+    tree: parsePageToBlockTree(files, pagePath, index),
+    pageRootNodeId: findPageRootNodeId(files, pagePath, index),
     source: files.find((file) => file.path === pagePath)?.source ?? "",
+    ...themeState,
   };
 }
 

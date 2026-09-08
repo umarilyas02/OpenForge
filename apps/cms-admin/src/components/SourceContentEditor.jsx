@@ -31,6 +31,8 @@ import { CanvasEditor } from "./CanvasEditor.jsx";
  *   initialTree: object[],
  *   initialPageRootNodeId: string,
  *   initialSource: string,
+ *   initialThemeId: string,
+ *   initialTokenOverrides: object,
  *   catalog: object[],
  *   allowedBlockIds: string[],
  *   libraryCatalog: object[],
@@ -50,6 +52,8 @@ export function SourceContentEditor({
   initialTree,
   initialPageRootNodeId,
   initialSource,
+  initialThemeId,
+  initialTokenOverrides,
   catalog,
   allowedBlockIds,
   libraryCatalog,
@@ -64,30 +68,35 @@ export function SourceContentEditor({
   const [tree, setTree] = useState(initialTree);
   const [pageRootNodeId, setPageRootNodeId] = useState(initialPageRootNodeId);
   const [source, setSource] = useState(initialSource);
+  const [themeId, setThemeId] = useState(initialThemeId);
+  const [tokenOverrides, setTokenOverrides] = useState(initialTokenOverrides);
   const [past, setPast] = useState([]);
   const [future, setFuture] = useState([]);
   const [view, setView] = useState("canvas");
   const [error, setError] = useState(null);
   const [pending, startTransition] = useTransition();
 
-  // Every action here is a real round trip (read the file, re-parse it,
-  // apply a compiler operation, write it back, commit) — slow enough
-  // relative to typing speed that two calls can be in flight at once (e.g.
-  // a debounced Style-tab edit still resolving when the user clicks
-  // Remove, or two rapidly-edited fields resolving out of order). Without
-  // this, whichever call happens to *resolve* last wins even if it was
-  // *issued* first, silently reverting a newer edit. Tracking an
-  // ever-increasing sequence number per call and only ever applying the
-  // result of the most recently *issued* one — regardless of resolution
-  // order — makes stale responses inert instead of corrupting state.
-  const latestRequestId = useRef(0);
   const sourceRef = useRef(source);
   sourceRef.current = source;
+
+  // Every mutation re-parses the page's real JSX and targets a node by an id
+  // that's positional (derived from the node's place among the file's
+  // top-level statements — see @openforge/compiler's buildProjectIndex), so
+  // an import added by one in-flight edit can renumber every id a second,
+  // already-issued edit is about to act on. Chaining every dispatch through
+  // one promise queue means the server call for edit N+1 never starts until
+  // edit N's has actually landed and been re-read, so N+1 always resolves
+  // ids against post-N file content — and because the queue guarantees
+  // responses arrive in the same order they were dispatched, there's no
+  // "stale response" case left to guard against separately.
+  const dispatchQueue = useRef(Promise.resolve());
 
   function applyState(result) {
     setTree(result.tree);
     setPageRootNodeId(result.pageRootNodeId);
     setSource(result.source);
+    if (result.themeId !== undefined) setThemeId(result.themeId);
+    if (result.tokenOverrides !== undefined) setTokenOverrides(result.tokenOverrides);
   }
 
   /**
@@ -97,20 +106,23 @@ export function SourceContentEditor({
    *   explicitly around the call instead.
    */
   function dispatch(action, { recordHistory = true } = {}) {
-    const requestId = (latestRequestId.current += 1);
     if (recordHistory) {
       setPast((current) => [...current, sourceRef.current]);
       setFuture([]);
     }
     setError(null);
+    // The queue (above) guarantees these settle in the exact order they were
+    // dispatched in, so — unlike the old unordered-concurrent version of
+    // this function — there's no "newer" response a stale one could ever
+    // clobber; every result here is by construction the most current one
+    // available at the moment it arrives, safe to apply unconditionally.
+    const queued = dispatchQueue.current.catch(() => {}).then(action);
+    dispatchQueue.current = queued.catch(() => {});
     startTransition(async () => {
       try {
-        const result = await action();
-        if (requestId === latestRequestId.current) applyState(result);
+        applyState(await queued);
       } catch (caught) {
-        if (requestId === latestRequestId.current) {
-          setError(caught instanceof Error ? caught.message : String(caught));
-        }
+        setError(caught instanceof Error ? caught.message : String(caught));
       }
     });
   }
@@ -239,7 +251,8 @@ export function SourceContentEditor({
           allowedBlockIds={allowedBlockIds}
           catalog={catalog}
           libraryCatalog={libraryCatalog}
-          pageRootNodeId={pageRootNodeId}
+          themeId={themeId}
+          tokenOverrides={tokenOverrides}
           tree={tree}
           {...handlers}
         />
