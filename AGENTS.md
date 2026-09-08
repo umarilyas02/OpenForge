@@ -23,20 +23,24 @@ relevant one before nontrivial work rather than re-deriving it from scratch:
 
 ## What this repo is
 
-Two mostly-separate products in one pnpm/turbo monorepo:
+The active workspace is **one product: `apps/cms-admin`** — a self-hosted,
+single-user, WordPress+Elementor-style CMS, in a pnpm/turbo monorepo.
+`services/python-analysis` is a genuine external dependency (real image
+analysis for the media library); everything else it needs lives under
+`packages/*` and `themes/*`.
 
-1. **The CMS** (`apps/cms-admin`) — a self-hosted, single-user,
-   WordPress+Elementor-style CMS. This is the actively developed, working
-   half of the project. `future-work/cms-renderer` (public multi-tenant
-   site serving) is deliberately shelved, not active — see
-   `future-work/README.md`.
-2. **The visual Next.js project editor** (`apps/web`, `apps/api`,
-   `apps/worker`, `apps/preview`) — a separate, much earlier-stage product
-   for visually editing a real Next.js codebase you own and
-   exporting/git-pushing/deploying it. `apps/api` and `apps/worker` are
-   currently empty (`.gitkeep` only — verified). `apps/preview` has a
-   started implementation (`src/index.js`, `src/preview-policy.js`, its own
-   test).
+A separate, much-earlier-stage visual Next.js project editor
+(`apps/web`, `apps/api`, `apps/worker`, `apps/preview`), the public
+multi-tenant `cms-renderer` site-hosting app, and every
+package/plugin/template that only that other product line depended on
+(`packages/ai`, `blocks`, `cli`, `editor`, `events`, `github`, `logger`,
+`plugin-runtime`, `plugin-sdk`, `schemas`, `ui`, `vercel`;
+`plugins/examples`, `plugins/official`; `templates/blank-next`,
+`templates/marketing`, `templates/portfolio`) have all been moved to
+`future-work/` and are excluded from `pnpm-workspace.yaml`'s globs —
+invisible to install/build/lint/test. See `future-work/README.md` for the
+full inventory and how to bring any of it back; don't assume code under
+`future-work/` still compiles or is wired up to anything current.
 
 See "Agent context files" below before nontrivial work.
 

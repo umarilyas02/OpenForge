@@ -4,25 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo actually is
 
-OpenForge is two mostly-separate products sharing one monorepo:
+OpenForge's active workspace is **one product: `apps/cms-admin`** — a
+self-hosted, single-user, WordPress+Elementor-style CMS. Authenticated
+admin (sites, the live-canvas drag-and-drop block editor, media, settings,
+WordPress-style theme activation across 11 themes, a chrome-free site
+preview, project export, and pushing a site's real project to your own
+GitHub repo via a personal access token). `services/python-analysis` is a
+genuine external dependency (real image analysis for the media library) —
+everything else it needs lives under `packages/*` and `themes/*`.
 
-1. **The CMS** (`apps/cms-admin`) — a self-hosted, single-user,
-   WordPress+Elementor-style CMS. This is the actively developed,
-   genuinely working half of the project: authenticated admin (sites, the
-   live-canvas drag-and-drop block editor, media, settings, theme
-   activation, a chrome-free site preview, project export, and pushing a
-   site's real project to your own GitHub repo). `future-work/cms-renderer`
-   is a separate, stateless, multi-tenant Next.js app that would resolve a
-   site by Host header and render its published content from Postgres —
-   deliberately shelved (see `future-work/README.md`) since OpenForge
-   hosting sites publicly itself isn't the current focus; nothing else in
-   the workspace depends on its code.
-2. **The visual Next.js project editor** (`apps/web`, `apps/api`,
-   `apps/worker`, `apps/preview`) — a separate, much earlier-stage product
-   for visually editing a real, arbitrary Next.js codebase you own (not
-   database content) and exporting/git-pushing/deploying it. `apps/api`
-   and `apps/worker` are currently empty (`.gitkeep` only) — do not assume
-   they have any implementation.
+Everything else that once lived in this monorepo — a separate,
+much-earlier-stage visual Next.js project editor (`apps/web`, `apps/api`,
+`apps/worker`, `apps/preview`), the public multi-tenant `cms-renderer`
+site-hosting app, and every package/plugin/template that only that other
+product line depended on (`packages/ai`, `blocks`, `cli`, `editor`,
+`events`, `github`, `logger`, `plugin-runtime`, `plugin-sdk`, `schemas`,
+`ui`, `vercel`; `plugins/examples`, `plugins/official`;
+`templates/blank-next`, `templates/marketing`, `templates/portfolio`) —
+has been moved to `future-work/` and is **not** part of
+`pnpm-workspace.yaml`'s globs, so it's invisible to install/build/lint/
+test. See `future-work/README.md` for the full inventory and how to bring
+any of it back. Don't assume anything under `future-work/` still compiles
+or is wired up to anything current.
 
 Read [`agents/progress.md`](agents/progress.md) before starting nontrivial
 work — it's the authoritative, actively maintained record of what's
@@ -116,23 +119,24 @@ instead (confirmed working; plain `pnpm ...` fails with "not recognized").
 - `packages/db` — Drizzle schema (`src/schema/*.js`) and migrations
   (`migrations/`) for the CMS's Postgres tables.
 - `packages/cms-blocks` — the real, importable React block components
-  (with prop/slot/migration schemas) the CMS editor and renderer both use.
-- `packages/blocks` — a separate, small, versioned "official" block
-  registry for the visual-editor product line — not the CMS block library
-  above; don't confuse the two.
+  (with prop/slot/migration schemas) the CMS editor and renderer both use;
+  51 official blocks across 11 themes.
+- `packages/theme-sdk` — theme manifest schema (`createTheme`) and runtime
+  registry (`createThemeRegistry`) backing the 11 themes under `themes/*`.
 - `packages/component-library` — a static catalog (nav/footer/hero/blog/
   product/grid/custom) of portable component *variants* harvested from
   reference projects, meant to be served by a future standalone service.
   Has its own README with the authoring contract — read it before adding
   to it.
-- `packages/ai`, `packages/blocks`, `packages/component-library`,
-  `packages/design-tokens`, `packages/github`, `packages/integration-security`,
-  `packages/storage`, `packages/vercel` have their own README; the rest
-  don't yet.
+- `packages/component-library`, `packages/design-tokens`,
+  `packages/integration-security`, `packages/storage` have their own
+  README; the rest don't yet.
 - `docs/*.md` — deep technical write-ups (compiler read/write pipelines, AI
-  credential lifecycle, GitHub connection, secure preview, workspace
-  lifecycle, canvas mapping, etc.), mostly about the visual-editor product
-  line's subsystems.
+  credential lifecycle, secure preview, workspace lifecycle, canvas
+  mapping, etc.). Some of these predate the `future-work/` shelving and
+  describe subsystems of the now-shelved visual-editor product line —
+  check which app/package a doc actually refers to before trusting it as
+  current.
 - `openforge-docs/` — a separate, more formal documentation-site corpus
   (product vision/PRD, full architecture write-ups, contributor
   governance, RFCs) — see `openforge-docs/INDEX.md`. **Gitignored and

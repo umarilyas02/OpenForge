@@ -4,6 +4,15 @@ Status: planning baseline plus an executed CMS vertical slice and admin UI
 Last updated: 2026-09-08
 Execution tracker: [`progress.md`](progress.md)
 
+**Note (2026-09-08):** the active workspace has been narrowed to one
+product, `apps/cms-admin` (see `progress.md`'s "Current stage" line and
+`future-work/README.md`). The visual Next.js project editor this plan was
+originally written for (the numbered phases below) has been moved to
+`future-work/` and is not part of the current build — this plan still
+records the intended design for that product line if it's ever resumed,
+but treat every phase below as describing shelved work rather than the
+active roadmap.
+
 ## 1. Purpose
 
 This plan converts the OpenForge product, architecture, platform, security,

@@ -1,7 +1,21 @@
 # OpenForge Progress Tracker
 
 Last updated: 2026-09-08
-Current stage: Phase 2 (static editor) complete; CMS MVP + single-user, WordPress/Elementor-style admin UI (grouped sidebar shell, live-canvas drag-and-drop editor with a Content/Style/Advanced inspector, undo/redo, duplication, and device preview, 38-block library incl. shadcn/MUI/ReactBits-inspired and Tailwind-styled components, menus, settings, site preview, project export, and GitHub push) complete; a standalone `@openforge/component-library` catalog (47 component variants) exists and is being wired into the admin's palette
+Current stage: the active workspace is now just one product,
+`apps/cms-admin` — a single-user, WordPress/Elementor-style CMS (grouped
+sidebar shell, live-canvas drag-and-drop editor with a Content/Style/
+Advanced inspector, undo/redo, duplication, and device preview, a 51-block
+library incl. shadcn/MUI/ReactBits-inspired and Tailwind-styled
+components, 11 installable themes with WordPress-style one-click
+activation, menus, settings, site preview, project export, and GitHub
+push) complete; a standalone `@openforge/component-library` catalog (47
+component variants) exists and is being wired into the admin's palette.
+The separate, much-earlier-stage visual Next.js project editor product
+line (Phase 1–7 below) — `apps/web`/`api`/`worker`/`preview`, plus every
+package/plugin/template only it depended on — has been moved to
+`future-work/` (see `future-work/README.md`); those phase sections below
+describe work that was completed at the time but is no longer part of the
+active build.
 Plan: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
 
 ## How to use this file
@@ -449,6 +463,80 @@ Status markers:
   metadata is derived. The CMS is a deliberate, documented exception — its
   content is database-authoritative, not exported source (see
   `openforge-docs/docs/product/01-vision.md`, "Multi-tenant CMS surface").
+- Objective (2026-09-08, same day): 10 full end-to-end theme kits and 10
+  new CMS blocks, dispatched as 20 parallel agents, then wired together.
+  - Completed: 10 theme packages under `themes/` (agency, ecommerce,
+    education, healthcare, magazine, nonprofit, portfolio, realestate,
+    restaurant, saas), each a real `createTheme()` manifest plus a real
+    example site (home/about/pricing/etc. pages, footer) — alongside the
+    pre-existing `themes/default`, for 11 themes total. 13 new blocks
+    added to `@openforge/cms-blocks` (navbar, breadcrumbs, tabs,
+    contact-form, newsletter-signup, image-gallery, countdown-timer,
+    location-card, social-links, comparison-table, and others), bringing
+    the library from 38 to 51 blocks; each theme's manifest updated to
+    register the new blocks relevant to it (not a blanket add-everywhere).
+  - Fixed: user correction — the first theme-activation implementation
+    only changed color design-token overrides on the Preview route and
+    never touched a site's real content, which isn't how WordPress theme
+    activation works. Rebuilt as `apps/cms-admin/src/lib/
+    theme-site-generator.js`: activating a theme now generates a real
+    on-disk Next.js project (a persistent `app/layout.jsx` with a real
+    Navbar built from the theme's actual generated pages, plus Footer,
+    one real `page.jsx` per example page, standalone block source files)
+    and destructively replaces the site's workspace + resets its git
+    history — confirmed via `window.confirm()` before submitting
+    (`ActivateThemeForm.jsx`). `normalizeExampleSite()` handles the
+    drifted `exampleSite` export shapes the 10 independently-built theme
+    packages ended up with (array vs. `{pages, footer}` object, `path`
+    vs. `slug`, footer as array vs. `{blocks}` object).
+  - Evidence: `apps/cms-admin/test/theme-site-generator.test.js` builds a
+    real workspace for all 10 non-default themes via `WorkspaceManager`,
+    parses every generated `.jsx` file with `@babel/parser`, and checks
+    nav links contain the real page titles — all 10 pass.
+    `packages/cms-blocks/test/official-blocks.test.js` asserts the
+    51-block count. Full theme-registry and block-library test counts:
+    223 theme tests and 178 block tests passing at the time this was
+    written (re-run the suites to confirm current counts).
+- Objective (2026-09-08, same day): "WHAT OTHER SERVICES NEED TO BE put
+  there we only need CMS admin for full work 1 app" — shelve everything
+  in the monorepo that `apps/cms-admin` doesn't actually depend on.
+  - Completed: wrote a small Node script parsing every package's
+    `package.json` `dependencies` field (not `devDependencies`) to
+    compute the exact transitive runtime closure `apps/cms-admin` needs,
+    rather than guessing. Moved everything outside that closure to
+    `future-work/` via `git mv`: 5 apps (`web`, `api`, `worker`,
+    `preview`, `docs` — the visual-editor product line; `cms-renderer`
+    had already been shelved separately), 12 packages (`ai`, `blocks`,
+    `cli`, `editor`, `events`, `github`, `logger`, `plugin-runtime`,
+    `plugin-sdk`, `schemas`, `ui`, `vercel`), 2 plugin directories
+    (`plugins/examples`, `plugins/official`), and 3 template directories
+    (`templates/blank-next`, `templates/marketing`, `templates/portfolio`).
+    `future-work/` is excluded from `pnpm-workspace.yaml`'s globs, so none
+    of this is visible to install/build/lint/test.
+  - Fixed two breakages the move surfaced: `packages/workspace/
+    package.json` had `devDependencies` on `@openforge/blocks`/
+    `@openforge/editor` (used only by two now-irrelevant test files) that
+    would have broken `pnpm install` outright — removed them and deleted
+    `packages/workspace/test/phase-one-roundtrip.test.js` and
+    `phase-two-landing-page.test.js` (confirmed by reading them: both
+    only exercised the shelved editor product line's scenarios via
+    `templates/blank-next` + `@openforge/blocks` + `@openforge/editor`).
+    `packages/workspace`'s own CMS-relevant test
+    (`workspace-manager.test.js`) is untouched.
+  - Rewrote `future-work/README.md` with the full new inventory (what
+    each shelved item did, why it's safe to shelve, how to restore it),
+    and corrected stale "still active" references to the shelved
+    apps/packages in `CLAUDE.md`, `AGENTS.md`, `agents/STACK.md`,
+    `agents/FOLDER_STRUCTURE.md`, and the root `README.md`.
+  - Evidence: `corepack pnpm install` succeeded cleanly, workspace project
+    count dropped from 39 to 27. `corepack pnpm build` — all 24 turbo
+    tasks succeeded, `apps/cms-admin`'s build output confirmed to still
+    contain every route. `corepack pnpm test` — the only failure was the
+    pre-existing, independently-verified-flaky
+    `apps/cms-admin/test/source-content-actions.test.js` (re-run in
+    isolation: 11/11 passed), consistent with concurrent-session file
+    contention on the same shared test fixture path noted elsewhere in
+    this log, not a regression from this change.
 
 ## Planning and scaffolding
 
@@ -1751,8 +1839,14 @@ load-bearing here and was explicitly deprioritized by the user.
   deprioritized in favor of the CMS, not forgotten.
 - Manual GitHub repository-settings follow-ups, not doable via file
   changes: enabling private vulnerability reporting, branch protection.
-- `apps/api` and `apps/worker` are still empty (Phase 0.6); the CMS admin
-  UI and any authenticated CRUD API depend on that work.
+- `future-work/apps/api` and `future-work/apps/worker` (formerly
+  `apps/api`/`apps/worker`) are still empty (Phase 0.6) and now shelved
+  along with the rest of the visual-editor product line (2026-09-08 — see
+  "Objective (2026-09-08, same day): shelve everything except
+  `apps/cms-admin`" below). The CMS admin UI does **not** depend on this
+  work — it has its own Route Handlers and Server Actions instead of a
+  separate API/worker split; an authenticated CRUD API for the *editor*
+  product line remains unbuilt if that line is ever resumed.
 - `packages/db/migrations/0002_watery_thunderbolts.sql` (`secrets`,
   `site_git_connections`) is generated but its application to any
   running dev database was not verified in this pass — confirm with

@@ -127,6 +127,13 @@ The initial supported project profile targets Next.js App Router, React,
 JavaScript/JSX, Tailwind CSS, CSS Modules, server and client components, GitHub,
 and Vercel.
 
+**Status:** this was the original planned architecture for a separate,
+much-earlier-stage visual project editor. That product line — `apps/web`,
+`apps/api`, `apps/worker`, `apps/preview`, and the packages/plugins/
+templates that only it depended on — has been moved to `future-work/` and
+is not part of the active build (see `future-work/README.md`). The CMS
+below is what's actually active today.
+
 ### CMS surface
 
 The CMS's active surface is `apps/cms-admin` alone: each site is a real,
@@ -160,7 +167,7 @@ switcher instead of a mandatory site-picker landing page), content
 rendered page while you build it, click any block to edit its real props
 in a side panel, drag blocks to reorder them — not just a flat list of
 cards with a separate form; a non-visual "Layers" tree view stays
-available too), a 38-block library — headings, buttons, testimonials,
+available too), a 51-block library — headings, buttons, testimonials,
 pricing, stats, FAQs, badges, cards, ratings, progress bars, banners,
 logo clouds, timelines, avatar groups, and more, alongside the original
 Hero/Rich Text/Image/CTA/Columns/Footer set — menus, per-site settings,
@@ -228,7 +235,7 @@ initial MVP.
 
 Alongside those phases, a single-user, WordPress-style admin UI
 (`apps/cms-admin`) has been built and verified end to end: sites, a
-live-canvas drag-and-drop content editor, a 38-block library, 10
+live-canvas drag-and-drop content editor, a 51-block library, 10
 full end-to-end theme kits (each with real example content — home,
 about, pricing, etc. — and WordPress-style one-click activation that
 regenerates the site's actual pages, nav, and footer), a real media
@@ -251,7 +258,7 @@ for that side yet.
 
 The CMS surface is further along: `apps/cms-admin` provides real
 login-gated site, content, menu, and settings management for a single
-user, including a live-canvas drag-and-drop editor over a 38-block
+user, including a live-canvas drag-and-drop editor over a 51-block
 library, 10 installable theme kits with real WordPress-style one-click
 activation, a real media library, per-site appearance (color-token)
 customization, per-site Git history, project export, and GitHub push. A
