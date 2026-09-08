@@ -1,0 +1,33 @@
+{
+  "name": "@openforge/theme-portfolio",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The OpenForge portfolio theme: a stark, type-led kit for an independent creative professional, with page, post, and not-found templates and a six-page example site.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "esbuild src/index.js --bundle --platform=node --format=esm --jsx=automatic --packages=external --outfile=dist/index.js",
+    "lint": "eslint src test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openforge/cms-blocks": "workspace:*",
+    "@openforge/theme-sdk": "workspace:*",
+    "react": "19.2.8"
+  },
+  "devDependencies": {
+    "@openforge/renderer": "workspace:*",
+    "esbuild": "0.28.2",
+    "react-dom": "19.2.8"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

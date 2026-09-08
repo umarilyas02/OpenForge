@@ -1,0 +1,104 @@
+export const manifest = {
+  schemaVersion: 1,
+  id: "openforge-theme.ecommerce",
+  name: "Ecommerce",
+  version: "1.0.0",
+  description:
+    "A warm retail storefront theme for product grids, reviews, and shipping pages.",
+  regions: [
+    {
+      key: "announcement-bar",
+      label: "Announcement bar",
+      allowedBlockIds: ["openforge-cms.banner", "openforge-cms.marquee-text"],
+    },
+    {
+      key: "page-body",
+      label: "Page body",
+      allowedBlockIds: [
+        "openforge-cms.hero",
+        "openforge-cms.banner",
+        "openforge-cms.marquee-text",
+        "openforge-cms.heading",
+        "openforge-cms.gradient-heading",
+        "openforge-cms.rich-text",
+        "openforge-cms.image",
+        "openforge-cms.columns",
+        "openforge-cms.card",
+        "openforge-cms.rating",
+        "openforge-cms.badge",
+        "openforge-cms.logo-cloud",
+        "openforge-cms.testimonial",
+        "openforge-cms.stats-row",
+        "openforge-cms.cta",
+        "openforge-cms.feature-list",
+        "openforge-cms.icon-box",
+        "openforge-cms.spotlight-card",
+        "openforge-cms.accordion",
+        "openforge-cms.alert",
+        "openforge-cms.pricing",
+        "openforge-cms.data-table",
+        "openforge-cms.timeline",
+        "openforge-cms.carousel",
+        "openforge-cms.video",
+        "openforge-cms.progress",
+        "openforge-cms.team-member",
+        "openforge-cms.avatar-group",
+        "openforge-cms.button",
+        "openforge-cms.divider",
+        "openforge-cms.spacer",
+      ],
+    },
+    {
+      key: "post-body",
+      label: "Post body",
+      allowedBlockIds: [
+        "openforge-cms.rich-text",
+        "openforge-cms.heading",
+        "openforge-cms.gradient-heading",
+        "openforge-cms.image",
+        "openforge-cms.video",
+        "openforge-cms.card",
+        "openforge-cms.rating",
+        "openforge-cms.badge",
+        "openforge-cms.testimonial",
+        "openforge-cms.feature-list",
+        "openforge-cms.data-table",
+        "openforge-cms.accordion",
+        "openforge-cms.alert",
+        "openforge-cms.cta",
+        "openforge-cms.button",
+        "openforge-cms.divider",
+        "openforge-cms.spacer",
+      ],
+    },
+    {
+      key: "footer",
+      label: "Footer",
+      allowedBlockIds: ["openforge-cms.footer"],
+    },
+  ],
+  templateNames: ["page", "post", "notFound"],
+  defaultTokenOverrides: {
+    // A confident coral red-orange: hot enough to drive "add to cart", far
+    // enough from the OpenForge default orange to read as its own brand.
+    "color.orange-500": "#e8552f",
+    // The interactive colour is a deeper burn of the same hue so that white
+    // button text clears 4.5:1 contrast, which the brighter coral does not.
+    "color.action": "#c8431f",
+    // Warm near-black and a lightly toasted paper instead of the cool
+    // greys: product photography sits better on a warm ground.
+    "color.ink": "#241b17",
+    "color.paper": "#fffaf6",
+    // Medium-rounded corners: softer than a utility dashboard, sharper than
+    // a lifestyle blog, which is where product cards read best.
+    "radius.card": "0.75rem",
+    "radius.control": "0.5rem",
+    "font.body": '"Inter", "Segoe UI", Helvetica, Arial, sans-serif',
+    "font.size-body": "1.0625rem",
+    "line-height.body": "1.65",
+    // A tighter, warm-tinted card shadow so a dense product grid does not
+    // turn into a wall of drop shadows.
+    "shadow.card": "0 0.5rem 1.5rem rgb(36 27 23 / 0.10)",
+    "space.section": "4.5rem",
+  },
+};
