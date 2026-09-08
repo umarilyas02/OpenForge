@@ -339,3 +339,19 @@ export async function insertTopLevelBlock(siteSlug, pagePath, blockId) {
   const containerNodeId = findPageRootNodeId(files, pagePath);
   return insertBlock(siteSlug, pagePath, blockId, containerNodeId);
 }
+
+/**
+ * Undo/redo primitive: overwrites the page file with an exact prior source
+ * string the caller already holds (see restorePageSourceAction in
+ * pages/editor/actions.js), through the same saveFile + git commit path
+ * every other edit here uses — no different from any other save.
+ */
+export async function restorePageSource(siteSlug, pagePath, source) {
+  const { manager, state } = await loadWorkspace(siteSlug);
+  await manager.saveFile(siteSlug, {
+    baseRevision: state.revision,
+    path: pagePath,
+    source,
+  });
+  await commitSiteChanges(state.rootPath, `Undo/redo on ${pagePath}`);
+}

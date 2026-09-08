@@ -42,6 +42,7 @@ export async function getPageEditorState(siteId, pagePath) {
   return {
     tree: parsePageToBlockTree(files, pagePath),
     pageRootNodeId: findPageRootNodeId(files, pagePath),
+    source: files.find((file) => file.path === pagePath)?.source ?? "",
   };
 }
 
@@ -104,5 +105,22 @@ export async function duplicateBlockAction(siteId, pagePath, nodeId) {
   const user = await requireUser();
   const site = await loadAuthorizedSite(siteId, user);
   await sourceContentActions.duplicateBlock(site.slug, pagePath, nodeId);
+  return getPageEditorState(siteId, pagePath);
+}
+
+/**
+ * Undo/redo: restores the page file to an exact prior source snapshot the
+ * client already holds (its own undo/redo stack — see
+ * SourceContentEditor.jsx). A full-source snapshot is used rather than
+ * replaying an operation's inverse because several operations
+ * (insert/remove/move/duplicate-jsx, in @openforge/compiler's
+ * apply-visual-operation.js) don't have one — a first-use insert also adds
+ * an import as a separate, non-invertible step. A plain source write
+ * sidesteps that gap entirely and is exactly as reliable as any other save.
+ */
+export async function restorePageSourceAction(siteId, pagePath, source) {
+  const user = await requireUser();
+  const site = await loadAuthorizedSite(siteId, user);
+  await sourceContentActions.restorePageSource(site.slug, pagePath, source);
   return getPageEditorState(siteId, pagePath);
 }

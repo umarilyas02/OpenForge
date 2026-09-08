@@ -10,6 +10,7 @@ import {
   insertBlockAction,
   moveBlockAction,
   removeBlockAction,
+  restorePageSourceAction,
   updateBlockProps,
 } from "./actions.js";
 
@@ -20,7 +21,10 @@ export default async function PageEditorRoute({ params, searchParams }) {
   const { file } = await searchParams;
   if (!file) notFound();
 
-  const { tree, pageRootNodeId } = await getPageEditorState(siteId, file);
+  const { tree, pageRootNodeId, source } = await getPageEditorState(
+    siteId,
+    file,
+  );
   const catalog = serializeBlockDefinitions(
     ALL_BLOCK_IDS,
     defaultThemeBlockRegistry,
@@ -32,12 +36,14 @@ export default async function PageEditorRoute({ params, searchParams }) {
       catalog={catalog}
       duplicateBlockAction={duplicateBlockAction}
       initialPageRootNodeId={pageRootNodeId}
+      initialSource={source}
       initialTree={tree}
       insertBlockAction={insertBlockAction}
       moveBlockAction={moveBlockAction}
       pagePath={file}
       pageTitle={file === "app/page.jsx" ? "Homepage" : file}
       removeBlockAction={removeBlockAction}
+      restorePageSourceAction={restorePageSourceAction}
       siteId={siteId}
       updateBlockProps={updateBlockProps}
     />

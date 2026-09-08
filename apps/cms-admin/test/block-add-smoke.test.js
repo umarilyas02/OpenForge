@@ -19,9 +19,8 @@ const { buildStarterFiles } = await import("../src/lib/starter-template.js");
 const { findPageRootNodeId, parsePageToBlockTree } = await import(
   "../src/lib/source-content-tree.js"
 );
-const { insertBlock, setBlockProps, duplicateBlock } = await import(
-  "../src/lib/source-content-actions.js"
-);
+const { insertBlock, setBlockProps, duplicateBlock, restorePageSource } =
+  await import("../src/lib/source-content-actions.js");
 
 const manager = getWorkspaceManager();
 const SITE_SLUG = "block-add-smoke-site";
@@ -195,5 +194,56 @@ describe("adding a block from the palette actually works end-to-end", () => {
         renderer.renderNode(duplicate, [tree.indexOf(duplicate)]),
       ).not.toThrow();
     }
+  });
+
+  it("restorePageSource (undo/redo) round-trips a page back to an exact prior snapshot", async () => {
+    const beforeFiles = await manager.readFiles(SITE_SLUG);
+    const originalSource = beforeFiles.find(
+      (file) => file.path === PAGE_PATH,
+    ).source;
+    const rootId = findPageRootNodeId(beforeFiles, PAGE_PATH);
+
+    // Simulate what SourceContentEditor.jsx's undo stack holds: the exact
+    // source before an edit, captured client-side.
+    await insertAndRender("openforge-cms.alert", rootId);
+    const afterInsertFiles = await manager.readFiles(SITE_SLUG);
+    const afterInsertSource = afterInsertFiles.find(
+      (file) => file.path === PAGE_PATH,
+    ).source;
+    expect(afterInsertSource).not.toBe(originalSource);
+    expect(
+      parsePageToBlockTree(afterInsertFiles, PAGE_PATH).some(
+        (node) => node.blockId === "openforge-cms.alert",
+      ),
+    ).toBe(true);
+
+    // Undo: restore the pre-insert snapshot.
+    await restorePageSource(SITE_SLUG, PAGE_PATH, originalSource);
+    const afterUndoFiles = await manager.readFiles(SITE_SLUG);
+    const afterUndoSource = afterUndoFiles.find(
+      (file) => file.path === PAGE_PATH,
+    ).source;
+    expect(afterUndoSource).toBe(originalSource);
+    expect(
+      parsePageToBlockTree(afterUndoFiles, PAGE_PATH).some(
+        (node) => node.blockId === "openforge-cms.alert",
+      ),
+    ).toBe(false);
+
+    // Redo: restore the post-insert snapshot, byte-for-byte.
+    await restorePageSource(SITE_SLUG, PAGE_PATH, afterInsertSource);
+    const afterRedoFiles = await manager.readFiles(SITE_SLUG);
+    const afterRedoSource = afterRedoFiles.find(
+      (file) => file.path === PAGE_PATH,
+    ).source;
+    expect(afterRedoSource).toBe(afterInsertSource);
+    const redoTree = parsePageToBlockTree(afterRedoFiles, PAGE_PATH);
+    const restoredAlert = redoTree.find(
+      (node) => node.blockId === "openforge-cms.alert",
+    );
+    expect(restoredAlert).toBeDefined();
+    expect(() =>
+      renderer.renderNode(restoredAlert, [redoTree.indexOf(restoredAlert)]),
+    ).not.toThrow();
   });
 });
