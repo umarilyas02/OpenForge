@@ -10,6 +10,7 @@ export const manifest = {
       key: "header",
       label: "Header",
       allowedBlockIds: [
+        "openforge-cms.navbar",
         "openforge-cms.banner",
         "openforge-cms.marquee-text",
         "openforge-cms.badge",
@@ -51,6 +52,12 @@ export const manifest = {
         "openforge-cms.progress",
         "openforge-cms.divider",
         "openforge-cms.spacer",
+        "openforge-cms.breadcrumbs",
+        "openforge-cms.tabs",
+        "openforge-cms.comparison-table",
+        "openforge-cms.countdown-timer",
+        "openforge-cms.contact-form",
+        "openforge-cms.newsletter-signup",
       ],
     },
     {
@@ -77,7 +84,7 @@ export const manifest = {
     {
       key: "footer",
       label: "Footer",
-      allowedBlockIds: ["openforge-cms.footer"],
+      allowedBlockIds: ["openforge-cms.footer", "openforge-cms.social-links"],
     },
   ],
   templateNames: ["page", "post", "notFound"],
