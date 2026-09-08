@@ -79,6 +79,12 @@ function diffTopLevelReorder(previousTree, nextTree) {
  *   onMove: (movedNodeId: string, destinationNodeId: string, position: "before"|"after") => void,
  * }} props
  */
+const PALETTE_TABS = [
+  { id: "elements", label: "Elements" },
+  { id: "blocks", label: "Blocks" },
+  { id: "globals", label: "Globals" },
+];
+
 export function CanvasEditor({
   tree,
   pageRootNodeId,
@@ -92,6 +98,7 @@ export function CanvasEditor({
   const iframeRef = useRef(null);
   const [canvasAcked, setCanvasAcked] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [paletteTab, setPaletteTab] = useState("elements");
 
   useEffect(() => {
     function handleMessage(event) {
@@ -150,12 +157,34 @@ export function CanvasEditor({
   return (
     <div className="canvas-editor">
       <aside className="canvas-palette">
-        <p className="editor-rail-label">Add block</p>
-        <BlockPalette
-          allowedBlockIds={allowedBlockIds}
-          catalog={catalog}
-          onAdd={(blockId) => onInsert(blockId, pageRootNodeId)}
-        />
+        <div className="palette-tabs" role="tablist">
+          {PALETTE_TABS.map((tab) => (
+            <button
+              aria-selected={paletteTab === tab.id}
+              data-active={paletteTab === tab.id}
+              key={tab.id}
+              onClick={() => setPaletteTab(tab.id)}
+              role="tab"
+              type="button"
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {paletteTab === "elements" ? (
+          <BlockPalette
+            allowedBlockIds={allowedBlockIds}
+            catalog={catalog}
+            onAdd={(blockId) => onInsert(blockId, pageRootNodeId)}
+          />
+        ) : (
+          <p className="muted">
+            {paletteTab === "blocks"
+              ? "Saved reusable blocks will show up here."
+              : "Site-wide globals (header, footer, design tokens) will show up here."}
+          </p>
+        )}
       </aside>
 
       <div className="canvas-frame-wrap">

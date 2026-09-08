@@ -1088,6 +1088,123 @@ a.list-row:hover,
   color: var(--accent);
 }
 
+/* ---------- Element palette (grid variant: canvas editor left rail) ---------- */
+
+.palette-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: var(--space-4);
+}
+
+.palette-tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex: 1;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 0 0 var(--space-2);
+  transition: color var(--transition-fast);
+}
+
+.palette-tabs button:hover {
+  color: var(--text);
+}
+
+.palette-tabs button[data-active="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.palette-grid-view {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.palette-search {
+  align-items: center;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
+.palette-search input {
+  background: none;
+  border: 0;
+  color: var(--text);
+  flex: 1;
+  font-size: var(--text-sm);
+  min-width: 0;
+  outline: none;
+}
+
+.palette-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.palette-category-label {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 0 var(--space-2);
+  text-transform: uppercase;
+}
+
+.palette-grid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: 1fr 1fr;
+}
+
+.palette-card {
+  align-items: center;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.palette-card:hover {
+  background: var(--accent-wash);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.palette-card-icon {
+  align-items: center;
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.palette-card:hover .palette-card-icon {
+  color: var(--accent);
+}
+
+.palette-card-label {
+  font-size: var(--text-xs);
+  font-weight: 550;
+  line-height: var(--leading-tight);
+}
+
 /* ---------- Block editor ---------- */
 
 .editor-view-toggle {
@@ -1282,7 +1399,7 @@ a.list-row:hover,
 @media (min-width: 1200px) {
   .canvas-editor {
     align-items: start;
-    grid-template-columns: 220px minmax(0, 1fr) 320px;
+    grid-template-columns: 260px minmax(0, 1fr) 320px;
   }
 
   .canvas-palette,

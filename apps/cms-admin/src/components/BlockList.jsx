@@ -228,6 +228,7 @@ export function BlockList({
         allowedBlockIds={allowedBlockIds}
         catalog={catalog}
         onAdd={(blockId) => onInsert(blockId, containerNodeId)}
+        variant="inline"
       />
     </div>
   );
