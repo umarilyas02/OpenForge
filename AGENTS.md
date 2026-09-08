@@ -25,9 +25,11 @@ relevant one before nontrivial work rather than re-deriving it from scratch:
 
 Two mostly-separate products in one pnpm/turbo monorepo:
 
-1. **The CMS** (`apps/cms-admin` + `apps/cms-renderer`) — a self-hosted,
-   single-user, WordPress+Elementor-style CMS. This is the actively
-   developed, working half of the project.
+1. **The CMS** (`apps/cms-admin`) — a self-hosted, single-user,
+   WordPress+Elementor-style CMS. This is the actively developed, working
+   half of the project. `future-work/cms-renderer` (public multi-tenant
+   site serving) is deliberately shelved, not active — see
+   `future-work/README.md`.
 2. **The visual Next.js project editor** (`apps/web`, `apps/api`,
    `apps/worker`, `apps/preview`) — a separate, much earlier-stage product
    for visually editing a real Next.js codebase you own and
@@ -134,8 +136,8 @@ is a workflow detail rather than a fixed repo-wide rule.
 - Each CMS site is a real on-disk Next.js project, not a JSON blob; the
   block editor parses/writes real JSX via `@openforge/compiler`.
 - `packages/renderer`'s block-tree → React pipeline is shared by the live
-  canvas, the read-only preview, and `apps/cms-renderer` in production —
-  changes to block rendering usually touch all three call sites.
+  canvas and the read-only preview — changes to block rendering usually
+  touch both call sites.
 - For "what's actually built vs. planned," trust `agents/progress.md`
   (updated per completed task) and `agents/IMPLEMENTATION_PLAN.md` (the
   phased plan) over any prose summary, including this one.

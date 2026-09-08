@@ -6,14 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 OpenForge is two mostly-separate products sharing one monorepo:
 
-1. **The CMS** (`apps/cms-admin` + `apps/cms-renderer`) — a self-hosted,
-   single-user, WordPress+Elementor-style CMS. This is the actively
-   developed, genuinely working half of the project. `cms-admin` is the
-   authenticated admin (sites, the live-canvas drag-and-drop block editor,
-   media, settings); `cms-renderer` is a separate, stateless, multi-tenant
-   Next.js app that resolves a site by Host header (a custom domain, or a
-   `<slug>.` subdomain) and renders its published content at request time
-   straight from Postgres.
+1. **The CMS** (`apps/cms-admin`) — a self-hosted, single-user,
+   WordPress+Elementor-style CMS. This is the actively developed,
+   genuinely working half of the project: authenticated admin (sites, the
+   live-canvas drag-and-drop block editor, media, settings, theme
+   activation, a chrome-free site preview, project export, and pushing a
+   site's real project to your own GitHub repo). `future-work/cms-renderer`
+   is a separate, stateless, multi-tenant Next.js app that would resolve a
+   site by Host header and render its published content from Postgres —
+   deliberately shelved (see `future-work/README.md`) since OpenForge
+   hosting sites publicly itself isn't the current focus; nothing else in
+   the workspace depends on its code.
 2. **The visual Next.js project editor** (`apps/web`, `apps/api`,
    `apps/worker`, `apps/preview`) — a separate, much earlier-stage product
    for visually editing a real, arbitrary Next.js codebase you own (not
@@ -45,13 +48,13 @@ site slug) and needs to sit on a persistent volume in production — the same
 durability requirement as the database.
 
 `packages/renderer` (`createRenderer` + `renderSiteStyles`) is the
-block-tree → React pipeline shared by three call sites that each obtain the
-tree a different way: the live canvas (`app/(canvas)/canvas/page.jsx`, tree
-pushed over `postMessage` from the parent editor), the read-only site
-preview (`app/(preview)/preview/[siteId]/page.jsx`, tree computed
-server-side straight from the real source file), and `apps/cms-renderer` in
-production (tree loaded from Postgres). Changing block rendering usually
-means checking all three.
+block-tree → React pipeline shared by two active call sites that each
+obtain the tree a different way: the live canvas
+(`app/(canvas)/canvas/page.jsx`, tree pushed over `postMessage` from the
+parent editor) and the read-only site preview
+(`app/(preview)/preview/[siteId]/page.jsx`, tree computed server-side
+straight from the real source file). `future-work/cms-renderer` also used
+it (tree loaded from Postgres) before being shelved.
 
 ## Hard constraints
 
@@ -81,7 +84,8 @@ means checking all three.
   `docker/compose/docker-compose.yml` currently provisions Redis and MinIO
   only (no Postgres service — check its current state before relying on
   this, it has changed during development). Per-app Dockerfiles are mostly
-  unbuilt; `apps/cms-renderer/Dockerfile` is the one real, complete one.
+  unbuilt; `future-work/cms-renderer/Dockerfile` was the one real, complete
+  one, now shelved along with the app.
   See `STACK.md` for the exact current state of local infra and Docker.
 
 ## Commands

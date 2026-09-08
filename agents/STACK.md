@@ -28,17 +28,17 @@ A fast, factual reference for the exact technology that runs OpenForge — versi
 | App | Status | Framework/stack |
 |---|---|---|
 | `apps/cms-admin` | Implemented | Next.js `16.2.12`, React `19.2.8`, Drizzle ORM `0.45.2`, `@primer/react` `38.34.0` + `@primer/octicons-react` `19.31.0`, `lucide-react`, `geist` fonts. Tailwind CSS `4.3.3` (`@tailwindcss/postcss`) used only in the `(canvas)` route group (Preflight-free, scoped — see below) |
-| `apps/cms-renderer` | Implemented | Next.js `16.2.12`, React `19.2.8`, Drizzle ORM `0.45.2`. Tailwind CSS `4.3.3` — per README, the primary place Tailwind is used in the repo |
 | `apps/web` | Implemented | Next.js `16.2.12`, React `19.2.8`, `@primer/react` `38.34.0`, `geist` fonts. No Tailwind |
 | `apps/preview` | Implemented (non-Next.js) | Plain Node package (`parse5` `8.0.1`, `zod` `4.4.3`) for isolated preview session handling — no framework |
 | `apps/api` | **Placeholder** | Directory contains only `.gitkeep` — not implemented |
 | `apps/worker` | **Placeholder** | Directory contains only `.gitkeep` — not implemented |
 | `apps/docs` | **Placeholder** | Directory contains only `.gitkeep` — not implemented |
+| `future-work/cms-renderer` | Implemented, shelved | Next.js `16.2.12`, React `19.2.8`, Drizzle ORM `0.45.2`. Tailwind CSS `4.3.3`. Not part of the active `pnpm-workspace.yaml` globs — see `future-work/README.md` |
 
 ### Tailwind vs. design-token CSS
 
 Most of the CMS block library (`packages/cms-blocks`) is styled with the `--of-*` design-token CSS system (`packages/design-tokens`), not Tailwind. Tailwind CSS `4.3.3` is used in two Preflight-free, explicitly scoped places:
-- `apps/cms-renderer` (site rendering)
+- `future-work/cms-renderer` (site rendering, shelved — not part of the active workspace)
 - `apps/cms-admin/app/(canvas)/tailwind.css` — the live-canvas editor preview route, which renders the same `cms-blocks` components and carries the identical "no Preflight, blocks.css already resets" reasoning
 
 A subset of blocks (Spotlight Card, Gradient Heading, Marquee Text, Feature List, Data Table, Carousel) are Tailwind-styled by design, coexisting with the token-CSS-styled majority (see [README.md](../README.md#cms-surface)).
@@ -71,9 +71,14 @@ A subset of blocks (Spotlight Card, Gradient Heading, Marquee Text, Feature List
 
 **Postgres is not defined as a service in this compose file** even though `envs/examples/infrastructure.env.example` includes `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_PORT` — despite this, a populated `docker/volumes/postgres-data/` exists on disk, so Postgres is evidently run some other way in this environment (not this compose file as currently committed).
 
-Per-app Dockerfiles are mostly unbuilt. The only real one is `apps/cms-renderer/Dockerfile` — a genuine multi-stage build (`node:24-alpine`, corepack/pnpm install → `pnpm --filter @openforge/cms-renderer build` → standalone Next.js runner on port 3000). No other app has a Dockerfile.
+Per-app Dockerfiles are mostly unbuilt. The only real one is
+`future-work/cms-renderer/Dockerfile` — a genuine multi-stage build
+(`node:24-alpine`, corepack/pnpm install → `pnpm --filter
+@openforge/cms-renderer build` → standalone Next.js runner on port 3000),
+now shelved along with the app it belongs to. No app currently in
+`apps/*` has a Dockerfile.
 
-Note: `docker/README.md` still states Dockerfiles/Compose manifests are "Phase 0 implementation work and are intentionally absent" — that note is stale relative to the files that now exist (`docker-compose.yml` and the cms-renderer Dockerfile).
+Note: `docker/README.md` still states Dockerfiles/Compose manifests are "Phase 0 implementation work and are intentionally absent" — that note is stale relative to `docker-compose.yml`, which exists.
 
 ## First-party packages (`packages/*`)
 

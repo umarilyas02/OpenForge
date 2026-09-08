@@ -129,26 +129,20 @@ and Vercel.
 
 ### CMS surface
 
-The CMS is a separate, coexisting stack: content is database-authoritative
-and rendered at request time, rather than compiled into exported source.
+The CMS's active surface is `apps/cms-admin` alone: each site is a real,
+on-disk Next.js project (not database-authoritative content), edited via a
+live-canvas block editor, previewable, exportable, and push-able to your
+own GitHub repo — see "How source editing works" below and
+`CLAUDE.md`/`AGENTS.md` for the exact mechanics.
 
-```text
-Request (Host header)
-  |
-  v
-apps/cms-renderer (Next.js, multi-tenant)
-  |
-  +--> resolve site by custom domain or slug subdomain
-  +--> load published content            --> PostgreSQL (packages/db)
-  +--> resolve theme + block components   --> packages/theme-sdk
-  +--> render block tree + token CSS      --> packages/renderer,
-                                               packages/cms-blocks,
-                                               packages/design-tokens
-```
+A separate, multi-tenant, database-driven public renderer
+(`future-work/cms-renderer`) was also built and verified end to end, but is
+currently shelved (moved out of the active workspace) since OpenForge
+hosting sites publicly itself isn't the current focus — see
+`future-work/README.md` for what it did and how to bring it back.
 
 | Area | Responsibility |
 |---|---|
-| `apps/cms-renderer` | Multi-tenant Next.js app: resolves the requesting site and renders its published content. Also the only place Tailwind CSS is used in the repo (Preflight-free, scoped to a subset of `cms-blocks`), coexisting with the `--of-*` design-token CSS the rest of the block library uses. |
 | `apps/cms-admin` | Login-gated, single-user, WordPress-style admin UI: a grouped left sidebar, sites, content templates, a live-canvas drag-and-drop editor with an Elementor-style block library, menus, per-site settings, and appearance customization. |
 | `packages/db` | Drizzle schema/migrations for tenancy, sessions, sites, content, assets, menus, and theme installations. |
 | `packages/auth` | Password hashing, hashed-token sessions, and cross-tenant authorization. |
@@ -232,18 +226,21 @@ Real-time multiplayer, a public marketplace, billing, Figma import, WordPress
 import, enterprise SSO, and Kubernetes support are intentionally outside the
 initial MVP.
 
-Alongside those phases, a first vertical slice of the CMS surface (site
-resolution, theme rendering, a 38-block library, and a production Docker
-image for `apps/cms-renderer`) has been built and verified end to end,
-along with a single-user, WordPress-style admin UI (`apps/cms-admin`)
-covering sites, a live-canvas drag-and-drop content editor, a real media
-library, menus, settings, appearance, project export, and GitHub push.
-Each site is backed by its own real Git repository, giving every edit a
-genuine commit history. A curated `component-library` catalog of
-real-world component variants exists as a package but is not yet wired
-into the canvas palette. An authenticated CRUD API and a theme/template
-marketplace are not built yet — see `agents/progress.md` for exact status and
-evidence.
+Alongside those phases, a single-user, WordPress-style admin UI
+(`apps/cms-admin`) has been built and verified end to end: sites, a
+live-canvas drag-and-drop content editor, a 38-block library, 10
+full end-to-end theme kits (each with real example content — home,
+about, pricing, etc. — and WordPress-style one-click activation that
+regenerates the site's actual pages, nav, and footer), a real media
+library, menus, settings, appearance, a chrome-free site preview, project
+export, and GitHub push. Each site is backed by its own real Git
+repository, giving every edit a genuine commit history. A curated
+`component-library` catalog of real-world component variants exists as a
+package but is not yet wired into the canvas palette. A separate
+multi-tenant public renderer was also built and verified, but is
+currently shelved in `future-work/cms-renderer` rather than active. An
+authenticated CRUD API is not built yet — see `agents/progress.md` for
+exact status and evidence.
 
 ## Project status
 
@@ -252,15 +249,16 @@ configuration contracts, security model, and contributor workflow for the
 visual-editor product. There is no installable release or published package
 for that side yet.
 
-The CMS surface is further along: `apps/cms-renderer` builds a real
-production Docker image (`apps/cms-renderer/Dockerfile`) and has been run
-against a live PostgreSQL database, correctly rendering seeded content by
-Host header, and `apps/cms-admin` now provides real login-gated site,
-content, menu, and settings management for a single user, including a
-live-canvas drag-and-drop editor over a 38-block library, a real media
-library, per-site appearance (color-token) customization, per-site Git
-history, project export, and GitHub push. It is still pre-alpha — no
-multi-theme *package* switching, no versioned release — but it is
+The CMS surface is further along: `apps/cms-admin` provides real
+login-gated site, content, menu, and settings management for a single
+user, including a live-canvas drag-and-drop editor over a 38-block
+library, 10 installable theme kits with real WordPress-style one-click
+activation, a real media library, per-site appearance (color-token)
+customization, per-site Git history, project export, and GitHub push. A
+separate public multi-tenant renderer was built and verified against a
+live PostgreSQL database but is currently shelved in
+`future-work/cms-renderer` (not part of the active workspace) rather than
+deployed. The CMS is still pre-alpha — no versioned release — but it is
 genuinely runnable today, not a placeholder.
 
 If you want to help shape the project now:
