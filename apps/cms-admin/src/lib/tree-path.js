@@ -20,6 +20,29 @@ export function getNodeAtPath(tree, path) {
 }
 
 /**
+ * Every node from the top-level ancestor down to (and including) the node
+ * at `path` — the same walk as getNodeAtPath, but collecting each step
+ * instead of only the last. Used to render a selection breadcrumb.
+ *
+ * @param {object[]} tree
+ * @param {(string|number)[]} path
+ */
+export function getAncestorNodesAtPath(tree, path) {
+  const ancestors = [];
+  let node = tree[path[0]];
+  if (!node) return ancestors;
+  ancestors.push(node);
+  for (let i = 1; i < path.length; i += 3) {
+    const slotName = path[i + 1];
+    const index = path[i + 2];
+    node = node?.slots?.[slotName]?.[index];
+    if (!node) break;
+    ancestors.push(node);
+  }
+  return ancestors;
+}
+
+/**
  * Returns a new tree with the node at `path` replaced by
  * `updater(currentNode)`. Every ancestor array/object along the path is
  * shallow-copied; everything else is shared, matching the immutable-update

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, TextInput } from "@primer/react";
+import { Checkbox, TextInput } from "@primer/react";
 import { useState } from "react";
 
 import { BlockList } from "./BlockList.jsx";
@@ -102,9 +102,14 @@ export function ContentEditor({
         <div className="editor-meta-bar-actions">
           {error ? <p className="form-error">{error}</p> : null}
           {savedAt ? <p className="toast-success">✓ Saved</p> : null}
-          <Button disabled={pending} onClick={handleSave} variant="primary">
+          <button
+            className="btn btn-primary"
+            disabled={pending}
+            onClick={handleSave}
+            type="button"
+          >
             {pending ? "Saving…" : "Save"}
-          </Button>
+          </button>
         </div>
       </div>
 

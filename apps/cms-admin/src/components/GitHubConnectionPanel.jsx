@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, TextInput } from "@primer/react";
+import { TextInput } from "@primer/react";
 import { useActionState } from "react";
 
 const connectInitialState = { error: null, ok: false };
@@ -53,9 +53,9 @@ export function GitHubConnectionPanel({
           </form>
         </div>
         <form action={pushFormAction} className="form-actions">
-          <Button disabled={pushing} type="submit" variant="primary">
+          <button className="btn btn-primary" disabled={pushing} type="submit">
             {pushing ? "Pushing…" : "Push to GitHub"}
-          </Button>
+          </button>
         </form>
         {pushState.error ? <p className="form-error">{pushState.error}</p> : null}
         {pushState.ok ? (
@@ -88,9 +88,9 @@ export function GitHubConnectionPanel({
       {connectState.error ? <p className="form-error">{connectState.error}</p> : null}
       {connectState.ok ? <p className="form-success">Connected.</p> : null}
       <div className="form-actions">
-        <Button disabled={connecting} type="submit" variant="primary">
+        <button className="btn btn-primary" disabled={connecting} type="submit">
           {connecting ? "Connecting…" : "Connect"}
-        </Button>
+        </button>
       </div>
     </form>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, TextInput } from "@primer/react";
+import { TextInput } from "@primer/react";
 import { useActionState } from "react";
 
 const initialState = { error: null };
@@ -25,9 +25,9 @@ export function MenuItemAddForm({ menuId, addMenuItem }) {
       </div>
       {state.error ? <p className="form-error">{state.error}</p> : null}
       <div className="form-actions">
-        <Button disabled={pending} type="submit" variant="primary">
+        <button className="btn btn-primary" disabled={pending} type="submit">
           {pending ? "Adding…" : "Add item"}
-        </Button>
+        </button>
       </div>
     </form>
   );

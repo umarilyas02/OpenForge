@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { PageChromeProvider, usePageChrome } from "./PageChromeContext.jsx";
+
 function initialsFor(user) {
   const source = user.displayName || user.email || "?";
   return source
@@ -39,7 +41,15 @@ function isItemActive(pathname, href) {
  *   children: import("react").ReactNode,
  * }} props
  */
-export function AppShell({
+export function AppShell(props) {
+  return (
+    <PageChromeProvider>
+      <AppShellBody {...props} />
+    </PageChromeProvider>
+  );
+}
+
+function AppShellBody({
   user,
   logout,
   navGroups,
@@ -48,6 +58,7 @@ export function AppShell({
   previewHref,
   children,
 }) {
+  const { hideTopbar } = usePageChrome();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -231,67 +242,71 @@ export function AppShell({
       </nav>
 
       <div className="app-main">
-        <div className="app-topbar">
-          <button
-            aria-label="Open navigation"
-            className="icon-button app-topbar-menu-button"
-            onClick={() => setMobileOpen(true)}
-            type="button"
-          >
-            <Menu size={18} strokeWidth={1.75} />
-          </button>
-          <div className="app-topbar-spacer" />
-          <div className="app-topbar-actions">
-            {previewHref ? (
-              <a
-                className="btn btn-ghost app-preview-site"
-                href={previewHref}
-                rel="noreferrer"
-                target="_blank"
-              >
-                Preview ↗
-              </a>
-            ) : null}
-            {viewSiteHref ? (
-              <a
-                className="btn btn-ghost app-view-site"
-                href={viewSiteHref}
-                rel="noreferrer"
-                target="_blank"
-              >
-                View site ↗
-              </a>
-            ) : null}
-            <div className="user-menu" ref={userMenuRef}>
-              <button
-                aria-expanded={userMenuOpen}
-                className="user-menu-trigger"
-                onClick={() => setUserMenuOpen((value) => !value)}
-                type="button"
-              >
-                <span className="app-user-avatar">{initialsFor(user)}</span>
-                <span className="user-menu-name">
-                  {user.displayName || user.email}
-                </span>
-                <ChevronDown size={14} />
-              </button>
-              {userMenuOpen ? (
-                <div className="user-menu-panel">
-                  <div className="user-menu-email">
-                    {user.displayName || user.email}
-                  </div>
-                  <form action={logout}>
-                    <button className="user-menu-logout" type="submit">
-                      <LogOut size={14} strokeWidth={1.75} />
-                      Sign out
-                    </button>
-                  </form>
-                </div>
+        {hideTopbar ? null : (
+          <div className="app-topbar">
+            <button
+              aria-label="Open navigation"
+              className="icon-button app-topbar-menu-button"
+              onClick={() => setMobileOpen(true)}
+              type="button"
+            >
+              <Menu size={18} strokeWidth={1.75} />
+            </button>
+            <div className="app-topbar-spacer" />
+            <div className="app-topbar-actions">
+              {previewHref ? (
+                <a
+                  className="btn btn-ghost app-preview-site"
+                  href={previewHref}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Preview ↗
+                </a>
               ) : null}
+              {viewSiteHref ? (
+                <a
+                  className="btn btn-ghost app-view-site"
+                  href={viewSiteHref}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  View site ↗
+                </a>
+              ) : null}
+              <div className="user-menu" ref={userMenuRef}>
+                <button
+                  aria-expanded={userMenuOpen}
+                  className="user-menu-trigger"
+                  onClick={() => setUserMenuOpen((value) => !value)}
+                  type="button"
+                >
+                  <span className="app-user-avatar">{initialsFor(user)}</span>
+                  <span className="user-menu-name">
+                    {user.displayName || user.email}
+                  </span>
+                  <ChevronDown size={14} />
+                </button>
+                {userMenuOpen ? (
+                  <div className="user-menu-panel">
+                    <div className="user-menu-email">
+                      {user.displayName || user.email}
+                    </div>
+                    <form action={logout}>
+                      <button className="user-menu-logout" type="submit">
+                        <LogOut size={14} strokeWidth={1.75} />
+                        Sign out
+                      </button>
+                    </form>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
+        )}
+        <div className="page" data-full-bleed={hideTopbar}>
+          {children}
         </div>
-        <div className="page">{children}</div>
       </div>
     </div>
   );

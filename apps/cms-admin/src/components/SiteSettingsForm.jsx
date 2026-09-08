@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, TextInput } from "@primer/react";
+import { TextInput } from "@primer/react";
 import { useActionState } from "react";
 
 const initialState = { error: null, ok: false };
@@ -59,9 +59,9 @@ export function SiteSettingsForm({ site, updateSiteSettings }) {
       {state.error ? <p className="form-error">{state.error}</p> : null}
       {state.ok ? <p className="form-success">Saved.</p> : null}
       <div className="form-actions">
-        <Button disabled={pending} type="submit" variant="primary">
+        <button className="btn btn-primary" disabled={pending} type="submit">
           {pending ? "Saving…" : "Save changes"}
-        </Button>
+        </button>
       </div>
     </form>
   );

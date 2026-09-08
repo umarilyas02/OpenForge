@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, TextInput } from "@primer/react";
+import { TextInput } from "@primer/react";
 import { useActionState, useState } from "react";
 
 const initialState = { error: null };
@@ -15,9 +15,13 @@ export function NewPageForm({ siteId, createPage }) {
 
   if (!open) {
     return (
-      <Button onClick={() => setOpen(true)} variant="primary">
+      <button
+        className="btn btn-primary"
+        onClick={() => setOpen(true)}
+        type="button"
+      >
         New page
-      </Button>
+      </button>
     );
   }
 
@@ -38,12 +42,16 @@ export function NewPageForm({ siteId, createPage }) {
       </div>
       {state.error ? <p className="form-error">{state.error}</p> : null}
       <div className="form-actions">
-        <Button disabled={pending} type="submit" variant="primary">
+        <button className="btn btn-primary" disabled={pending} type="submit">
           {pending ? "Creating…" : "Create page"}
-        </Button>
-        <Button onClick={() => setOpen(false)} type="button">
+        </button>
+        <button
+          className="btn btn-ghost"
+          onClick={() => setOpen(false)}
+          type="button"
+        >
           Cancel
-        </Button>
+        </button>
       </div>
     </form>
   );

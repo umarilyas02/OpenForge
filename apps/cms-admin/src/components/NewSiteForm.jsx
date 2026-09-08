@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, TextInput } from "@primer/react";
+import { TextInput } from "@primer/react";
 import Link from "next/link";
 import { useActionState } from "react";
 
@@ -48,9 +48,9 @@ export function NewSiteForm({ createSite }) {
           </div>
           {state.error ? <p className="form-error">{state.error}</p> : null}
           <div className="form-actions">
-            <Button disabled={pending} type="submit" variant="primary">
+            <button className="btn btn-primary" disabled={pending} type="submit">
               {pending ? "Creating…" : "Create site"}
-            </Button>
+            </button>
           </div>
         </form>
       </div>

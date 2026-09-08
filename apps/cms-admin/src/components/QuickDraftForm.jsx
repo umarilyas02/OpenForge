@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Textarea, TextInput } from "@primer/react";
+import { Textarea, TextInput } from "@primer/react";
 import { useActionState, useRef } from "react";
 
 const initialState = { error: null };
@@ -42,7 +42,8 @@ export function QuickDraftForm({ quickCreatePost }) {
       />
       {state.error ? <p className="form-error">{state.error}</p> : null}
       <div className="form-actions">
-        <Button
+        <button
+          className="btn btn-ghost"
           disabled={pending}
           onClick={() => {
             intentRef.current = "draft";
@@ -50,17 +51,17 @@ export function QuickDraftForm({ quickCreatePost }) {
           type="submit"
         >
           Save Draft
-        </Button>
-        <Button
+        </button>
+        <button
+          className="btn btn-primary"
           disabled={pending}
           onClick={() => {
             intentRef.current = "publish";
           }}
           type="submit"
-          variant="primary"
         >
           {pending ? "Publishing…" : "Publish →"}
-        </Button>
+        </button>
       </div>
     </form>
   );

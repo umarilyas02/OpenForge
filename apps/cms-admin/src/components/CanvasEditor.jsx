@@ -4,7 +4,7 @@ import { Copy, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { PREVIEW_WIDTHS } from "../lib/preview-modes.js";
-import { getNodeAtPath } from "../lib/tree-path.js";
+import { getAncestorNodesAtPath, getNodeAtPath } from "../lib/tree-path.js";
 import { BlockPalette } from "./BlockPalette.jsx";
 import { BlockPropsForm } from "./BlockPropsForm.jsx";
 import { LibraryPalette } from "./LibraryPalette.jsx";
@@ -110,6 +110,7 @@ export function CanvasEditor({
   const iframeRef = useRef(null);
   const [canvasAcked, setCanvasAcked] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [selectedPath, setSelectedPath] = useState(null);
   const [paletteTab, setPaletteTab] = useState("elements");
 
   useEffect(() => {
@@ -118,9 +119,9 @@ export function CanvasEditor({
       if (event.data?.type === "of-canvas-ack") {
         setCanvasAcked(true);
       } else if (event.data?.type === "of-canvas-select") {
-        const node = event.data.path
-          ? getNodeAtPath(tree, event.data.path)
-          : null;
+        const path = event.data.path ?? null;
+        const node = path ? getNodeAtPath(tree, path) : null;
+        setSelectedPath(node ? path : null);
         setSelectedNodeId(node?.id ?? null);
       } else if (event.data?.type === "of-canvas-reorder") {
         const move = diffTopLevelReorder(tree, event.data.tree);
@@ -131,7 +132,11 @@ export function CanvasEditor({
         const node = getNodeAtPath(tree, event.data.path);
         if (node) {
           onRemove(node.id);
-          setSelectedNodeId((current) => (current === node.id ? null : current));
+          setSelectedNodeId((current) => {
+            if (current !== node.id) return current;
+            setSelectedPath(null);
+            return null;
+          });
         }
       } else if (event.data?.type === "of-canvas-duplicate") {
         const node = getNodeAtPath(tree, event.data.path);
@@ -179,6 +184,9 @@ export function CanvasEditor({
   const selectedDefinition = selectedNode
     ? catalog.find((entry) => entry.id === selectedNode.blockId)
     : null;
+  const ancestorNodes = selectedPath
+    ? getAncestorNodesAtPath(tree, selectedPath)
+    : [];
 
   return (
     <div className="canvas-editor">
@@ -217,6 +225,36 @@ export function CanvasEditor({
       </aside>
 
       <div className="canvas-center">
+        {ancestorNodes.length > 0 ? (
+          <div className="canvas-breadcrumb">
+            {ancestorNodes.map((node, index) => {
+              const definition = catalog.find(
+                (entry) => entry.id === node.blockId,
+              );
+              const isLast = index === ancestorNodes.length - 1;
+              return (
+                <span className="canvas-breadcrumb-item" key={node.id}>
+                  <button
+                    data-current={isLast}
+                    onClick={() => {
+                      setSelectedNodeId(node.id);
+                      setSelectedPath(selectedPath.slice(0, 1 + 3 * index));
+                    }}
+                    type="button"
+                  >
+                    {definition?.name ?? node.blockId}
+                  </button>
+                  {isLast ? null : (
+                    <span aria-hidden="true" className="canvas-breadcrumb-sep">
+                      /
+                    </span>
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        ) : null}
+
         <div className="canvas-frame-wrap" data-mode={previewMode}>
           <div
             className="canvas-frame-scaler"
@@ -259,6 +297,7 @@ export function CanvasEditor({
                 onClick={() => {
                   onRemove(selectedNode.id);
                   setSelectedNodeId(null);
+                  setSelectedPath(null);
                 }}
                 type="button"
               >

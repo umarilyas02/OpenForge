@@ -1,10 +1,12 @@
 "use client";
 
-import { Redo2, Undo2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Redo2, Undo2 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { PREVIEW_WIDTHS } from "../lib/preview-modes.js";
 import { CanvasEditor } from "./CanvasEditor.jsx";
+import { useHideAppTopbar } from "./PageChromeContext.jsx";
 
 /**
  * The file-backed page editor: every interaction (prop edit, reorder,
@@ -63,6 +65,8 @@ export function SourceContentEditor({
   duplicateBlockAction,
   restorePageSourceAction,
 }) {
+  useHideAppTopbar();
+
   const [tree, setTree] = useState(initialTree);
   const [source, setSource] = useState(initialSource);
   const [themeId, setThemeId] = useState(initialThemeId);
@@ -189,11 +193,23 @@ export function SourceContentEditor({
   };
 
   return (
-    <div className="stack">
+    <div className="editor-fullbleed">
       <div className="editor-toolbar">
         <div className="editor-toolbar-identity">
-          <p className="editor-toolbar-title">{pageTitle}</p>
-          <p className="editor-toolbar-path">{pagePath}</p>
+          <Link
+            className="editor-toolbar-back"
+            href={`/sites/${siteId}/pages`}
+            title="Back to pages"
+          >
+            <ArrowLeft size={16} strokeWidth={1.75} />
+          </Link>
+          <div className="editor-toolbar-breadcrumb">
+            <Link href={`/sites/${siteId}/pages`}>Pages</Link>
+            <span aria-hidden="true">/</span>
+            <span className="editor-toolbar-title" title={pagePath}>
+              {pageTitle}
+            </span>
+          </div>
         </div>
 
         <div className="editor-toolbar-center">
@@ -239,8 +255,25 @@ export function SourceContentEditor({
         </div>
 
         <div className="editor-toolbar-actions">
-          {error ? <p className="form-error">{error}</p> : null}
-          {pending ? <p className="muted">Saving…</p> : null}
+          {error ? (
+            <p className="form-error">{error}</p>
+          ) : (
+            <p className="editor-toolbar-status">
+              {pending ? "Saving…" : "Saved"}
+            </p>
+          )}
+          <a
+            className="btn btn-ghost"
+            href={`/preview/${siteId}`}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Preview
+            <ExternalLink size={14} strokeWidth={1.75} />
+          </a>
+          <Link className="btn btn-primary" href={`/sites/${siteId}/settings`}>
+            Publish
+          </Link>
         </div>
       </div>
 
