@@ -12,14 +12,7 @@ import {
   getMemberships,
   requireUser,
 } from "../../../../../../src/lib/session.js";
-
-function slugify(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/gu, "-")
-    .replace(/^-+|-+$/gu, "")
-    .slice(0, 180);
-}
+import { slugify } from "../../../../../../src/lib/slugify.js";
 
 /**
  * The dashboard's "Quick Draft" card: title + a single body paragraph,

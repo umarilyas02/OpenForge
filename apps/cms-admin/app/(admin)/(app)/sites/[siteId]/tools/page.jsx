@@ -3,9 +3,11 @@ import { schema } from "@openforge/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
+import { ImportForm } from "../../../../../../src/components/ImportForm.jsx";
 import { getDb } from "../../../../../../src/lib/db.js";
 import { getMemberships, requireUser } from "../../../../../../src/lib/session.js";
 import { getWorkspaceManager } from "../../../../../../src/lib/site-workspace.js";
+import { importContent } from "./actions.js";
 
 function CheckRow({ ok, label }) {
   return (
@@ -58,11 +60,10 @@ export default async function ToolsPage({ params }) {
         <div className="card stack-sm">
           <h2 style={{ margin: 0, fontSize: "var(--text-md)" }}>Import</h2>
           <p className="muted" style={{ fontSize: "var(--text-sm)" }}>
-            Bring in content from WordPress, JSON, or Markdown.
+            Bring in content from a Markdown or JSON file. A full WordPress
+            import isn&apos;t built yet.
           </p>
-          <button className="btn btn-ghost" disabled type="button">
-            Coming soon
-          </button>
+          <ImportForm importContent={importContent.bind(null, site.id)} />
         </div>
         <div className="card stack-sm">
           <h2 style={{ margin: 0, fontSize: "var(--text-md)" }}>Export</h2>
