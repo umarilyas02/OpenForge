@@ -2,9 +2,6 @@
 openforge-docs/
 
 # Local planning and scaffold documentation
-/IMPLEMENTATION_PLAN.md
-/FOLDER_STRUCTURE.md
-/progress.md
 /.changeset/README.md
 /apps/README.md
 /docker/README.md

@@ -242,7 +242,7 @@ Each site is backed by its own real Git repository, giving every edit a
 genuine commit history. A curated `component-library` catalog of
 real-world component variants exists as a package but is not yet wired
 into the canvas palette. An authenticated CRUD API and a theme/template
-marketplace are not built yet — see `progress.md` for exact status and
+marketplace are not built yet — see `agents/progress.md` for exact status and
 evidence.
 
 ## Project status
