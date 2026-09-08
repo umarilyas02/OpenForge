@@ -3,6 +3,7 @@
 import { Redo2, Undo2 } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
+import { PREVIEW_WIDTHS } from "../lib/preview-modes.js";
 import { BlockList } from "./BlockList.jsx";
 import { CanvasEditor } from "./CanvasEditor.jsx";
 
@@ -73,6 +74,7 @@ export function SourceContentEditor({
   const [past, setPast] = useState([]);
   const [future, setFuture] = useState([]);
   const [view, setView] = useState("canvas");
+  const [previewMode, setPreviewMode] = useState("desktop");
   const [error, setError] = useState(null);
   const [pending, startTransition] = useTransition();
 
@@ -194,31 +196,13 @@ export function SourceContentEditor({
 
   return (
     <div className="stack">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">{pageTitle}</h1>
-          <p className="page-subtitle">{pagePath}</p>
+      <div className="editor-toolbar">
+        <div className="editor-toolbar-identity">
+          <p className="editor-toolbar-title">{pageTitle}</p>
+          <p className="editor-toolbar-path">{pagePath}</p>
         </div>
-        <div className="editor-view-toggle">
-          <button
-            data-active={view === "canvas"}
-            onClick={() => setView("canvas")}
-            type="button"
-          >
-            Canvas
-          </button>
-          <button
-            data-active={view === "layers"}
-            onClick={() => setView("layers")}
-            type="button"
-          >
-            Layers
-          </button>
-        </div>
-      </div>
 
-      <div className="editor-meta-bar card">
-        <div className="editor-meta-bar-row">
+        <div className="editor-toolbar-center">
           <div className="editor-history-actions">
             <button
               className="icon-btn-sm"
@@ -239,9 +223,47 @@ export function SourceContentEditor({
               <Redo2 size={14} strokeWidth={1.75} />
             </button>
           </div>
-          <div className="editor-meta-bar-actions">
-            {error ? <p className="form-error">{error}</p> : null}
-            {pending ? <p className="muted">Saving…</p> : null}
+
+          {view === "canvas" ? (
+            <div className="canvas-device-toggle" role="tablist">
+              {Object.entries(PREVIEW_WIDTHS).map(([mode, config]) => {
+                const Icon = config.icon;
+                return (
+                  <button
+                    aria-selected={previewMode === mode}
+                    data-active={previewMode === mode}
+                    key={mode}
+                    onClick={() => setPreviewMode(mode)}
+                    role="tab"
+                    title={config.label}
+                    type="button"
+                  >
+                    <Icon size={15} strokeWidth={1.75} />
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="editor-toolbar-actions">
+          {error ? <p className="form-error">{error}</p> : null}
+          {pending ? <p className="muted">Saving…</p> : null}
+          <div className="editor-view-toggle">
+            <button
+              data-active={view === "canvas"}
+              onClick={() => setView("canvas")}
+              type="button"
+            >
+              Canvas
+            </button>
+            <button
+              data-active={view === "layers"}
+              onClick={() => setView("layers")}
+              type="button"
+            >
+              Layers
+            </button>
           </div>
         </div>
       </div>
@@ -251,6 +273,7 @@ export function SourceContentEditor({
           allowedBlockIds={allowedBlockIds}
           catalog={catalog}
           libraryCatalog={libraryCatalog}
+          previewMode={previewMode}
           themeId={themeId}
           tokenOverrides={tokenOverrides}
           tree={tree}

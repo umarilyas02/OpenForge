@@ -1,18 +1,13 @@
 "use client";
 
-import { Copy, Laptop, Smartphone, Tablet, Trash2 } from "lucide-react";
+import { Copy, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { PREVIEW_WIDTHS } from "../lib/preview-modes.js";
 import { getNodeAtPath } from "../lib/tree-path.js";
 import { BlockPalette } from "./BlockPalette.jsx";
 import { BlockPropsForm } from "./BlockPropsForm.jsx";
 import { LibraryPalette } from "./LibraryPalette.jsx";
-
-const PREVIEW_WIDTHS = {
-  desktop: { icon: Laptop, label: "Desktop", width: "100%" },
-  tablet: { icon: Tablet, label: "Tablet", width: "768px" },
-  mobile: { icon: Smartphone, label: "Mobile", width: "390px" },
-};
 
 /** /canvas renders through @openforge/renderer's strict content-tree schema, which only allows {blockId, blockVersion, props, slots} — this app's own `id` field (added so edits can target a real compiler node) has to come off before the tree crosses that boundary. */
 function stripNodeIds(tree) {
@@ -83,6 +78,7 @@ function diffTopLevelReorder(previousTree, nextTree) {
  *   libraryCatalog: object[],
  *   themeId: string,
  *   tokenOverrides: object,
+ *   previewMode: "desktop" | "tablet" | "mobile",
  *   onPropsChange: (nodeId: string, nextProps: object) => void,
  *   onInsert: (blockId: string, containerNodeId: string) => void,
  *   onInsertLibraryComponent: (componentId: string) => void,
@@ -103,6 +99,7 @@ export function CanvasEditor({
   libraryCatalog,
   themeId,
   tokenOverrides,
+  previewMode,
   onPropsChange,
   onInsert,
   onInsertLibraryComponent,
@@ -114,7 +111,6 @@ export function CanvasEditor({
   const [canvasAcked, setCanvasAcked] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [paletteTab, setPaletteTab] = useState("elements");
-  const [previewMode, setPreviewMode] = useState("desktop");
 
   useEffect(() => {
     function handleMessage(event) {
@@ -221,25 +217,6 @@ export function CanvasEditor({
       </aside>
 
       <div className="canvas-center">
-        <div className="canvas-device-toggle" role="tablist">
-          {Object.entries(PREVIEW_WIDTHS).map(([mode, config]) => {
-            const Icon = config.icon;
-            return (
-              <button
-                aria-selected={previewMode === mode}
-                data-active={previewMode === mode}
-                key={mode}
-                onClick={() => setPreviewMode(mode)}
-                role="tab"
-                title={config.label}
-                type="button"
-              >
-                <Icon size={15} strokeWidth={1.75} />
-              </button>
-            );
-          })}
-        </div>
-
         <div className="canvas-frame-wrap" data-mode={previewMode}>
           <div
             className="canvas-frame-scaler"
