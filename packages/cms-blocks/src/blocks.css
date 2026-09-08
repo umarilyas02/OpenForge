@@ -877,3 +877,962 @@ p {
   color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
   font-size: 0.9375rem;
 }
+
+/* ===== New blocks (navbar, breadcrumbs, tabs, contact-form, newsletter-signup, image-gallery, countdown-timer, location-card, social-links, comparison-table) ===== */
+
+/* --- navbar --- */
+/* Navbar */
+
+/* Matched on both classes so the header keeps its own compact vertical rhythm
+   even when it follows another block (.of-block + .of-block zeroes padding-top). */
+.of-block.of-navbar {
+  align-items: center;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--of-color-ink) 10%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--of-space-4);
+  justify-content: space-between;
+  padding-bottom: var(--of-space-4);
+  padding-top: var(--of-space-4);
+}
+
+.of-navbar-brand {
+  color: var(--of-color-ink);
+  font-size: 1.125rem;
+  font-weight: var(--of-font-weight-strong);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.of-navbar-nav {
+  flex: 1 1 auto;
+}
+
+.of-navbar-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--of-space-4);
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.of-navbar-item {
+  display: flex;
+}
+
+.of-navbar-link {
+  border-radius: var(--of-radius-control);
+  color: color-mix(in srgb, var(--of-color-ink) 70%, transparent);
+  font-size: 0.9375rem;
+  padding: var(--of-space-2) 0;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+a.of-navbar-link:hover,
+a.of-navbar-link:focus-visible {
+  color: var(--of-color-ink);
+}
+
+.of-navbar-cta {
+  background: var(--of-color-action);
+  border-radius: var(--of-radius-control);
+  color: var(--of-color-paper);
+  font-size: 0.9375rem;
+  font-weight: var(--of-font-weight-strong);
+  padding: 0.5rem 1.125rem;
+  text-decoration: none;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+  white-space: nowrap;
+}
+
+.of-navbar-cta:hover {
+  opacity: 0.88;
+}
+
+.of-navbar-cta:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+  .of-block.of-navbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--of-space-2);
+  }
+
+  .of-navbar-nav {
+    width: 100%;
+  }
+
+  .of-navbar-links {
+    justify-content: flex-start;
+  }
+
+  .of-navbar-cta {
+    align-self: stretch;
+    text-align: center;
+  }
+}
+
+/* --- breadcrumbs --- */
+/* Breadcrumbs
+ *
+ * A small navigation element, not a full-width section: it deliberately drops
+ * the generous vertical rhythm `.of-block` gives page sections and sits tight
+ * above the content it labels. The root selector is doubled up
+ * (`.of-block.of-breadcrumbs`) so it outranks the shared
+ * `.of-block + .of-block` padding reset in blocks.css.
+ */
+
+.of-block.of-breadcrumbs {
+  padding-bottom: var(--of-space-2);
+  padding-left: var(--of-space-4);
+  padding-right: var(--of-space-4);
+  padding-top: var(--of-space-4);
+}
+
+.of-breadcrumbs-list {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  row-gap: var(--of-space-2);
+}
+
+.of-breadcrumbs-item {
+  align-items: center;
+  display: flex;
+  min-width: 0;
+}
+
+.of-breadcrumbs-link {
+  border-radius: var(--of-radius-control);
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  text-decoration: none;
+}
+
+.of-breadcrumbs-link:hover {
+  color: var(--of-color-action);
+  text-decoration: underline;
+}
+
+.of-breadcrumbs-link:focus-visible {
+  outline: 2px solid var(--of-color-action);
+  outline-offset: 2px;
+}
+
+/* A non-final crumb with no href: same muted tone, but not interactive. */
+.of-breadcrumbs-text {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+}
+
+.of-breadcrumbs-separator {
+  color: color-mix(in srgb, var(--of-color-ink) 35%, transparent);
+  padding: 0 var(--of-space-2);
+  user-select: none;
+}
+
+.of-breadcrumbs-current {
+  color: var(--of-color-ink);
+  font-weight: var(--of-font-weight-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- tabs --- */
+/* Tabs
+ *
+ * A tab switcher with no JavaScript at all. The markup puts every
+ * `.of-tabs-input` radio first, as a sibling of both `.of-tabs-list` and
+ * `.of-tabs-panels`, so `:checked ~` can reach forward to the matching tab and
+ * panel. Inputs and panels are paired by a `data-index` attribute rather than
+ * `:nth-of-type`, so the pairing survives any future change to the surrounding
+ * markup. One rule set per index, up to the block's max of 8 tabs.
+ *
+ * The radios are hidden with opacity, not `display: none`, so they stay
+ * focusable — which is what makes arrow-key tab switching work for free.
+ */
+
+.of-tabs-heading {
+  margin-bottom: var(--of-space-4);
+}
+
+.of-tabs-shell {
+  position: relative;
+}
+
+.of-tabs-input {
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 1px;
+}
+
+.of-tabs-list {
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--of-color-ink) 12%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.of-tabs-tab {
+  border-bottom: 2px solid transparent;
+  border-radius: var(--of-radius-control) var(--of-radius-control) 0 0;
+  color: color-mix(in srgb, var(--of-color-ink) 62%, transparent);
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: var(--of-font-weight-strong);
+  line-height: 1.4;
+  margin-bottom: -1px;
+  padding: var(--of-space-2) var(--of-space-4);
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.of-tabs-tab:hover {
+  color: var(--of-color-ink);
+}
+
+.of-tabs-panels {
+  padding-top: var(--of-space-4);
+}
+
+/* Only the panel whose radio is checked is rendered. */
+.of-tabs-panel {
+  display: none;
+}
+
+.of-tabs-input[data-index="1"]:checked ~ .of-tabs-panels > .of-tabs-panel[data-index="1"],
+.of-tabs-input[data-index="2"]:checked ~ .of-tabs-panels > .of-tabs-panel[data-index="2"],
+.of-tabs-input[data-index="3"]:checked ~ .of-tabs-panels > .of-tabs-panel[data-index="3"],
+.of-tabs-input[data-index="4"]:checked ~ .of-tabs-panels > .of-tabs-panel[data-index="4"],
+.of-tabs-input[data-index="5"]:checked ~ .of-tabs-panels > .of-tabs-panel[data-index="5"],
+.of-tabs-input[data-index="6"]:checked ~ .of-tabs-panels > .of-tabs-panel[data-index="6"],
+.of-tabs-input[data-index="7"]:checked ~ .of-tabs-panels > .of-tabs-panel[data-index="7"],
+.of-tabs-input[data-index="8"]:checked ~ .of-tabs-panels > .of-tabs-panel[data-index="8"] {
+  display: block;
+}
+
+/* ...and its tab is the selected one. */
+.of-tabs-input[data-index="1"]:checked ~ .of-tabs-list > .of-tabs-tab[data-index="1"],
+.of-tabs-input[data-index="2"]:checked ~ .of-tabs-list > .of-tabs-tab[data-index="2"],
+.of-tabs-input[data-index="3"]:checked ~ .of-tabs-list > .of-tabs-tab[data-index="3"],
+.of-tabs-input[data-index="4"]:checked ~ .of-tabs-list > .of-tabs-tab[data-index="4"],
+.of-tabs-input[data-index="5"]:checked ~ .of-tabs-list > .of-tabs-tab[data-index="5"],
+.of-tabs-input[data-index="6"]:checked ~ .of-tabs-list > .of-tabs-tab[data-index="6"],
+.of-tabs-input[data-index="7"]:checked ~ .of-tabs-list > .of-tabs-tab[data-index="7"],
+.of-tabs-input[data-index="8"]:checked ~ .of-tabs-list > .of-tabs-tab[data-index="8"] {
+  border-bottom-color: var(--of-color-action);
+  color: var(--of-color-ink);
+}
+
+/* The radio is invisible, so forward its focus ring onto the visible tab. */
+.of-tabs-input[data-index="1"]:focus-visible ~ .of-tabs-list > .of-tabs-tab[data-index="1"],
+.of-tabs-input[data-index="2"]:focus-visible ~ .of-tabs-list > .of-tabs-tab[data-index="2"],
+.of-tabs-input[data-index="3"]:focus-visible ~ .of-tabs-list > .of-tabs-tab[data-index="3"],
+.of-tabs-input[data-index="4"]:focus-visible ~ .of-tabs-list > .of-tabs-tab[data-index="4"],
+.of-tabs-input[data-index="5"]:focus-visible ~ .of-tabs-list > .of-tabs-tab[data-index="5"],
+.of-tabs-input[data-index="6"]:focus-visible ~ .of-tabs-list > .of-tabs-tab[data-index="6"],
+.of-tabs-input[data-index="7"]:focus-visible ~ .of-tabs-list > .of-tabs-tab[data-index="7"],
+.of-tabs-input[data-index="8"]:focus-visible ~ .of-tabs-list > .of-tabs-tab[data-index="8"] {
+  outline: 2px solid var(--of-color-action);
+  outline-offset: -2px;
+}
+
+/* A Tab Panel sits inside the already-padded Tabs section, so it drops the
+ * page-section rhythm `.of-block` gives it when used on its own. */
+.of-tabs-panel .of-block.of-tab-panel {
+  margin: 0;
+  max-width: none;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .of-tabs-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+}
+
+/* --- tab-panel --- */
+/* Tab Panel
+ *
+ * The panel's own presentation only. Which panel is visible is decided by the
+ * parent Tabs block's `:checked ~` rules in tabs.block.css, and the padding a
+ * panel drops when it sits inside a Tabs section is reset there too.
+ *
+ * The title is visually hidden rather than removed: the visible tab text lives
+ * on the parent Tabs block, so this heading is what names the panel for a
+ * screen reader — and what tells the panels apart if the stylesheet never
+ * loads, in which case all of them are visible at once.
+ */
+
+.of-tab-panel-title {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.of-tab-panel-text {
+  color: color-mix(in srgb, var(--of-color-ink) 78%, transparent);
+  margin: 0 0 var(--of-space-4);
+}
+
+.of-tab-panel-text:last-child {
+  margin-bottom: 0;
+}
+
+/* --- contact-form --- */
+/* Contact form */
+
+/* Matched on both classes so the narrower measure wins over .of-block's
+   72rem regardless of which stylesheet is concatenated first. */
+.of-block.of-contact-form {
+  max-width: 40rem;
+}
+
+.of-contact-form-heading {
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+}
+
+.of-contact-form-body {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  margin: 0 0 var(--of-space-8);
+  max-width: 56ch;
+}
+
+.of-contact-form-form {
+  display: grid;
+  gap: var(--of-space-4);
+}
+
+/* Each label wraps its own control, so the label element is the field row. */
+.of-contact-form-field {
+  display: grid;
+  gap: var(--of-space-2);
+}
+
+.of-contact-form-label {
+  font-size: 0.9375rem;
+  font-weight: var(--of-font-weight-strong);
+}
+
+.of-contact-form-control {
+  background: var(--of-color-background);
+  border: 1px solid color-mix(in srgb, var(--of-color-ink) 20%, transparent);
+  border-radius: var(--of-radius-control);
+  color: var(--of-color-ink);
+  font: inherit;
+  padding: 0.625rem 0.75rem;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+  width: 100%;
+}
+
+.of-contact-form-control:hover {
+  border-color: color-mix(in srgb, var(--of-color-ink) 34%, transparent);
+}
+
+.of-contact-form-control:focus-visible {
+  border-color: var(--of-color-action);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--of-color-action) 28%, transparent);
+  outline: none;
+}
+
+/* The browser only flags this once the field has been interacted with, so a
+   pristine empty form is never shown as an error. */
+.of-contact-form-control:user-invalid {
+  border-color: #cf222e;
+}
+
+.of-contact-form-message {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.of-contact-form-submit {
+  background: var(--of-color-action);
+  border: 0;
+  border-radius: var(--of-radius-control);
+  color: var(--of-color-paper);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--of-font-weight-strong);
+  justify-self: start;
+  padding: 0.75rem 1.5rem;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.of-contact-form-submit:hover {
+  opacity: 0.88;
+}
+
+.of-contact-form-submit:active {
+  transform: translateY(1px);
+}
+
+/* --- newsletter-signup --- */
+/* Newsletter signup */
+
+.of-newsletter-signup {
+  background: color-mix(
+    in srgb,
+    var(--of-color-ink) 4%,
+    var(--of-color-background)
+  );
+  border-radius: var(--of-radius-card);
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 42rem;
+  padding: var(--of-space-8);
+  text-align: center;
+}
+
+.of-newsletter-signup-heading {
+  font-size: clamp(1.375rem, 1.15rem + 1vw, 2rem);
+  margin: 0 0 var(--of-space-2);
+}
+
+.of-newsletter-signup-body {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  margin: 0 auto var(--of-space-8);
+  max-width: 46ch;
+}
+
+/* Compact single-row strip: input grows, button keeps its intrinsic width. */
+.of-newsletter-signup-form {
+  display: flex;
+  gap: var(--of-space-2);
+  margin: 0 auto;
+  max-width: 30rem;
+}
+
+.of-newsletter-signup-field {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Visually hidden, but still in the accessibility tree — the standard clip
+   pattern rather than display:none, which would hide it from screen readers. */
+.of-newsletter-signup-label {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.of-newsletter-signup-input {
+  background: var(--of-color-background);
+  border: 1px solid color-mix(in srgb, var(--of-color-ink) 20%, transparent);
+  border-radius: var(--of-radius-control);
+  color: var(--of-color-ink);
+  font-family: inherit;
+  font-size: var(--of-font-size-body);
+  padding: 0.75rem 1rem;
+  transition: border-color 150ms ease;
+  width: 100%;
+}
+
+.of-newsletter-signup-input::placeholder {
+  color: color-mix(in srgb, var(--of-color-ink) 45%, transparent);
+}
+
+.of-newsletter-signup-input:focus-visible {
+  border-color: var(--of-color-action);
+  outline: 2px solid var(--of-color-action);
+  outline-offset: 1px;
+}
+
+.of-newsletter-signup-submit {
+  background: var(--of-color-action);
+  border: 0;
+  border-radius: var(--of-radius-control);
+  color: var(--of-color-paper);
+  cursor: pointer;
+  flex: none;
+  font-family: inherit;
+  font-size: var(--of-font-size-body);
+  font-weight: var(--of-font-weight-strong);
+  padding: 0.75rem 1.5rem;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.of-newsletter-signup-submit:hover {
+  opacity: 0.88;
+}
+
+.of-newsletter-signup-submit:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 30rem) {
+  .of-newsletter-signup {
+    padding: var(--of-space-8) var(--of-space-4);
+  }
+
+  .of-newsletter-signup-form {
+    flex-direction: column;
+  }
+}
+
+/* --- image-gallery --- */
+/* Image Gallery
+ *
+ * A static grid, deliberately not the Carousel: there is no scroller, no
+ * snap points, no transform track and no JavaScript. Every tile is laid out
+ * at once with `auto-fit` columns, so the gallery reflows from four-up on a
+ * wide screen down to two-up on a phone without a single media query doing
+ * the column math.
+ */
+
+.of-image-gallery-heading {
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  margin-bottom: 0;
+}
+
+.of-image-gallery-grid {
+  display: grid;
+  gap: var(--of-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+/* Only pay for the gap under a heading that actually exists. */
+.of-image-gallery-heading + .of-image-gallery-grid {
+  margin-top: var(--of-space-8);
+}
+
+/* The per-item wrapper exists so slot children get stable React keys without
+   the gallery having to clone them. `min-width: 0` keeps a wide image from
+   forcing its column past its 1fr share. */
+.of-image-gallery-cell {
+  min-width: 0;
+}
+
+/* Below the point where a 15rem tile would drop to a single column, force a
+   two-up grid instead: a one-column "gallery" reads as a stack of unrelated
+   images rather than as a set. */
+@media (max-width: 34rem) {
+  .of-image-gallery-grid {
+    gap: var(--of-space-2);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- gallery-item --- */
+/* Gallery Item
+ *
+ * One tile of the Image Gallery grid. The tile owns its own aspect ratio so a
+ * real gallery of mixed portrait/landscape uploads still lines up: the box is
+ * a fixed 4:3 and the photo is cropped into it with `object-fit: cover`
+ * rather than stretching the row to the tallest image.
+ */
+
+.of-gallery-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--of-space-2);
+  margin: 0;
+}
+
+.of-gallery-item-image {
+  aspect-ratio: 4 / 3;
+  background: color-mix(in srgb, var(--of-color-ink) 6%, transparent);
+  border-radius: var(--of-radius-card);
+  height: auto;
+  object-fit: cover;
+  width: 100%;
+}
+
+.of-gallery-item-caption {
+  color: color-mix(in srgb, var(--of-color-ink) 55%, transparent);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* --- countdown-timer --- */
+/* Countdown timer */
+
+.of-countdown-timer {
+  text-align: center;
+}
+
+.of-countdown-timer-heading {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  font-size: 0.9375rem;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.of-countdown-timer-units {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--of-space-4);
+  justify-content: center;
+  margin-top: var(--of-space-4);
+}
+
+.of-countdown-timer-unit {
+  background: color-mix(
+    in srgb,
+    var(--of-color-ink) 5%,
+    var(--of-color-background)
+  );
+  border: 1px solid color-mix(in srgb, var(--of-color-ink) 10%, transparent);
+  border-radius: var(--of-radius-card);
+  display: flex;
+  flex: 0 1 8rem;
+  flex-direction: column;
+  gap: var(--of-space-2);
+  padding: var(--of-space-4);
+}
+
+.of-countdown-timer-value {
+  color: var(--of-color-action);
+  font-size: clamp(2.25rem, 1.7rem + 2vw, 3.25rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--of-font-weight-strong);
+  line-height: 1;
+}
+
+.of-countdown-timer-label {
+  color: color-mix(in srgb, var(--of-color-ink) 65%, transparent);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.of-countdown-timer-note {
+  color: color-mix(in srgb, var(--of-color-ink) 55%, transparent);
+  font-size: 0.8125rem;
+  margin: var(--of-space-4) 0 0;
+}
+
+.of-countdown-timer-message {
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+  font-weight: var(--of-font-weight-strong);
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .of-countdown-timer-units {
+    gap: var(--of-space-2);
+  }
+
+  .of-countdown-timer-unit {
+    flex: 1 1 6rem;
+    padding: var(--of-space-2);
+  }
+}
+
+/* --- location-card --- */
+/* Location card */
+
+.of-location-card {
+  display: grid;
+  gap: var(--of-space-8);
+  grid-template-columns: 1fr;
+}
+
+.of-location-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--of-space-4);
+}
+
+.of-location-card-name {
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  margin: 0;
+}
+
+.of-location-card-address {
+  display: flex;
+  flex-direction: column;
+  font-style: normal;
+  gap: 0.125rem;
+}
+
+.of-location-card-address-line {
+  display: block;
+}
+
+.of-location-card-hours {
+  border-top: 1px solid color-mix(in srgb, var(--of-color-ink) 10%, transparent);
+  list-style: none;
+  margin: 0;
+  max-width: 26rem;
+  padding: 0;
+}
+
+.of-location-card-hours-row {
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--of-color-ink) 10%, transparent);
+  color: color-mix(in srgb, var(--of-color-ink) 70%, transparent);
+  font-size: 0.9375rem;
+  padding: var(--of-space-2) 0;
+}
+
+.of-location-card-phone {
+  align-self: flex-start;
+  color: var(--of-color-action);
+  font-weight: var(--of-font-weight-strong);
+  text-decoration: none;
+}
+
+.of-location-card-phone:hover,
+.of-location-card-phone:focus-visible {
+  text-decoration: underline;
+}
+
+/* Map — only rendered when the editor supplies an embed URL. The wrapper owns
+   the aspect ratio so the iframe can never collapse to zero height. */
+.of-location-card-map {
+  aspect-ratio: 16 / 9;
+  border: 1px solid color-mix(in srgb, var(--of-color-ink) 10%, transparent);
+  border-radius: var(--of-radius-card);
+  overflow: hidden;
+}
+
+.of-location-card-map-frame {
+  border: 0;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+@media (min-width: 48rem) {
+  .of-location-card:has(.of-location-card-map) {
+    align-items: start;
+    grid-template-columns: minmax(16rem, 2fr) 3fr;
+  }
+
+  .of-location-card:has(.of-location-card-map) .of-location-card-map {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* --- social-links --- */
+/* Social Links */
+
+.of-social-links-list {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--of-space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.of-social-links-item {
+  display: flex;
+}
+
+/* The icon link itself lives in social-link-item.block.css so a Social Link
+   dropped outside this container still styles correctly; these rules only
+   cover the row's own layout. */
+
+@media (max-width: 32rem) {
+  .of-social-links-list {
+    justify-content: center;
+  }
+}
+
+/* --- social-link-item --- */
+/* Social Link */
+
+.of-social-link-item {
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--of-color-ink) 12%, transparent);
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--of-color-ink) 70%, transparent);
+  display: inline-flex;
+  height: 2.5rem;
+  justify-content: center;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+  width: 2.5rem;
+}
+
+.of-social-link-item-icon {
+  display: block;
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.of-social-link-item:hover,
+.of-social-link-item:focus-visible {
+  background: color-mix(in srgb, var(--of-color-action) 10%, transparent);
+  border-color: color-mix(in srgb, var(--of-color-action) 45%, transparent);
+  color: var(--of-color-action);
+}
+
+.of-social-link-item:focus-visible {
+  outline: 2px solid var(--of-color-action);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .of-social-link-item {
+    transition: none;
+  }
+}
+
+/* --- comparison-table --- */
+/* Comparison table */
+
+.of-comparison-table-heading {
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+  margin: 0 0 var(--of-space-4);
+  text-align: center;
+}
+
+/* The scroll container owns the frame so the rounded corners clip the table's
+   own cell backgrounds, and so extra plan columns scroll inside the block
+   instead of widening the page. */
+.of-comparison-table-scroll {
+  border: 1px solid color-mix(in srgb, var(--of-color-ink) 10%, transparent);
+  border-radius: var(--of-radius-card);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.of-comparison-table-scroll:focus-visible {
+  outline: 2px solid var(--of-color-action);
+  outline-offset: 2px;
+}
+
+.of-comparison-table-grid {
+  border-collapse: collapse;
+  min-width: 34rem;
+  text-align: left;
+  width: 100%;
+}
+
+.of-comparison-table-grid th,
+.of-comparison-table-grid td {
+  padding: var(--of-space-4);
+  vertical-align: middle;
+}
+
+.of-comparison-table-grid thead th {
+  background: color-mix(
+    in srgb,
+    var(--of-color-ink) 4%,
+    var(--of-color-background)
+  );
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--of-color-ink) 14%, transparent);
+  font-size: 0.9375rem;
+  font-weight: var(--of-font-weight-strong);
+  white-space: nowrap;
+}
+
+/* Zebra striping lives on the row, not the cells, so the featured column's own
+   cell background paints cleanly on top of it. */
+.of-comparison-table-grid tbody tr:nth-child(even) {
+  background: color-mix(
+    in srgb,
+    var(--of-color-ink) 3%,
+    var(--of-color-background)
+  );
+}
+
+.of-comparison-table-grid tbody tr + tr th,
+.of-comparison-table-grid tbody tr + tr td {
+  border-top: 1px solid color-mix(in srgb, var(--of-color-ink) 8%, transparent);
+}
+
+.of-comparison-table-grid tbody td {
+  color: color-mix(in srgb, var(--of-color-ink) 78%, transparent);
+  font-size: 0.9375rem;
+}
+
+.of-comparison-table .of-comparison-table-feature {
+  font-weight: var(--of-font-weight-strong);
+  white-space: normal;
+}
+
+/* Featured column: a tinted, action-bordered runway down the whole column. The
+   colour is decoration only — the "Recommended" flag below carries the meaning
+   in text. */
+.of-comparison-table .of-comparison-table-featured {
+  background: color-mix(
+    in srgb,
+    var(--of-color-action) 7%,
+    var(--of-color-background)
+  );
+  border-left: 2px solid var(--of-color-action);
+  border-right: 2px solid var(--of-color-action);
+  color: var(--of-color-ink);
+}
+
+.of-comparison-table thead .of-comparison-table-featured {
+  background: color-mix(
+    in srgb,
+    var(--of-color-action) 15%,
+    var(--of-color-background)
+  );
+  border-top: 2px solid var(--of-color-action);
+}
+
+.of-comparison-table tbody tr:last-child .of-comparison-table-featured {
+  border-bottom: 2px solid var(--of-color-action);
+}
+
+.of-comparison-table-flag {
+  background: var(--of-color-action);
+  border-radius: 999px;
+  color: var(--of-color-paper);
+  display: block;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  margin-top: var(--of-space-2);
+  padding: 0.125rem 0.5rem;
+  text-align: center;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+@media (max-width: 640px) {
+  .of-comparison-table-grid th,
+  .of-comparison-table-grid td {
+    padding: var(--of-space-2) var(--of-space-4);
+  }
+}

@@ -26,10 +26,10 @@ function minimalProps(definition) {
 }
 
 describe("official CMS blocks", () => {
-  it("registers all thirty-eight starter blocks with unique ids", () => {
-    expect(registry.list()).toHaveLength(38);
+  it("registers all fifty-one starter blocks with unique ids", () => {
+    expect(registry.list()).toHaveLength(51);
     const ids = new Set(registry.list().map((definition) => definition.id));
-    expect(ids.size).toBe(38);
+    expect(ids.size).toBe(51);
   });
 
   it.each(OFFICIAL_CMS_BLOCKS)(
