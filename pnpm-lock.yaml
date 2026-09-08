@@ -68,9 +68,42 @@ importers:
       '@openforge/storage':
         specifier: workspace:*
         version: link:../../packages/storage
+      '@openforge/theme-agency':
+        specifier: workspace:*
+        version: link:../../themes/agency
       '@openforge/theme-default':
         specifier: workspace:*
         version: link:../../themes/default
+      '@openforge/theme-ecommerce':
+        specifier: workspace:*
+        version: link:../../themes/ecommerce
+      '@openforge/theme-education':
+        specifier: workspace:*
+        version: link:../../themes/education
+      '@openforge/theme-healthcare':
+        specifier: workspace:*
+        version: link:../../themes/healthcare
+      '@openforge/theme-magazine':
+        specifier: workspace:*
+        version: link:../../themes/magazine
+      '@openforge/theme-nonprofit':
+        specifier: workspace:*
+        version: link:../../themes/nonprofit
+      '@openforge/theme-portfolio':
+        specifier: workspace:*
+        version: link:../../themes/portfolio
+      '@openforge/theme-realestate':
+        specifier: workspace:*
+        version: link:../../themes/realestate
+      '@openforge/theme-restaurant':
+        specifier: workspace:*
+        version: link:../../themes/restaurant
+      '@openforge/theme-saas':
+        specifier: workspace:*
+        version: link:../../themes/saas
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
       '@openforge/workspace':
         specifier: workspace:*
         version: link:../../packages/workspace

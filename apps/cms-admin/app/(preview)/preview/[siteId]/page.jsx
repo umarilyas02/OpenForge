@@ -2,10 +2,6 @@ import { assertSiteAccess } from "@openforge/auth";
 import { schema } from "@openforge/db";
 import { defaultDesignTokens } from "@openforge/design-tokens";
 import { createRenderer, renderSiteStyles } from "@openforge/renderer";
-import {
-  defaultTheme,
-  defaultThemeBlockRegistry,
-} from "@openforge/theme-default";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -21,20 +17,23 @@ import {
   getWorkspaceManager,
   listPages,
 } from "../../../../src/lib/site-workspace.js";
+import { cmsBlockRegistry, getTheme } from "../../../../src/lib/theme-registry.js";
 import { isUuid } from "../../../../src/lib/uuid.js";
-
-const renderer = createRenderer({
-  theme: defaultTheme,
-  blockRegistry: defaultThemeBlockRegistry,
-});
 
 /**
  * Chrome-free "preview the whole site" route: the same block-tree ->
  * component pipeline the live canvas and apps/cms-renderer use
- * (@openforge/renderer + the default theme's block registry), applied
- * directly to a page's real, on-disk source instead of an editor's live
- * (possibly unsaved) tree. No iframe/postMessage here — this is read-only,
- * so the tree can be computed straight from the workspace on the server.
+ * (@openforge/renderer + the CMS block registry), applied directly to a
+ * page's real, on-disk source instead of an editor's live (possibly
+ * unsaved) tree. No iframe/postMessage here — this is read-only, so the
+ * tree can be computed straight from the workspace on the server.
+ *
+ * Renders with the site's actual *active* theme (its token palette --
+ * color, font, radius -- plus any custom overrides saved on the Design
+ * Tokens page), not a hardcoded default. Workspace-based pages are real,
+ * self-contained JSX files (see starter-template.js) rather than content
+ * rendered inside a theme's page/post template, so a theme's effect here
+ * is its tokens, not its template markup.
  */
 export default async function SitePreviewPage({ params, searchParams }) {
   const { siteId } = await params;
@@ -55,6 +54,13 @@ export default async function SitePreviewPage({ params, searchParams }) {
   } catch {
     notFound();
   }
+
+  const [installation] = await db
+    .select()
+    .from(schema.themeInstallations)
+    .where(eq(schema.themeInstallations.siteId, site.id));
+  const theme = getTheme(installation?.themeId);
+  const renderer = createRenderer({ theme, blockRegistry: cmsBlockRegistry });
 
   const manager = getWorkspaceManager();
   let files;
@@ -93,7 +99,11 @@ export default async function SitePreviewPage({ params, searchParams }) {
     );
   }
 
-  const css = renderSiteStyles({ baseTokens: defaultDesignTokens, overrides: {} });
+  const overrides = {
+    ...theme.manifest.defaultTokenOverrides,
+    ...(installation?.config ?? {}),
+  };
+  const css = renderSiteStyles({ baseTokens: defaultDesignTokens, overrides });
   const body = tree.map((node, index) => {
     try {
       return (
