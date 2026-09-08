@@ -134,5 +134,5 @@ instead (confirmed working; plain `pnpm ...` fails with "not recognized").
   governance, RFCs) — see `openforge-docs/INDEX.md`. **Gitignored and
   local-only** — it will not exist in a fresh clone of the public repo,
   only in local working copies that already have it. Its `SECURITY.md` is
-  the full vulnerability-reporting policy; the root `SECURITY.md` is a
-  short pointer to it kept at the root for GitHub's own tooling.
+  the full vulnerability-reporting policy; `.github/SECURITY.md` is a
+  short pointer to it, kept under `.github/` for GitHub's own tooling.

@@ -12,5 +12,6 @@ build isolation, plugin permissions, AI provider context leakage, webhook
 verification, SSRF, path traversal, and malicious project archives.
 
 The full policy (scope, response process, supported versions) lives at
-[`openforge-docs/SECURITY.md`](openforge-docs/SECURITY.md) — this file exists
-at the repository root only so GitHub's own security tooling can find it.
+[`openforge-docs/SECURITY.md`](../openforge-docs/SECURITY.md) — this file
+lives under `.github/` (one of the locations GitHub's own security tooling
+looks for) rather than duplicating the full policy here.
