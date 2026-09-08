@@ -946,6 +946,12 @@ a.list-row:hover,
   color: var(--text);
 }
 
+.btn-ghost[data-danger="true"]:hover {
+  background: var(--danger-wash);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 .btn-ghost:disabled {
   cursor: not-allowed;
   opacity: 0.5;

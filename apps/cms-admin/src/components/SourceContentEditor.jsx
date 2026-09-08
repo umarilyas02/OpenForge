@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import { BlockList } from "./BlockList.jsx";
 import { CanvasEditor } from "./CanvasEditor.jsx";
@@ -49,18 +49,34 @@ export function SourceContentEditor({
   const [error, setError] = useState(null);
   const [pending, startTransition] = useTransition();
 
+  // Every action here is a real round trip (read the file, re-parse it,
+  // apply a compiler operation, write it back, commit) — slow enough
+  // relative to typing speed that two calls can be in flight at once (e.g.
+  // a debounced Style-tab edit still resolving when the user clicks
+  // Remove, or two rapidly-edited fields resolving out of order). Without
+  // this, whichever call happens to *resolve* last wins even if it was
+  // *issued* first, silently reverting a newer edit. Tracking an
+  // ever-increasing sequence number per call and only ever applying the
+  // result of the most recently *issued* one — regardless of resolution
+  // order — makes stale responses inert instead of corrupting state.
+  const latestRequestId = useRef(0);
+
   function applyState(result) {
     setTree(result.tree);
     setPageRootNodeId(result.pageRootNodeId);
   }
 
   function run(action) {
+    const requestId = (latestRequestId.current += 1);
     setError(null);
     startTransition(async () => {
       try {
-        applyState(await action());
+        const result = await action();
+        if (requestId === latestRequestId.current) applyState(result);
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : String(caught));
+        if (requestId === latestRequestId.current) {
+          setError(caught instanceof Error ? caught.message : String(caught));
+        }
       }
     });
   }

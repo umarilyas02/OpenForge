@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Laptop, Smartphone, Tablet } from "lucide-react";
+import { Copy, Laptop, Smartphone, Tablet, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { getNodeAtPath } from "../lib/tree-path.js";
@@ -246,6 +246,7 @@ export function CanvasEditor({
             <p className="editor-rail-label">{selectedDefinition.name}</p>
             <BlockPropsForm
               definition={selectedDefinition}
+              key={selectedNode.id}
               onChange={(nextProps) =>
                 onPropsChange(selectedNode.id, nextProps)
               }
@@ -253,24 +254,24 @@ export function CanvasEditor({
             />
             <div className="canvas-inspector-actions">
               <button
-                className="icon-btn-sm"
+                className="btn btn-ghost"
                 onClick={() => onDuplicate(selectedNode.id)}
-                title="Duplicate block"
                 type="button"
               >
-                <Copy size={13} />
+                <Copy size={14} strokeWidth={1.75} />
+                Duplicate
               </button>
               <button
-                className="icon-btn-sm"
+                className="btn btn-ghost"
                 data-danger="true"
                 onClick={() => {
                   onRemove(selectedNode.id);
                   setSelectedNodeId(null);
                 }}
-                title="Remove block"
                 type="button"
               >
-                Remove block
+                <Trash2 size={14} strokeWidth={1.75} />
+                Remove
               </button>
             </div>
           </>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Checkbox, Textarea, TextInput } from "@primer/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const FONT_WEIGHTS = ["400", "500", "600", "700", "800"];
 const TEXT_ALIGNS = ["left", "center", "right", "justify"];
@@ -12,6 +12,9 @@ const SHADOW_PRESETS = [
   { value: "md", label: "Medium" },
   { value: "lg", label: "Large" },
 ];
+
+/** How long to let edits settle before persisting — see the comment on BlockPropsForm for why this exists at all. */
+const COMMIT_DEBOUNCE_MS = 450;
 
 function ContentFields({ definition, props, setField }) {
   return (
@@ -354,30 +357,68 @@ function AdvancedFields({ className, setClassName }) {
 
 /**
  * Content/Style/Advanced tabs for the block currently selected on the
- * canvas. Content edits the block's own defined fields (unchanged from
- * before); Style and Advanced write to the universal `style`/`className`
- * props every block supports without needing to know about them (see
- * packages/renderer's renderNode) — real CSS, persisted through the same
- * compiler pipeline as any other prop edit, and rendered identically on
- * the live published site.
+ * canvas. Style and Advanced write to the universal `style`/`className`
+ * props every block supports (see packages/renderer's renderNode) — real
+ * CSS, persisted through the same compiler pipeline as any other prop
+ * edit, and rendered identically on the live published site.
+ *
+ * Every field here edits local state instantly and only *persists*
+ * (calling `onChange`, which triggers a real file read + AST parse +
+ * compiler operation + file write + git commit) after a short pause in
+ * typing. Without this, every keystroke fired that whole round trip: the
+ * canvas visibly lagged behind typing, and — worse — two of those round
+ * trips could resolve out of order (whichever server call happened to
+ * *finish* last would win, even if it wasn't the last one *issued*),
+ * silently dropping an edit. Mount a fresh instance per selected block
+ * (CanvasEditor passes `key={selectedNode.id}`) so switching blocks always
+ * starts from that block's real current props, never a stale local draft.
  */
 export function BlockPropsForm({ definition, props, onChange }) {
   const [tab, setTab] = useState("content");
+  const [localProps, setLocalProps] = useState(props);
+
+  const timerRef = useRef(null);
+  const pendingRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    return () => {
+      // Flush rather than drop: switching to another block (or navigating
+      // away) shouldn't silently discard whatever was still debouncing.
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        if (pendingRef.current) onChangeRef.current(pendingRef.current);
+      }
+    };
+  }, []);
+
+  function commit(nextProps) {
+    setLocalProps(nextProps);
+    pendingRef.current = nextProps;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      const value = pendingRef.current;
+      pendingRef.current = null;
+      onChangeRef.current(value);
+    }, COMMIT_DEBOUNCE_MS);
+  }
 
   function setField(path, value) {
-    onChange({ ...props, [path]: value });
+    commit({ ...localProps, [path]: value });
   }
 
   function setStyleField(group, key, value) {
-    const nextGroup = { ...(props.style?.[group] ?? {}), [key]: value };
+    const nextGroup = { ...(localProps.style?.[group] ?? {}), [key]: value };
     if (!value) delete nextGroup[key];
-    const nextStyle = { ...(props.style ?? {}), [group]: nextGroup };
+    const nextStyle = { ...(localProps.style ?? {}), [group]: nextGroup };
     if (Object.keys(nextGroup).length === 0) delete nextStyle[group];
-    onChange({ ...props, style: nextStyle });
+    commit({ ...localProps, style: nextStyle });
   }
 
   function setClassName(value) {
-    onChange({ ...props, className: value });
+    commit({ ...localProps, className: value });
   }
 
   return (
@@ -409,16 +450,19 @@ export function BlockPropsForm({ definition, props, onChange }) {
       {tab === "content" ? (
         <ContentFields
           definition={definition}
-          props={props}
+          props={localProps}
           setField={setField}
         />
       ) : null}
       {tab === "style" ? (
-        <StyleFields style={props.style ?? {}} setStyleField={setStyleField} />
+        <StyleFields
+          setStyleField={setStyleField}
+          style={localProps.style ?? {}}
+        />
       ) : null}
       {tab === "advanced" ? (
         <AdvancedFields
-          className={props.className ?? ""}
+          className={localProps.className ?? ""}
           setClassName={setClassName}
         />
       ) : null}
