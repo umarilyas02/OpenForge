@@ -21,6 +21,7 @@ function CheckRow({ ok, label }) {
 export default async function ToolsPage({ params }) {
   const { siteId } = await params;
   const user = await requireUser();
+  const exportHref = `/sites/${siteId}/tools/export`;
 
   const db = getDb();
   const [site] = await db
@@ -66,11 +67,12 @@ export default async function ToolsPage({ params }) {
         <div className="card stack-sm">
           <h2 style={{ margin: 0, fontSize: "var(--text-md)" }}>Export</h2>
           <p className="muted" style={{ fontSize: "var(--text-sm)" }}>
-            Download this site&apos;s content and media.
+            Download this site&apos;s real Next.js project as a .tar.gz —
+            the same files behind the editor, ready to run anywhere.
           </p>
-          <button className="btn btn-ghost" disabled type="button">
-            Coming soon
-          </button>
+          <a className="btn btn-primary" href={exportHref}>
+            Download .tar.gz
+          </a>
         </div>
       </div>
 

@@ -119,6 +119,13 @@ export const cmsAdminEnvSchema = z
     PORT: portField,
     DATABASE_URL: requiredUrl(),
     SITES_STORAGE_PATH: optionalString(),
+    // A base64-encoded 32-byte key (e.g. `openssl rand -base64 32`) used to
+    // encrypt secrets at rest (currently: connected GitHub tokens). Optional
+    // at the schema level — only the GitHub-connect feature needs it, and
+    // requiring it here would break every other page for anyone who hasn't
+    // set it up yet. secret-vault.js in src/lib validates its actual shape
+    // (and gives a specific error) only when that feature is used.
+    ENCRYPTION_MASTER_KEY: optionalString(),
   })
   .strict();
 

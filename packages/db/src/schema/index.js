@@ -13,3 +13,5 @@ export {
 export { contentRevisions } from "./content-revisions.js";
 export { assets, assetVariants } from "./assets.js";
 export { menuItems, menus } from "./menus.js";
+export { secrets } from "./secrets.js";
+export { siteGitConnections } from "./site-git-connections.js";

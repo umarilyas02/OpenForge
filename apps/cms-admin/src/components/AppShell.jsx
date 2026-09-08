@@ -35,6 +35,7 @@ function isItemActive(pathname, href) {
  *   navGroups: { key: string, label: string, defaultOpen?: boolean, items: { href: string, label: string, icon: import("react").ReactNode }[] }[],
  *   siteSwitcher?: { current: { id: string, name: string, domain?: string }, sites: { id: string, name: string, href: string }[], manageSitesHref: string },
  *   viewSiteHref?: string,
+ *   previewHref?: string,
  *   children: import("react").ReactNode,
  * }} props
  */
@@ -44,6 +45,7 @@ export function AppShell({
   navGroups,
   siteSwitcher,
   viewSiteHref,
+  previewHref,
   children,
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -240,6 +242,16 @@ export function AppShell({
           </button>
           <div className="app-topbar-spacer" />
           <div className="app-topbar-actions">
+            {previewHref ? (
+              <a
+                className="btn btn-ghost app-preview-site"
+                href={previewHref}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Preview ↗
+              </a>
+            ) : null}
             {viewSiteHref ? (
               <a
                 className="btn btn-ghost app-view-site"

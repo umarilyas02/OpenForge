@@ -101,6 +101,7 @@ export default async function SiteLayout({ children, params }) {
         })),
         manageSitesHref: "/sites",
       }}
+      previewHref={`/preview/${site.id}`}
       user={user}
       viewSiteHref={siteUrl}
     >

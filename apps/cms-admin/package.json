@@ -21,6 +21,7 @@
     "@openforge/config": "workspace:*",
     "@openforge/db": "workspace:*",
     "@openforge/design-tokens": "workspace:*",
+    "@openforge/integration-security": "workspace:*",
     "@openforge/renderer": "workspace:*",
     "@openforge/storage": "workspace:*",
     "@openforge/theme-default": "workspace:*",
