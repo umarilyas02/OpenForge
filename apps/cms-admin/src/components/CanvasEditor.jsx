@@ -115,12 +115,18 @@ export function CanvasEditor({
         if (move && move.destinationNodeId) {
           onMove(move.movedNodeId, move.destinationNodeId, move.position);
         }
+      } else if (event.data?.type === "of-canvas-remove") {
+        const node = getNodeAtPath(tree, event.data.path);
+        if (node) {
+          onRemove(node.id);
+          setSelectedNodeId((current) => (current === node.id ? null : current));
+        }
       }
     }
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [tree, onMove]);
+  }, [tree, onMove, onRemove]);
 
   useEffect(() => {
     function sendTree() {

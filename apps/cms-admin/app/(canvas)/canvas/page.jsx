@@ -6,9 +6,27 @@ import {
   defaultTheme,
   defaultThemeBlockRegistry,
 } from "@openforge/theme-default";
+import { Grip, X } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 
+import { getBlockPaletteMeta } from "../../../src/lib/block-palette-meta.js";
+
 const DRAG_HIGHLIGHT_STYLE_ID = "of-canvas-drag-highlight";
+
+/** Selected-block overlay chrome — this route deliberately loads none of the admin app's CSS (see layout.jsx), so its own small monochrome palette is hardcoded here rather than pulled from design tokens meant for real site content. */
+const SELECTION_INK = "#111111";
+const SELECTION_INK_TEXT = "#ffffff";
+
+function getSelectionRect(path) {
+  const wrapper = document.querySelector(
+    `[data-of-path='${JSON.stringify(path)}']`,
+  );
+  const target = wrapper?.firstElementChild;
+  if (!target) return null;
+  const rect = target.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) return null;
+  return { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
+}
 
 /**
  * The live canvas: a same-app, isolated-CSS document loaded in an <iframe>
@@ -34,6 +52,9 @@ export default function CanvasPage() {
   const [error, setError] = useState(null);
   const [dragIndex, setDragIndex] = useState(null);
   const [dropTarget, setDropTarget] = useState(null);
+  const [selectedPath, setSelectedPath] = useState(null);
+  const [selectedBlockId, setSelectedBlockId] = useState(null);
+  const [selectionRect, setSelectionRect] = useState(null);
 
   useEffect(() => {
     function handleMessage(event) {
@@ -54,6 +75,44 @@ export default function CanvasPage() {
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  // Re-measure the selected block's box whenever it changes, the tree
+  // reflows around it (props edited elsewhere), or the frame scrolls/resizes
+  // — getBoundingClientRect() is only ever accurate at the instant it's
+  // called, so the overlay has to be recomputed rather than cached.
+  useEffect(() => {
+    if (!selectedPath) {
+      setSelectionRect(null);
+      return;
+    }
+
+    function measure() {
+      setSelectionRect(getSelectionRect(selectedPath));
+    }
+
+    const frame = requestAnimationFrame(measure);
+    window.addEventListener("scroll", measure, true);
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", measure, true);
+      window.removeEventListener("resize", measure);
+    };
+  }, [selectedPath, tree]);
+
+  function clearSelection() {
+    setSelectedPath(null);
+    setSelectedBlockId(null);
+  }
+
+  function handleRemoveSelected() {
+    if (!selectedPath) return;
+    window.parent.postMessage(
+      { type: "of-canvas-remove", path: selectedPath },
+      window.location.origin,
+    );
+    clearSelection();
+  }
 
   function resetDrag() {
     setDragIndex(null);
@@ -97,6 +156,8 @@ export default function CanvasPage() {
         key={JSON.stringify(path)}
         onClick={(event) => {
           event.stopPropagation();
+          setSelectedPath(path);
+          setSelectedBlockId(migrated.blockId);
           window.parent.postMessage(
             { type: "of-canvas-select", path, blockId: migrated.blockId },
             window.location.origin,
@@ -209,14 +270,35 @@ export default function CanvasPage() {
     }
   `;
 
+  const selectedMeta = selectedBlockId ? getBlockPaletteMeta(selectedBlockId) : null;
+  const SelectedIcon = selectedMeta?.icon;
+  const selectedName =
+    (selectedBlockId && defaultThemeBlockRegistry.get(selectedBlockId)?.definition?.name) ||
+    "Block";
+
+  // Anchored with position:fixed directly off the measured rect (viewport
+  // coordinates, same frame getBoundingClientRect() reports in), clamped so
+  // the label/toolbar tuck inside the box instead of clipping off-screen
+  // when the selected block sits flush against the top of the frame.
+  const labelTop = selectionRect
+    ? selectionRect.top < 28
+      ? selectionRect.top + 6
+      : selectionRect.top - 24
+    : 0;
+  const toolbarTop = labelTop;
+  const toolbarLeft = selectionRect
+    ? Math.max(8, selectionRect.left + selectionRect.width - 58)
+    : 0;
+
   return (
     <div
-      onClick={() =>
+      onClick={() => {
+        clearSelection();
         window.parent.postMessage(
           { type: "of-canvas-select", path: null },
           window.location.origin,
-        )
-      }
+        );
+      }}
     >
       {/* Token CSS is generated and validated by packages/design-tokens, never raw user input. */}
       <style dangerouslySetInnerHTML={{ __html: css }} />
@@ -224,7 +306,77 @@ export default function CanvasPage() {
         dangerouslySetInnerHTML={{ __html: dragHighlightCss }}
         id={DRAG_HIGHLIGHT_STYLE_ID}
       />
+      <style>{`
+        .of-selection-btn { align-items: center; background: none; border: 0; border-radius: 999px; color: ${SELECTION_INK_TEXT}; cursor: pointer; display: inline-flex; height: 22px; justify-content: center; width: 22px; }
+        .of-selection-btn:hover { background: rgba(255, 255, 255, 0.18); }
+        .of-selection-btn[data-grab="true"] { cursor: grab; }
+      `}</style>
       {body}
+      {selectionRect ? (
+        <div style={{ inset: 0, pointerEvents: "none", position: "fixed", zIndex: 2147483000 }}>
+          <div
+            style={{
+              border: `2px solid ${SELECTION_INK}`,
+              borderRadius: 2,
+              boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.85)",
+              height: selectionRect.height,
+              left: selectionRect.left,
+              position: "fixed",
+              top: selectionRect.top,
+              width: selectionRect.width,
+            }}
+          />
+
+          <div
+            style={{
+              alignItems: "center",
+              background: SELECTION_INK,
+              borderRadius: "3px 3px 3px 0",
+              color: SELECTION_INK_TEXT,
+              display: "inline-flex",
+              fontFamily: "system-ui, sans-serif",
+              fontSize: 11,
+              fontWeight: 600,
+              gap: 5,
+              left: selectionRect.left,
+              lineHeight: 1,
+              padding: "5px 8px",
+              position: "fixed",
+              top: labelTop,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {SelectedIcon ? <SelectedIcon size={12} /> : null}
+            {selectedName}
+          </div>
+
+          <div
+            style={{
+              background: SELECTION_INK,
+              borderRadius: 999,
+              display: "flex",
+              gap: 2,
+              left: toolbarLeft,
+              padding: 2,
+              pointerEvents: "auto",
+              position: "fixed",
+              top: toolbarTop,
+            }}
+          >
+            <button className="of-selection-btn" data-grab="true" title="Drag to reorder" type="button">
+              <Grip size={13} />
+            </button>
+            <button
+              className="of-selection-btn"
+              onClick={handleRemoveSelected}
+              title="Remove block"
+              type="button"
+            >
+              <X size={13} />
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
