@@ -33,9 +33,11 @@ import { CanvasEditor } from "./CanvasEditor.jsx";
  *   initialSource: string,
  *   catalog: object[],
  *   allowedBlockIds: string[],
+ *   libraryCatalog: object[],
  *   updateBlockProps: Function,
  *   moveBlockAction: Function,
  *   insertBlockAction: Function,
+ *   insertLibraryComponentAction: Function,
  *   removeBlockAction: Function,
  *   duplicateBlockAction: Function,
  *   restorePageSourceAction: Function,
@@ -50,9 +52,11 @@ export function SourceContentEditor({
   initialSource,
   catalog,
   allowedBlockIds,
+  libraryCatalog,
   updateBlockProps,
   moveBlockAction,
   insertBlockAction,
+  insertLibraryComponentAction,
   removeBlockAction,
   duplicateBlockAction,
   restorePageSourceAction,
@@ -170,6 +174,10 @@ export function SourceContentEditor({
       dispatch(() => removeBlockAction(siteId, pagePath, nodeId)),
     onDuplicate: (nodeId) =>
       dispatch(() => duplicateBlockAction(siteId, pagePath, nodeId)),
+    onInsertLibraryComponent: (componentId) =>
+      dispatch(() =>
+        insertLibraryComponentAction(siteId, pagePath, componentId),
+      ),
   };
 
   return (
@@ -230,6 +238,7 @@ export function SourceContentEditor({
         <CanvasEditor
           allowedBlockIds={allowedBlockIds}
           catalog={catalog}
+          libraryCatalog={libraryCatalog}
           pageRootNodeId={pageRootNodeId}
           tree={tree}
           {...handlers}

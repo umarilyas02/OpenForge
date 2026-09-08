@@ -10,6 +10,7 @@ import {
   getMemberships,
   requireUser,
 } from "../../../../../../../src/lib/session.js";
+import * as libraryContentActions from "../../../../../../../src/lib/library-content-actions.js";
 import { getWorkspaceManager } from "../../../../../../../src/lib/site-workspace.js";
 import * as sourceContentActions from "../../../../../../../src/lib/source-content-actions.js";
 import {
@@ -90,6 +91,17 @@ export async function insertBlockAction(
     pagePath,
     blockId,
     containerNodeId,
+  );
+  return getPageEditorState(siteId, pagePath);
+}
+
+export async function insertLibraryComponentAction(siteId, pagePath, componentId) {
+  const user = await requireUser();
+  const site = await loadAuthorizedSite(siteId, user);
+  await libraryContentActions.insertLibraryComponent(
+    site.slug,
+    pagePath,
+    componentId,
   );
   return getPageEditorState(siteId, pagePath);
 }

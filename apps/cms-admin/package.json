@@ -18,6 +18,7 @@
     "@openforge/auth": "workspace:*",
     "@openforge/cms-blocks": "workspace:*",
     "@openforge/compiler": "workspace:*",
+    "@openforge/component-library": "workspace:*",
     "@openforge/config": "workspace:*",
     "@openforge/db": "workspace:*",
     "@openforge/design-tokens": "workspace:*",

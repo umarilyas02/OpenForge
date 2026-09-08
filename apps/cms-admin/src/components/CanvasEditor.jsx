@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { getNodeAtPath } from "../lib/tree-path.js";
 import { BlockPalette } from "./BlockPalette.jsx";
 import { BlockPropsForm } from "./BlockPropsForm.jsx";
+import { LibraryPalette } from "./LibraryPalette.jsx";
 
 const PREVIEW_WIDTHS = {
   desktop: { icon: Laptop, label: "Desktop", width: "100%" },
@@ -80,8 +81,10 @@ function diffTopLevelReorder(previousTree, nextTree) {
  *   pageRootNodeId: string,
  *   allowedBlockIds: string[],
  *   catalog: object[],
+ *   libraryCatalog: object[],
  *   onPropsChange: (nodeId: string, nextProps: object) => void,
  *   onInsert: (blockId: string, containerNodeId: string) => void,
+ *   onInsertLibraryComponent: (componentId: string) => void,
  *   onRemove: (nodeId: string) => void,
  *   onMove: (movedNodeId: string, destinationNodeId: string, position: "before"|"after") => void,
  * }} props
@@ -97,8 +100,10 @@ export function CanvasEditor({
   pageRootNodeId,
   allowedBlockIds,
   catalog,
+  libraryCatalog,
   onPropsChange,
   onInsert,
+  onInsertLibraryComponent,
   onRemove,
   onMove,
   onDuplicate,
@@ -196,11 +201,11 @@ export function CanvasEditor({
             catalog={catalog}
             onAdd={(blockId) => onInsert(blockId, pageRootNodeId)}
           />
+        ) : paletteTab === "blocks" ? (
+          <LibraryPalette catalog={libraryCatalog} onAdd={onInsertLibraryComponent} />
         ) : (
           <p className="muted">
-            {paletteTab === "blocks"
-              ? "Saved reusable blocks will show up here."
-              : "Site-wide globals (header, footer, design tokens) will show up here."}
+            Site-wide globals (header, footer, design tokens) will show up here.
           </p>
         )}
       </aside>

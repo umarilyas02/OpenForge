@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 
 import { SourceContentEditor } from "../../../../../../../src/components/SourceContentEditor.jsx";
 import { serializeBlockDefinitions } from "../../../../../../../src/lib/content-tree-ops.js";
+import { serializeLibraryCatalog } from "../../../../../../../src/lib/library-content-actions.js";
 import {
   duplicateBlockAction,
   getPageEditorState,
   insertBlockAction,
+  insertLibraryComponentAction,
   moveBlockAction,
   removeBlockAction,
   restorePageSourceAction,
@@ -29,6 +31,7 @@ export default async function PageEditorRoute({ params, searchParams }) {
     ALL_BLOCK_IDS,
     defaultThemeBlockRegistry,
   );
+  const libraryCatalog = serializeLibraryCatalog();
 
   return (
     <SourceContentEditor
@@ -39,6 +42,8 @@ export default async function PageEditorRoute({ params, searchParams }) {
       initialSource={source}
       initialTree={tree}
       insertBlockAction={insertBlockAction}
+      insertLibraryComponentAction={insertLibraryComponentAction}
+      libraryCatalog={libraryCatalog}
       moveBlockAction={moveBlockAction}
       pagePath={file}
       pageTitle={file === "app/page.jsx" ? "Homepage" : file}

@@ -47,6 +47,9 @@ importers:
       '@openforge/compiler':
         specifier: workspace:*
         version: link:../../packages/compiler
+      '@openforge/component-library':
+        specifier: workspace:*
+        version: link:../../packages/component-library
       '@openforge/config':
         specifier: workspace:*
         version: link:../../packages/config
