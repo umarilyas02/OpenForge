@@ -1,10 +1,17 @@
 "use client";
 
+import { Copy, Laptop, Smartphone, Tablet } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { getNodeAtPath } from "../lib/tree-path.js";
 import { BlockPalette } from "./BlockPalette.jsx";
 import { BlockPropsForm } from "./BlockPropsForm.jsx";
+
+const PREVIEW_WIDTHS = {
+  desktop: { icon: Laptop, label: "Desktop", width: "100%" },
+  tablet: { icon: Tablet, label: "Tablet", width: "768px" },
+  mobile: { icon: Smartphone, label: "Mobile", width: "390px" },
+};
 
 /** /canvas renders through @openforge/renderer's strict content-tree schema, which only allows {blockId, blockVersion, props, slots} — this app's own `id` field (added so edits can target a real compiler node) has to come off before the tree crosses that boundary. */
 function stripNodeIds(tree) {
@@ -94,11 +101,13 @@ export function CanvasEditor({
   onInsert,
   onRemove,
   onMove,
+  onDuplicate,
 }) {
   const iframeRef = useRef(null);
   const [canvasAcked, setCanvasAcked] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [paletteTab, setPaletteTab] = useState("elements");
+  const [previewMode, setPreviewMode] = useState("desktop");
 
   useEffect(() => {
     function handleMessage(event) {
@@ -121,12 +130,15 @@ export function CanvasEditor({
           onRemove(node.id);
           setSelectedNodeId((current) => (current === node.id ? null : current));
         }
+      } else if (event.data?.type === "of-canvas-duplicate") {
+        const node = getNodeAtPath(tree, event.data.path);
+        if (node) onDuplicate(node.id);
       }
     }
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [tree, onMove, onRemove]);
+  }, [tree, onMove, onRemove, onDuplicate]);
 
   useEffect(() => {
     function sendTree() {
@@ -193,13 +205,39 @@ export function CanvasEditor({
         )}
       </aside>
 
-      <div className="canvas-frame-wrap">
-        <iframe
-          className="canvas-frame"
-          ref={iframeRef}
-          src="/canvas"
-          title="Page preview"
-        />
+      <div className="canvas-center">
+        <div className="canvas-device-toggle" role="tablist">
+          {Object.entries(PREVIEW_WIDTHS).map(([mode, config]) => {
+            const Icon = config.icon;
+            return (
+              <button
+                aria-selected={previewMode === mode}
+                data-active={previewMode === mode}
+                key={mode}
+                onClick={() => setPreviewMode(mode)}
+                role="tab"
+                title={config.label}
+                type="button"
+              >
+                <Icon size={15} strokeWidth={1.75} />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="canvas-frame-wrap" data-mode={previewMode}>
+          <div
+            className="canvas-frame-scaler"
+            style={{ width: PREVIEW_WIDTHS[previewMode].width }}
+          >
+            <iframe
+              className="canvas-frame"
+              ref={iframeRef}
+              src="/canvas"
+              title="Page preview"
+            />
+          </div>
+        </div>
       </div>
 
       <aside className="canvas-inspector">
@@ -213,17 +251,28 @@ export function CanvasEditor({
               }
               props={selectedNode.props}
             />
-            <button
-              className="icon-btn-sm"
-              data-danger="true"
-              onClick={() => {
-                onRemove(selectedNode.id);
-                setSelectedNodeId(null);
-              }}
-              type="button"
-            >
-              Remove block
-            </button>
+            <div className="canvas-inspector-actions">
+              <button
+                className="icon-btn-sm"
+                onClick={() => onDuplicate(selectedNode.id)}
+                title="Duplicate block"
+                type="button"
+              >
+                <Copy size={13} />
+              </button>
+              <button
+                className="icon-btn-sm"
+                data-danger="true"
+                onClick={() => {
+                  onRemove(selectedNode.id);
+                  setSelectedNodeId(null);
+                }}
+                title="Remove block"
+                type="button"
+              >
+                Remove block
+              </button>
+            </div>
           </>
         ) : (
           <p className="muted">Select a block on the canvas to edit it.</p>

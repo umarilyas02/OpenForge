@@ -99,3 +99,10 @@ export async function removeBlockAction(siteId, pagePath, nodeId) {
   await sourceContentActions.removeBlock(site.slug, pagePath, nodeId);
   return getPageEditorState(siteId, pagePath);
 }
+
+export async function duplicateBlockAction(siteId, pagePath, nodeId) {
+  const user = await requireUser();
+  const site = await loadAuthorizedSite(siteId, user);
+  await sourceContentActions.duplicateBlock(site.slug, pagePath, nodeId);
+  return getPageEditorState(siteId, pagePath);
+}

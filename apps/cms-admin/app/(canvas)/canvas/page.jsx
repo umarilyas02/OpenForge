@@ -6,7 +6,7 @@ import {
   defaultTheme,
   defaultThemeBlockRegistry,
 } from "@openforge/theme-default";
-import { Grip, X } from "lucide-react";
+import { Copy, Grip, X } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 
 import { getBlockPaletteMeta } from "../../../src/lib/block-palette-meta.js";
@@ -109,6 +109,15 @@ export default function CanvasPage() {
     if (!selectedPath) return;
     window.parent.postMessage(
       { type: "of-canvas-remove", path: selectedPath },
+      window.location.origin,
+    );
+    clearSelection();
+  }
+
+  function handleDuplicateSelected() {
+    if (!selectedPath) return;
+    window.parent.postMessage(
+      { type: "of-canvas-duplicate", path: selectedPath },
       window.location.origin,
     );
     clearSelection();
@@ -287,7 +296,7 @@ export default function CanvasPage() {
     : 0;
   const toolbarTop = labelTop;
   const toolbarLeft = selectionRect
-    ? Math.max(8, selectionRect.left + selectionRect.width - 58)
+    ? Math.max(8, selectionRect.left + selectionRect.width - 80)
     : 0;
 
   return (
@@ -365,6 +374,14 @@ export default function CanvasPage() {
           >
             <button className="of-selection-btn" data-grab="true" title="Drag to reorder" type="button">
               <Grip size={13} />
+            </button>
+            <button
+              className="of-selection-btn"
+              onClick={handleDuplicateSelected}
+              title="Duplicate block"
+              type="button"
+            >
+              <Copy size={13} />
             </button>
             <button
               className="of-selection-btn"

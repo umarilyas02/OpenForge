@@ -19,7 +19,7 @@ const { buildStarterFiles } = await import("../src/lib/starter-template.js");
 const { findPageRootNodeId, parsePageToBlockTree } = await import(
   "../src/lib/source-content-tree.js"
 );
-const { insertBlock, setBlockProps } = await import(
+const { insertBlock, setBlockProps, duplicateBlock } = await import(
   "../src/lib/source-content-actions.js"
 );
 
@@ -162,5 +162,38 @@ describe("adding a block from the palette actually works end-to-end", () => {
     expect(html).toContain("my-custom-class");
     expect(html).toContain("font-size:22px");
     expect(html).toContain("color:#ff0000");
+  });
+
+  it("duplicateBlock (the canvas toolbar's Copy button) clones a block as a new sibling that also renders", async () => {
+    const beforeFiles = await manager.readFiles(SITE_SLUG);
+    const rootId = findPageRootNodeId(beforeFiles, PAGE_PATH);
+    const { tree: afterInsert } = await insertAndRender(
+      "openforge-cms.stat",
+      rootId,
+    );
+    const original = afterInsert.find((node) => node.blockId === "openforge-cms.stat");
+    expect(original).toBeDefined();
+    const countBefore = afterInsert.filter(
+      (node) => node.blockId === "openforge-cms.stat",
+    ).length;
+
+    await duplicateBlock(SITE_SLUG, PAGE_PATH, original.id);
+
+    const files = await manager.readFiles(SITE_SLUG);
+    const tree = parsePageToBlockTree(files, PAGE_PATH);
+    const duplicates = tree.filter((node) => node.blockId === "openforge-cms.stat");
+    expect(duplicates).toHaveLength(countBefore + 1);
+    // Both the original and its clone must be distinct, independently
+    // targetable nodes (different compiler-assigned ids), not the same
+    // element parsed twice.
+    expect(new Set(duplicates.map((node) => node.id)).size).toBe(
+      duplicates.length,
+    );
+
+    for (const duplicate of duplicates) {
+      expect(() =>
+        renderer.renderNode(duplicate, [tree.indexOf(duplicate)]),
+      ).not.toThrow();
+    }
   });
 });

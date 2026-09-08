@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { SourceContentEditor } from "../../../../../../../src/components/SourceContentEditor.jsx";
 import { serializeBlockDefinitions } from "../../../../../../../src/lib/content-tree-ops.js";
 import {
+  duplicateBlockAction,
   getPageEditorState,
   insertBlockAction,
   moveBlockAction,
@@ -29,6 +30,7 @@ export default async function PageEditorRoute({ params, searchParams }) {
     <SourceContentEditor
       allowedBlockIds={ALL_BLOCK_IDS}
       catalog={catalog}
+      duplicateBlockAction={duplicateBlockAction}
       initialPageRootNodeId={pageRootNodeId}
       initialTree={tree}
       insertBlockAction={insertBlockAction}

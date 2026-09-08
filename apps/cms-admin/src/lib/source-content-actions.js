@@ -10,6 +10,7 @@ import {
   readStandaloneBlockSource,
   standaloneFileNameForBlock,
 } from "./block-files.js";
+import { commitSiteChanges } from "./site-git.js";
 import { getWorkspaceManager } from "./site-workspace.js";
 import {
   findNodeById,
@@ -112,6 +113,7 @@ export async function setBlockProps(siteSlug, pagePath, nodeId, nextProps) {
     path: pagePath,
     source: requireFileSource(opFiles, pagePath),
   });
+  await commitSiteChanges(state.rootPath, `Edit ${node.blockId} on ${pagePath}`);
 }
 
 /** A drag reorder or ↑/↓ move: relocates one block relative to another. */
@@ -141,6 +143,7 @@ export async function moveBlock(
     path: pagePath,
     source: requireFileSource(result.files, pagePath),
   });
+  await commitSiteChanges(state.rootPath, `Reorder blocks on ${pagePath}`);
 }
 
 export async function removeBlock(siteSlug, pagePath, nodeId) {
@@ -162,6 +165,30 @@ export async function removeBlock(siteSlug, pagePath, nodeId) {
     path: pagePath,
     source: requireFileSource(result.files, pagePath),
   });
+  await commitSiteChanges(state.rootPath, `Remove a block from ${pagePath}`);
+}
+
+/** Clones a block (and its full source text, slots included) as a new sibling immediately after itself. */
+export async function duplicateBlock(siteSlug, pagePath, nodeId) {
+  const { manager, state, files } = await loadWorkspace(siteSlug);
+  const result = await applyVisualOperation({
+    files,
+    currentRevision: 0,
+    operation: {
+      schemaVersion: 1,
+      baseRevision: 0,
+      filePath: pagePath,
+      type: "duplicate-jsx",
+      target: { nodeId },
+    },
+  });
+
+  await manager.saveFile(siteSlug, {
+    baseRevision: state.revision,
+    path: pagePath,
+    source: requireFileSource(result.files, pagePath),
+  });
+  await commitSiteChanges(state.rootPath, `Duplicate a block on ${pagePath}`);
 }
 
 /**
@@ -191,6 +218,7 @@ export async function ensureBlockAvailable(siteSlug, pagePath, blockId) {
       path: componentPath,
       source,
     });
+    await commitSiteChanges(state.rootPath, `Add ${blockId} component`);
     state = await manager.describe(siteSlug);
     files = await manager.readFiles(siteSlug);
   }
@@ -217,6 +245,7 @@ export async function ensureBlockAvailable(siteSlug, pagePath, blockId) {
       path: pagePath,
       source: requireFileSource(result.files, pagePath),
     });
+    await commitSiteChanges(state.rootPath, `Import ${blockId} on ${pagePath}`);
   } catch (error) {
     // Already imported on this page under the same convention-derived
     // name — nothing to persist.
@@ -300,6 +329,7 @@ export async function insertBlock(
     path: pagePath,
     source: requireFileSource(result.files, pagePath),
   });
+  await commitSiteChanges(state.rootPath, `Add ${blockId} to ${pagePath}`);
 }
 
 /** Convenience for the common case: append a new top-level block to a page. */

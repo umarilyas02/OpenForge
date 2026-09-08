@@ -26,6 +26,7 @@ import { CanvasEditor } from "./CanvasEditor.jsx";
  *   moveBlockAction: Function,
  *   insertBlockAction: Function,
  *   removeBlockAction: Function,
+ *   duplicateBlockAction: Function,
  * }} props
  */
 export function SourceContentEditor({
@@ -40,6 +41,7 @@ export function SourceContentEditor({
   moveBlockAction,
   insertBlockAction,
   removeBlockAction,
+  duplicateBlockAction,
 }) {
   const [tree, setTree] = useState(initialTree);
   const [pageRootNodeId, setPageRootNodeId] = useState(initialPageRootNodeId);
@@ -80,6 +82,8 @@ export function SourceContentEditor({
       run(() => insertBlockAction(siteId, pagePath, blockId, containerNodeId)),
     onRemove: (nodeId) =>
       run(() => removeBlockAction(siteId, pagePath, nodeId)),
+    onDuplicate: (nodeId) =>
+      run(() => duplicateBlockAction(siteId, pagePath, nodeId)),
   };
 
   return (
