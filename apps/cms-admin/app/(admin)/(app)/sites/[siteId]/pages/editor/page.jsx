@@ -8,10 +8,13 @@ import { serializeLibraryCatalog } from "../../../../../../../src/lib/library-co
 import {
   duplicateBlockAction,
   getPageEditorState,
+  getPageRevisionSourceAction,
   insertBlockAction,
   insertLibraryComponentAction,
+  listPageRevisionsAction,
   moveBlockAction,
   removeBlockAction,
+  restorePageRevisionAction,
   restorePageSourceAction,
   updateBlockProps,
 } from "./actions.js";
@@ -38,6 +41,7 @@ export default async function PageEditorRoute({ params, searchParams }) {
       allowedBlockIds={ALL_BLOCK_IDS}
       catalog={catalog}
       duplicateBlockAction={duplicateBlockAction}
+      getPageRevisionSourceAction={getPageRevisionSourceAction}
       initialSource={source}
       initialTree={tree}
       insertBlockAction={insertBlockAction}
@@ -45,10 +49,12 @@ export default async function PageEditorRoute({ params, searchParams }) {
       initialTokenOverrides={tokenOverrides}
       insertLibraryComponentAction={insertLibraryComponentAction}
       libraryCatalog={libraryCatalog}
+      listPageRevisionsAction={listPageRevisionsAction}
       moveBlockAction={moveBlockAction}
       pagePath={file}
       pageTitle={file === "app/page.jsx" ? "Homepage" : file}
       removeBlockAction={removeBlockAction}
+      restorePageRevisionAction={restorePageRevisionAction}
       restorePageSourceAction={restorePageSourceAction}
       siteId={siteId}
       updateBlockProps={updateBlockProps}

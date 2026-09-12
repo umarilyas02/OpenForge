@@ -9,8 +9,10 @@ import {
   buildGitHubRemoteUrl,
   commitSiteChanges,
   initSiteGit,
+  listFileCommits,
   listSiteCommits,
   pushSiteChanges,
+  readFileAtCommit,
 } from "../src/lib/site-git.js";
 
 const run = promisify(execFile);
@@ -107,5 +109,81 @@ describe("site-git", () => {
       const config = await run("git", ["-C", ROOT, "config", "--list"]);
       expect(config.stdout).not.toMatch(/unused-for-a-local-remote/u);
     });
+  });
+});
+
+describe("listFileCommits / readFileAtCommit — the revision-history primitives", () => {
+  const HISTORY_ROOT = "./data/test-site-git-history";
+
+  beforeAll(async () => {
+    await rm(HISTORY_ROOT, { force: true, recursive: true });
+    await mkdir(HISTORY_ROOT, { recursive: true });
+    await initSiteGit(HISTORY_ROOT);
+
+    await writeFile(
+      `${HISTORY_ROOT}/page.jsx`,
+      "export default function Page() { return 1; }\n",
+    );
+    await commitSiteChanges(HISTORY_ROOT, "Initial page");
+
+    await writeFile(
+      `${HISTORY_ROOT}/page.jsx`,
+      "export default function Page() { return 2; }\n",
+    );
+    await commitSiteChanges(HISTORY_ROOT, "Edit page.jsx");
+
+    // A commit that never touches page.jsx should never show up in its
+    // file-scoped history.
+    await writeFile(`${HISTORY_ROOT}/other.jsx`, "export const other = 1;\n");
+    await commitSiteChanges(HISTORY_ROOT, "Unrelated file change");
+  });
+
+  afterAll(async () => {
+    await rm(HISTORY_ROOT, { force: true, recursive: true });
+  });
+
+  it("scopes history to just the requested file, newest first", async () => {
+    const commits = await listFileCommits(HISTORY_ROOT, "page.jsx");
+    expect(commits.map((commit) => commit.message)).toEqual([
+      "Edit page.jsx",
+      "Initial page",
+    ]);
+  });
+
+  it("returns an empty list for a file that was never committed", async () => {
+    expect(await listFileCommits(HISTORY_ROOT, "never-existed.jsx")).toEqual(
+      [],
+    );
+  });
+
+  it("reads a file's exact historical source at an older commit", async () => {
+    const commits = await listFileCommits(HISTORY_ROOT, "page.jsx");
+    const initialCommit = commits.find(
+      (commit) => commit.message === "Initial page",
+    );
+    const source = await readFileAtCommit(
+      HISTORY_ROOT,
+      initialCommit.hash,
+      "page.jsx",
+    );
+    expect(source).toBe("export default function Page() { return 1; }\n");
+
+    const [latest] = commits;
+    const latestSource = await readFileAtCommit(
+      HISTORY_ROOT,
+      latest.hash,
+      "page.jsx",
+    );
+    expect(latestSource).toBe(
+      "export default function Page() { return 2; }\n",
+    );
+  });
+
+  it("returns null (not an error) for a path that didn't exist yet at that commit", async () => {
+    const commits = await listFileCommits(HISTORY_ROOT, "page.jsx");
+    const initialCommit = commits[commits.length - 1];
+    expect(
+      await readFileAtCommit(HISTORY_ROOT, initialCommit.hash, "other.jsx"),
+    ).toBeNull();
   });
 });

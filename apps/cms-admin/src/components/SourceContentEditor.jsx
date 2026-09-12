@@ -1,11 +1,19 @@
 "use client";
 
-import { ArrowLeft, ChevronRight, ExternalLink, Redo2, Undo2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  ExternalLink,
+  History as HistoryIcon,
+  Redo2,
+  Undo2,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { PREVIEW_WIDTHS } from "../lib/preview-modes.js";
 import { CanvasEditor } from "./CanvasEditor.jsx";
+import { PageHistoryPanel } from "./PageHistoryPanel.jsx";
 import { useHideAppTopbar } from "./PageChromeContext.jsx";
 
 /**
@@ -44,6 +52,9 @@ import { useHideAppTopbar } from "./PageChromeContext.jsx";
  *   removeBlockAction: Function,
  *   duplicateBlockAction: Function,
  *   restorePageSourceAction: Function,
+ *   listPageRevisionsAction: Function,
+ *   getPageRevisionSourceAction: Function,
+ *   restorePageRevisionAction: Function,
  * }} props
  */
 export function SourceContentEditor({
@@ -64,6 +75,9 @@ export function SourceContentEditor({
   removeBlockAction,
   duplicateBlockAction,
   restorePageSourceAction,
+  listPageRevisionsAction,
+  getPageRevisionSourceAction,
+  restorePageRevisionAction,
 }) {
   useHideAppTopbar();
 
@@ -76,6 +90,7 @@ export function SourceContentEditor({
   const [previewMode, setPreviewMode] = useState("desktop");
   const [error, setError] = useState(null);
   const [pending, startTransition] = useTransition();
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const sourceRef = useRef(source);
   sourceRef.current = source;
@@ -145,6 +160,18 @@ export function SourceContentEditor({
     dispatch(() => restorePageSourceAction(siteId, pagePath, target), {
       recordHistory: false,
     });
+  }
+
+  /**
+   * Restoring a revision picked from the History panel is treated as a
+   * brand-new edit (recordHistory defaults to true), not a special
+   * undo/redo transition: it pushes the page's current source onto the
+   * undo stack first, exactly like any other block edit, so a restore
+   * itself remains undoable with Ctrl+Z.
+   */
+  function restoreRevision(hash) {
+    dispatch(() => restorePageRevisionAction(siteId, pagePath, hash));
+    setHistoryOpen(false);
   }
 
   useEffect(() => {
@@ -291,6 +318,15 @@ export function SourceContentEditor({
             {error ? error : pending ? "Saving…" : "Saved"}
           </p>
           <span aria-hidden="true" className="editor-toolbar-rule" />
+          <button
+            className="toolbar-icon-btn"
+            onClick={() => setHistoryOpen(true)}
+            title="Revision history"
+            type="button"
+          >
+            <HistoryIcon size={15} strokeWidth={2} />
+          </button>
+          <span aria-hidden="true" className="editor-toolbar-rule" />
           <a
             className="btn btn-ghost editor-toolbar-btn"
             href={`/preview/${siteId}`}
@@ -318,6 +354,18 @@ export function SourceContentEditor({
         tokenOverrides={tokenOverrides}
         tree={tree}
         {...handlers}
+      />
+
+      <PageHistoryPanel
+        currentSource={source}
+        getPageRevisionSourceAction={getPageRevisionSourceAction}
+        listPageRevisionsAction={listPageRevisionsAction}
+        onClose={() => setHistoryOpen(false)}
+        onRestore={restoreRevision}
+        open={historyOpen}
+        pagePath={pagePath}
+        restoring={pending}
+        siteId={siteId}
       />
     </div>
   );

@@ -172,3 +172,38 @@ export async function restorePageSourceAction(siteId, pagePath, source) {
   await sourceContentActions.restorePageSource(site.slug, pagePath, source);
   return getPageEditorState(siteId, pagePath);
 }
+
+/**
+ * Revision History panel: real prior versions of this page, read from its
+ * own git log in the site's git-backed workspace repo (see
+ * source-content-actions.js's listPageRevisions) — every save already
+ * commits, so this *is* the page's authoritative revision history.
+ */
+export async function listPageRevisionsAction(siteId, pagePath) {
+  const user = await requireUser();
+  const site = await loadAuthorizedSite(siteId, user);
+  return sourceContentActions.listPageRevisions(site.slug, pagePath);
+}
+
+/** The page's exact source at one historical commit, for diff/preview. */
+export async function getPageRevisionSourceAction(siteId, pagePath, hash) {
+  const user = await requireUser();
+  const site = await loadAuthorizedSite(siteId, user);
+  return sourceContentActions.getPageRevisionSource(
+    site.slug,
+    pagePath,
+    hash,
+  );
+}
+
+/**
+ * Restores an older revision as the page's current content, through the
+ * same real save/commit path as every other edit, then returns the
+ * refreshed editor state (tree + source) so the canvas updates immediately.
+ */
+export async function restorePageRevisionAction(siteId, pagePath, hash) {
+  const user = await requireUser();
+  const site = await loadAuthorizedSite(siteId, user);
+  await sourceContentActions.restorePageRevision(site.slug, pagePath, hash);
+  return getPageEditorState(siteId, pagePath);
+}

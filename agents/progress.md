@@ -1,15 +1,16 @@
 # OpenForge Progress Tracker
 
-Last updated: 2026-09-08
+Last updated: 2026-09-12
 Current stage: the active workspace is now just one product,
 `apps/cms-admin` — a single-user, WordPress/Elementor-style CMS (grouped
 sidebar shell, live-canvas drag-and-drop editor with a Content/Style/
-Advanced inspector, undo/redo, duplication, and device preview, a 51-block
-library incl. shadcn/MUI/ReactBits-inspired and Tailwind-styled
-components, 11 installable themes with WordPress-style one-click
-activation, menus, settings, site preview, project export, and GitHub
-push) complete; a standalone `@openforge/component-library` catalog (47
-component variants) exists and is being wired into the admin's palette.
+Advanced inspector, undo/redo, duplication, device preview, and a
+git-backed page revision history panel, a 51-block library incl. shadcn/
+MUI/ReactBits-inspired and Tailwind-styled components, 11 installable
+themes with WordPress-style one-click activation, menus, settings, site
+preview, project export, and GitHub push) complete; a standalone
+`@openforge/component-library` catalog (47 component variants) exists and
+is being wired into the admin's palette.
 The separate, much-earlier-stage visual Next.js project editor product
 line (Phase 1–7 below) — `apps/web`/`api`/`worker`/`preview`, plus every
 package/plugin/template only it depended on — has been moved to
@@ -537,6 +538,37 @@ Status markers:
     isolation: 11/11 passed), consistent with concurrent-session file
     contention on the same shared test fixture path noted elsewhere in
     this log, not a regression from this change.
+- Objective (2026-09-12): build real revision-history browsing/restore for
+  a page in the block editor — `content_revisions` browsing/restore had
+  been listed as long-unbuilt since before the 2026-09-04 move to
+  on-disk/git-backed sites (CMS.12), so the first step was determining
+  whether that Postgres table was still authoritative at all before
+  building anything against it.
+  - Completed: confirmed by reading the real save paths (not by inference)
+    that `content_revisions` is fully superseded for on-disk pages — it's
+    only ever written by the legacy `contentItems.blockTree` save path,
+    which no current page uses — and that each site's own git history
+    (every save already commits, via `commitSiteChanges`) is the sole
+    authoritative revision source. Built `listPageRevisions`/
+    `getPageRevisionSource`/`restorePageRevision` on top of two new
+    site-git.js primitives (`listFileCommits`, `readFileAtCommit`), wired
+    through the same `assertSiteAccess`-gated action pattern as every
+    sibling action, and a new History panel in the page editor (list,
+    line-diff preview, restore-as-new-commit, undoable like any other
+    edit). See "CMS.16" below for full detail and evidence.
+  - Also found and fixed a real pre-existing hazard this work's own test
+    runs triggered live: `source-content-actions.test.js` had no real git
+    repo of its own, so its commits fell through to the *actual* monorepo
+    checkout and committed real uncommitted work under a misleading
+    message — almost certainly the true cause of the "concurrent-session
+    file contention" flakiness this log has attributed
+    `source-content-actions.test.js` failures to twice before (immediately
+    above, and in the 2026-09-08 verification log entry). Recovered with
+    `git reset --soft` and closed the gap with `initSiteGit`, matching
+    `block-add-smoke.test.js`.
+  - Not started: no revision UI for a page's imported component files
+    (only the page file itself); the diff preview is line-based text, not
+    an AST-aware structural diff.
 
 ## Planning and scaffolding
 
@@ -1186,6 +1218,121 @@ load-bearing here and was explicitly deprioritized by the user.
     before any database query that would otherwise throw at the driver
     level.
 
+### CMS.16 Page revision history, git-backed (2026-09-12)
+
+- Investigated which mechanism is actually authoritative for revision
+  history before building anything, per the objective's instruction not to
+  build against a table that's no longer written to. Confirmed by reading
+  the real save paths, not by inference:
+  - The old `content_revisions` Postgres table (`packages/db/src/schema/
+    content-revisions.js`) is written to in exactly one place in this repo:
+    `app/(admin)/(app)/sites/[siteId]/content/[contentId]/actions.js`'s
+    `saveContent()`, which updates `schema.contentItems.blockTree` (a JSON
+    column) and then inserts one `contentRevisions` row per save. That
+    action, and the `content_items`/`content_revisions` tables behind it,
+    belong entirely to the **earlier**, database-JSON content model from
+    CMS.1–CMS.11 (2026-08-28/29) — the one CMS.12 (2026-09-04) superseded.
+    The only other place this repo touches `contentRevisions` is
+    `test/save-content-integration.test.js`, a DB-gated
+    (`describe.skipIf(!available)`) integration test that also exclusively
+    exercises `contentItems.blockTree`, never an on-disk page file.
+  - Every real page in the current product (`app/(admin)/(app)/sites/
+    [siteId]/pages/editor/*`, backed by `src/lib/source-content-actions.js`)
+    is a `.jsx` file inside a site's real, on-disk, git-backed workspace
+    (`packages/workspace`'s `WorkspaceManager` + `src/lib/site-git.js`).
+    Every write path there — `setBlockProps`, `moveBlock`, `insertBlock`,
+    `removeBlock`, `duplicateBlock`, `ensureBlockAvailable`, and
+    `restorePageSource` (already existed, powering undo/redo) — already
+    ends in one `manager.saveFile` + one `commitSiteChanges` call. None of
+    them ever touch `content_revisions` or `contentItems`. `listSiteCommits`
+    already existed in `site-git.js` (added for CMS.15's GitHub-push
+    feature) but nothing in the app called it to browse history.
+  - Conclusion, and why: **git history in each site's own workspace repo is
+    the sole authoritative revision-history source for on-disk pages.**
+    `content_revisions` is fully superseded dead weight for this feature —
+    it is never written to for a real page and would show nothing if
+    queried for one. The `agents/progress.md` "not started" line naming
+    `content_revisions browsing/restore` (originally written before CMS.12)
+    was itself stale; this entry retires it in favor of the git-based
+    mechanism below.
+- Built real revision history for the block editor, entirely on the
+  git-backed workspace:
+  - `src/lib/site-git.js`: added `listFileCommits(rootPath, filePath,
+    limit)` (`git log -- <path>`, newest first, scoped to one file instead
+    of the whole site) and `readFileAtCommit(rootPath, ref, filePath)`
+    (`git show <ref>:<path>`, returning `null` — not throwing — when that
+    path didn't exist yet at that commit).
+  - `src/lib/source-content-actions.js`: added `listPageRevisions`,
+    `getPageRevisionSource`, and `restorePageRevision`. Restoring parses
+    the historical source with the same `parsePageToBlockTree` every other
+    read of a page uses (throwing on anything unparseable, so a corrupt
+    historical revision can never be written back as current content), then
+    persists it through the exact same `manager.saveFile` +
+    `commitSiteChanges` pair every other edit in that file uses — a new
+    commit on top of history, never a raw file overwrite. Revision ids
+    (commit hashes) are validated against `^[0-9a-f]{4,40}$` before ever
+    reaching `execFile`'s argv, closing off argument-injection via a
+    flag-shaped "hash".
+  - `app/(admin)/(app)/sites/[siteId]/pages/editor/actions.js`: added
+    `listPageRevisionsAction`, `getPageRevisionSourceAction`,
+    `restorePageRevisionAction`, each going through the same
+    `loadAuthorizedSite` (`requireUser` + `assertSiteAccess`) helper every
+    sibling action in that file already uses — no new authorization
+    pattern introduced.
+  - UI: a new "History" toolbar button in the page editor
+    (`SourceContentEditor.jsx`) opens `PageHistoryPanel.jsx`, a slide-over
+    listing real commits for the current page, a line-diff preview
+    (`src/lib/line-diff.js`, a small dependency-free LCS diff — added
+    because no diff library exists in this app's dependencies) against the
+    page's current source, and a Restore action. A restore is dispatched
+    through the editor's existing action queue exactly like any other edit
+    (`dispatch(() => restorePageRevisionAction(...))`), which means it's
+    recorded on the same undo/redo stack as everything else — restoring a
+    revision is itself undoable with Ctrl+Z.
+  - Found and fixed a real, pre-existing hazard while testing this: `test/
+    source-content-actions.test.js` never called `initSiteGit` on its
+    workspace fixture, so its `commitSiteChanges` calls had no real git
+    repo to target locally; git's normal upward directory search then
+    found the *enclosing* repository — the actual monorepo checkout — and
+    `git add -A && git commit` executed for real there. Reproduced twice
+    live: one run committed every currently-uncommitted file in the
+    working tree under the misleading message "Add openforge-cms.cta
+    component"; recovered with `git reset --soft` (no content lost) and
+    fixed the fixture to call `initSiteGit`, matching
+    `block-add-smoke.test.js`'s existing pattern. This is the same failure
+    shape as the "3 failures in source-content-actions.test.js traced to a
+    `.git/index.lock` ENOENT" note in the 2026-09-08 verification log
+    below — that entry attributed it to a concurrent session's test run;
+    it's actually this same missing-`initSiteGit` gap, and is now closed.
+  - Evidence: new `test/page-revisions.test.js` (7 tests) against a real
+    git-initialized workspace fixture (same pattern as
+    `block-add-smoke.test.js`) — covers listing revisions after multiple
+    real saves (newest first, one real git commit per save), rejecting a
+    malformed revision id, `getPageRevisionSource` returning the exact
+    historical source for an older commit, and `restorePageRevision`
+    writing that source back as current content, round-tripping through
+    `parsePageToBlockTree`, landing as a new top-of-history commit (the
+    revision list grows by exactly one; every prior commit is still there
+    underneath, byte-for-byte in order) rather than rewriting the past, and
+    that the site-wide commit log (`listSiteCommits`) reflects the same
+    real commit. Extended `test/site-git.test.js` with 4 more tests for
+    `listFileCommits`/`readFileAtCommit` directly (file-scoped history,
+    empty history for a never-committed path, exact historical content,
+    `null` for a path that didn't exist yet at a given commit). New `test/
+    line-diff.test.js` (5 tests) round-trips the diff util's ops back into
+    both original strings rather than asserting one specific alignment.
+    `corepack pnpm --filter @openforge/cms-admin test`: **94/94 passed**
+    (up from 89; +5 line-diff, +7 page-revisions, +4 site-git, and
+    `source-content-actions.test.js`'s existing 12 all still pass with the
+    `initSiteGit` fix applied). `corepack pnpm --filter @openforge/cms-admin
+    lint`: clean.
+  - Not done: no UI for browsing/restoring revisions of the *component*
+    files a page imports (`components/openforge/*.jsx`) — only the page
+    file itself; a component file's own history is still real in git (any
+    commit that touched it shows up via `listFileCommits` given its path)
+    but nothing in the admin UI surfaces it yet. Diff preview is line-based
+    text, not an AST-aware structural diff.
+
 ### CMS exit
 
 - [x] A created site's page renders correctly end to end from a cold
@@ -1218,9 +1365,13 @@ load-bearing here and was explicitly deprioritized by the user.
       directly from the canvas palette (deferred given the cross-iframe
       native-drag reliability question — inserting still works via a
       click, then drag-to-reorder into position), nested-slot drag
-      reorder on the canvas (Layers view only), `content_revisions`
-      browsing/restore — explicitly deferred, named so they aren't
-      silently dropped.
+      reorder on the canvas (Layers view only) — explicitly deferred,
+      named so they aren't silently dropped. (Page revision
+      browsing/restore, previously listed here as `content_revisions`
+      browsing/restore, shipped in CMS.16 — against real git history in
+      each site's on-disk workspace, not that Postgres table, which turned
+      out to be fully superseded dead weight for on-disk pages; see CMS.16
+      for the investigation.)
 
 ## Phase 1 — Compatible Next.js project model
 
@@ -1872,6 +2023,7 @@ Add entries newest first.
 
 | Date | Scope | Evidence | Result |
 |---|---|---|---|
+| 2026-09-12 | `apps/cms-admin` full test suite, after the page-revision-history feature and the `initSiteGit` test fix | `corepack pnpm --filter @openforge/cms-admin test` | 94/94 passed (12 files); `corepack pnpm --filter @openforge/cms-admin lint` clean; re-ran twice with `git status`/`git log` checked before and after each run to confirm no repeat of the `source-content-actions.test.js` git-escape hazard (see CMS.16 and the "Current handoff" entry above) |
 | 2026-09-08 | `apps/cms-admin` block-editor + site-git tests (isolated run) | `vitest run test/block-add-smoke.test.js test/site-git.test.js` | 14/14 passed |
 | 2026-09-08 | `@openforge/cms-blocks` defaultProps regression | `pnpm --filter @openforge/cms-blocks test` | 139/139 passed |
 | 2026-09-08 | `@openforge/component-library` registry | `pnpm --filter @openforge/component-library test`; counted `allLibraryComponents.length` directly | 5/5 passed; 47 entries across 7 categories confirmed |

@@ -11,7 +11,11 @@ import {
   readStandaloneBlockSource,
   standaloneFileNameForBlock,
 } from "./block-files.js";
-import { commitSiteChanges } from "./site-git.js";
+import {
+  commitSiteChanges,
+  listFileCommits,
+  readFileAtCommit,
+} from "./site-git.js";
 import { getWorkspaceManager } from "./site-workspace.js";
 import {
   findNodeById,
@@ -366,4 +370,92 @@ export async function restorePageSource(siteSlug, pagePath, source) {
     source,
   });
   await commitSiteChanges(state.rootPath, `Undo/redo on ${pagePath}`);
+}
+
+// A short hex prefix is what `git log --pretty=%h` and `git show` both deal
+// in; this also doubles as an execFile-argument-injection guard, since
+// listFileCommits/readFileAtCommit pass this value straight through to git
+// as an argv entry (never a shell) — rejecting anything that isn't a plain
+// hex string keeps a value shaped like a flag ("--upload-pack=...") from
+// ever reaching git's own argument parser.
+const COMMIT_HASH_PATTERN = /^[0-9a-f]{4,40}$/u;
+
+function requireCommitHash(hash) {
+  if (typeof hash !== "string" || !COMMIT_HASH_PATTERN.test(hash)) {
+    throw new Error(`Invalid revision id: ${String(hash)}`);
+  }
+  return hash;
+}
+
+/**
+ * Real prior versions of one page, newest first — read straight from that
+ * page file's own git history in the site's git-backed workspace repo
+ * (see site-git.js's listFileCommits). Every block-editor save already
+ * commits (setBlockProps/moveBlock/insertBlock/removeBlock/duplicateBlock/
+ * restorePageSource above), so this commit history *is* the page's
+ * revision history — there is no separate `content_revisions` table for
+ * on-disk sites; that Postgres table only ever recorded saves for the
+ * earlier, now-superseded database-JSON content model
+ * (`contentItems.blockTree`, see
+ * app/(admin)/(app)/sites/[siteId]/content/[contentId]/actions.js), which
+ * this file's on-disk pages never touch.
+ */
+export async function listPageRevisions(siteSlug, pagePath, limit = 30) {
+  const { state } = await loadWorkspace(siteSlug);
+  return listFileCommits(state.rootPath, pagePath, limit);
+}
+
+/**
+ * The page's exact source as it existed at one historical commit, for a
+ * revision-history preview/diff. Throws if that commit's tree never
+ * contained this file (a stale/foreign hash), rather than silently
+ * returning empty content.
+ */
+export async function getPageRevisionSource(siteSlug, pagePath, hash) {
+  requireCommitHash(hash);
+  const { state } = await loadWorkspace(siteSlug);
+  const source = await readFileAtCommit(state.rootPath, hash, pagePath);
+  if (source == null) {
+    throw new Error(`Revision ${hash} does not contain ${pagePath}`);
+  }
+  return source;
+}
+
+/**
+ * Restores an older revision as the page's current content. Reuses the
+ * exact same real save path every other edit in this file uses — one
+ * `manager.saveFile` plus one `commitSiteChanges`, recorded as a new
+ * top-of-history commit rather than a raw file overwrite that would bypass
+ * both the workspace's own revision bookkeeping and git history — after
+ * first confirming the historical source still parses into a real block
+ * tree with `parsePageToBlockTree`, the same parsing pipeline any other
+ * read of this page goes through, so a corrupt or otherwise unparseable
+ * historical revision can never be written back as the page's current
+ * content.
+ */
+export async function restorePageRevision(siteSlug, pagePath, hash) {
+  requireCommitHash(hash);
+  const { manager, state, files } = await loadWorkspace(siteSlug);
+  const source = await readFileAtCommit(state.rootPath, hash, pagePath);
+  if (source == null) {
+    throw new Error(`Revision ${hash} does not contain ${pagePath}`);
+  }
+
+  const candidateFiles = files
+    .filter((file) => file.path !== pagePath)
+    .concat({ path: pagePath, source });
+  // Throws on unparseable historical source, the same guarantee a normal
+  // save gets from the compiler pipeline elsewhere in this file.
+  parsePageToBlockTree(candidateFiles, pagePath);
+
+  await manager.saveFile(siteSlug, {
+    baseRevision: state.revision,
+    path: pagePath,
+    source,
+  });
+  await commitSiteChanges(
+    state.rootPath,
+    `Restore ${pagePath} to revision ${hash}`,
+  );
+  return source;
 }
