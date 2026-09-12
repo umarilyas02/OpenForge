@@ -16,6 +16,7 @@ import { normalizeProjectPath } from "@openforge/compiler";
 import { create as createTar } from "tar";
 
 const METADATA_DIRECTORY = ".openforge";
+const GIT_DIRECTORY = ".git";
 const WORKSPACE_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/u;
 
 export class WorkspaceManager {
@@ -359,7 +360,12 @@ async function listSourcePaths(rootPath, current = rootPath) {
   const entries = await readdir(current, { withFileTypes: true });
   const paths = [];
   for (const entry of entries) {
-    if (current === rootPath && entry.name === METADATA_DIRECTORY) continue;
+    if (
+      current === rootPath &&
+      (entry.name === METADATA_DIRECTORY || entry.name === GIT_DIRECTORY)
+    ) {
+      continue;
+    }
     const absolute = path.join(current, entry.name);
     if (entry.isSymbolicLink()) {
       throw new WorkspaceError(
@@ -380,6 +386,7 @@ async function removeTemporaryFiles(rootPath, current = rootPath) {
   const entries = await readdir(current, { withFileTypes: true });
   let removed = 0;
   for (const entry of entries) {
+    if (current === rootPath && entry.name === GIT_DIRECTORY) continue;
     const absolute = path.join(current, entry.name);
     if (entry.isDirectory()) {
       removed += await removeTemporaryFiles(rootPath, absolute);
