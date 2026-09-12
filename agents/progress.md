@@ -1868,11 +1868,18 @@ load-bearing here and was explicitly deprioritized by the user.
   work — it has its own Route Handlers and Server Actions instead of a
   separate API/worker split; an authenticated CRUD API for the *editor*
   product line remains unbuilt if that line is ever resumed.
-- `packages/db/migrations/0002_watery_thunderbolts.sql` (`secrets`,
+- ~~`packages/db/migrations/0002_watery_thunderbolts.sql` (`secrets`,
   `site_git_connections`) is generated but its application to any
   running dev database was not verified in this pass — confirm with
   `drizzle-kit migrate` (or equivalent) before relying on the GitHub
-  connection feature against a real database.
+  connection feature against a real database.~~ Resolved 2026-09-12:
+  confirmed already applied against the actual configured dev database
+  (`apps/cms-admin/.env.local`'s `DATABASE_URL`, a remote Postgres
+  instance, not the local docker-compose one) — both tables exist with
+  columns matching the migration exactly, and
+  `drizzle.__drizzle_migrations` records all three migrations including
+  this one. Re-ran `drizzle-kit migrate` directly to confirm idempotency
+  (`[✓] migrations applied successfully!`, no pending migrations left).
 - `apps/cms-admin`'s wiring of `@openforge/component-library` into the
   canvas palette (`LibraryPalette.jsx` and friends, CMS.14) was
   uncommitted, in-progress working-tree state as of 2026-09-08 with no
