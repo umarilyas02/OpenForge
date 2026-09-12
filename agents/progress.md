@@ -537,6 +537,78 @@ Status markers:
     isolation: 11/11 passed), consistent with concurrent-session file
     contention on the same shared test fixture path noted elsewhere in
     this log, not a regression from this change.
+- Objective (2026-09-12): verify whether CMS.14's component-library-into-
+  canvas wiring (flagged in Blockers as uncommitted/unverified as of
+  2026-09-08) had actually shipped — `git log` showed a later commit
+  (`299fea4`, 2026-09-08) titled "Wire the harvested component library into
+  the editor's Blocks tab" that looked like it closed this out.
+  - Found: the commit was real and the wiring was genuinely complete and
+    already committed end to end — `libraryCatalog`/`insertLibraryComponentAction`
+    reach the page-editor route (`app/(admin)/(app)/sites/[siteId]/pages/
+    editor/{page.jsx,actions.js}`) through to `SourceContentEditor.jsx` ->
+    `CanvasEditor.jsx` -> `LibraryPalette.jsx`, and survived the later route
+    restructuring/toolbar-polish commits unbroken. But it shipped with zero
+    test coverage of its own (the commit message's "verified end to end" was
+    manual, not a recorded test), and that manual verification missed a real
+    bug: `ensureLibraryComponentAvailable`
+    (`apps/cms-admin/src/lib/library-content-actions.js`) generated a
+    **default** import (`importKind: "default"`) for every inserted library
+    component, but all 47 entries in `@openforge/component-library` are
+    **named** exports (`export function ComponentName`, never
+    `export default`) — confirmed by `grep -rl "export default"
+    packages/component-library/src/*.js` returning nothing. A default
+    import from a module with no default export resolves to `undefined` at
+    runtime, so `<ComponentName />` in the page would throw React's "Element
+    type is invalid" the moment the real page (or the exported project)
+    actually rendered — the one thing the commit's manual check didn't
+    exercise, since the palette's own "known gap" note already excuses it
+    from ever showing in the canvas iframe or Preview.
+  - Fixed: changed the `add-import` operation to `importKind: "named",
+    imported: component.exportName` (matching what
+    `@openforge/compiler`'s `add-import` operation already supports and
+    what native blocks' own generated files actually export by convention
+    — see `ensureBlockAvailable` in `source-content-actions.js`, which works
+    only because `generate-standalone-block.js` appends a real
+    `export default` to every native block file, unlike harvested library
+    components).
+  - Added `apps/cms-admin/test/library-component-insert.test.js` (4 tests,
+    same real-git-backed-workspace pattern as `block-add-smoke.test.js`):
+    catalog serialization strips `source`/`styles`; inserting
+    `blog.card-grid` writes real `.jsx`/`.css` files, a named import, the
+    JSX call, confirms `parsePageToBlockTree` still succeeds and correctly
+    omits it from the tree, and actually `import()`s the freshly-written
+    component file and renders it with `renderToStaticMarkup` — the same
+    check that would have caught the default/named-import bug before it
+    shipped; a repeat insert of `hero.split-image-blobs` proves the
+    idempotent ensure/import step doesn't duplicate the import or the
+    copied files while still appending a second JSX call; a last test reads
+    real git history (`listSiteCommits`) to confirm every step commits.
+  - Verified the test actually catches the bug it's named for: reverted
+    just the fix locally, re-ran the suite — the "writes real files... and
+    a page that actually renders" test failed exactly as expected (asserted
+    a named import, got `import BlogCardGrid from ...`), then restored the
+    fix and confirmed green again.
+  - Evidence: `pnpm --filter @openforge/component-library test`: 5/5
+    passed (unchanged). `vitest run test/library-component-insert.test.js`:
+    4/4 passed. `vitest run test/library-component-insert.test.js
+    test/source-content-actions.test.js test/block-add-smoke.test.js`
+    together: 21/21 passed. `eslint` clean on both changed files.
+  - Noted, not fixed (pre-existing, out of scope for this pass): running
+    the *entire* `apps/cms-admin` suite in one parallel `vitest run` is
+    still flaky on Windows — multiple unrelated test files that each spin
+    up a real git-backed workspace hit `EBUSY`/`EPERM`/`.git/index.lock`
+    contention under enough parallel workers (already documented above and
+    in the Verification log for 2026-09-08); every file here passes cleanly
+    in isolation or in smaller combined runs. Separately, one of these
+    contentions produced a genuine stray commit on this pass's own
+    worktree branch (a `git add -A && git commit` from a test's
+    `commitSiteChanges` call apparently resolved to the outer repo instead
+    of its intended isolated site fixture, picking up this pass's own
+    then-uncommitted working-tree edits under an unrelated, test-generated
+    message) — caught and undone with `git reset --soft` before this pass's
+    real commit; worth a real investigation of `WorkspaceManager`/
+    `initSiteGit` path resolution under concurrent test runs if this
+    recurs.
 
 ## Planning and scaffolding
 
@@ -1116,18 +1188,31 @@ load-bearing here and was explicitly deprioritized by the user.
     tests pass — unique ids, unique file names per category, schema
     validity. Directly counted `allLibraryComponents.length === 47`
     against the built registry (6/6/6/6/6/10/7 by category).
-- [-] Wiring into `apps/cms-admin`'s canvas palette: `@openforge/
+- [x] Wiring into `apps/cms-admin`'s canvas palette: `@openforge/
       component-library` is a declared `package.json` dependency of
-      `apps/cms-admin`, and `src/components/LibraryPalette.jsx`,
+      `apps/cms-admin`; `src/components/LibraryPalette.jsx`,
       `src/lib/library-content-actions.js`, and
-      `src/lib/library-palette-meta.js` exist, with `CanvasEditor.jsx`
-      and the page-editor route importing and rendering
-      `LibraryPalette`. As of this writing all of that is uncommitted
-      working-tree state, changed concurrently with this documentation
-      pass by another session, with no recorded evidence/tests of its
-      own yet — do not mark this integration `[x]` until it's committed
-      and has real verification (a live insert-from-library run,
-      confirmed on the canvas and/or the exported project source).
+      `src/lib/library-palette-meta.js` implement the Blocks tab and its
+      own insert path (real files written under
+      `components/openforge-library/`, a real import added to the page,
+      a real JSX call appended); `CanvasEditor.jsx` and the page-editor
+      route wire `LibraryPalette` in. Committed 2026-09-08 as `299fea4`
+      and confirmed still fully wired after later route/toolbar
+      refactors (2026-09-12 pass). That same 2026-09-12 pass found and
+      fixed a real bug the commit's own manual verification missed
+      (`ensureLibraryComponentAvailable` generated a **default** import
+      for components that are all **named** exports, which would have
+      thrown "Element type is invalid" the moment a page with an
+      inserted library component actually rendered) and added the test
+      coverage this integration previously had none of — see the
+      2026-09-12 "Current handoff" entry above for the full writeup.
+  - Evidence: `apps/cms-admin/test/library-component-insert.test.js`
+    (new, 4 tests) — real git-backed workspace insert, named-import
+    assertion, `parsePageToBlockTree` non-throw + correct omission from
+    the tree, and an actual `import()` + `renderToStaticMarkup` of the
+    freshly-written component file. 4/4 passed after the fix; the key
+    test failed as expected against the pre-fix code, confirming it's a
+    real regression guard and not a tautology.
 
 ### CMS.15 Site preview, project export, and GitHub push (2026-09-08)
 
@@ -1852,12 +1937,14 @@ load-bearing here and was explicitly deprioritized by the user.
   running dev database was not verified in this pass — confirm with
   `drizzle-kit migrate` (or equivalent) before relying on the GitHub
   connection feature against a real database.
-- `apps/cms-admin`'s wiring of `@openforge/component-library` into the
+- ~~`apps/cms-admin`'s wiring of `@openforge/component-library` into the
   canvas palette (`LibraryPalette.jsx` and friends, CMS.14) was
   uncommitted, in-progress working-tree state as of 2026-09-08 with no
-  recorded evidence of its own — verify and commit it (or pick it back
-  up) before treating "insert from the component library" as a real,
-  working feature.
+  recorded evidence of its own~~ — resolved 2026-09-12: it was already
+  committed (`299fea4`) and still fully wired, but had a real bug (a
+  default import generated for components that are all named exports)
+  and no test coverage; both fixed, see CMS.14 and the 2026-09-12
+  "Current handoff" entry.
 - The gap between CMS.12 (2026-09-04) and CMS.13 (2026-09-07) — moving
   site content from database JSON to real on-disk Next.js project files,
   a WordPress-familiar nav/theme rebuild, a Media Library with real
@@ -1872,6 +1959,7 @@ Add entries newest first.
 
 | Date | Scope | Evidence | Result |
 |---|---|---|---|
+| 2026-09-12 | `apps/cms-admin` component-library insert path (CMS.14 follow-up) | `vitest run test/library-component-insert.test.js` (new); same file combined with `test/source-content-actions.test.js test/block-add-smoke.test.js`; `eslint` on both changed files; manually reverted the fix and re-ran to confirm the key test fails without it | 4/4 passed isolated, 21/21 passed combined, lint clean; test confirmed to fail against the pre-fix code |
 | 2026-09-08 | `apps/cms-admin` block-editor + site-git tests (isolated run) | `vitest run test/block-add-smoke.test.js test/site-git.test.js` | 14/14 passed |
 | 2026-09-08 | `@openforge/cms-blocks` defaultProps regression | `pnpm --filter @openforge/cms-blocks test` | 139/139 passed |
 | 2026-09-08 | `@openforge/component-library` registry | `pnpm --filter @openforge/component-library test`; counted `allLibraryComponents.length` directly | 5/5 passed; 47 entries across 7 categories confirmed |
