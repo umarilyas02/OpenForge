@@ -107,7 +107,12 @@ export async function ensureLibraryComponentAvailable(
         baseRevision: 0,
         filePath: pagePath,
         type: "add-import",
-        payload: { source: specifier, importKind: "default", local: localName },
+        payload: {
+          source: specifier,
+          importKind: "named",
+          imported: component.exportName,
+          local: localName,
+        },
       },
     });
     await manager.saveFile(siteSlug, {
