@@ -537,6 +537,27 @@ Status markers:
     isolation: 11/11 passed), consistent with concurrent-session file
     contention on the same shared test fixture path noted elsewhere in
     this log, not a regression from this change.
+- Objective (2026-09-12): re-check every long-standing "not started" item
+  in this file against the current, post-pivot product shape before
+  dispatching new work against it.
+  - Finding: "an org switcher/org-creation UI" (carried in this file
+    since the 2026-08-29 CMS.7/CMS.9 entries above) is obsolete, not
+    merely unbuilt. It predates the CMS.12 single-user pivot (2026-09-04),
+    which deliberately deleted `apps/cms-admin/app/(admin)/(app)/team/**`
+    and its nav entry so the product "simply never surfaces 'organization'
+    as a concept anymore." Verified directly against the current
+    codebase: no `/team` route or org-switcher/org-creation component
+    exists anywhere in `apps/cms-admin`; the only switcher in
+    `AppShell.jsx` picks among the user's own **sites**, not
+    organizations; every site resolves to the user's one personal org via
+    `memberships.find(m => m.status === "active")` with no picker; and
+    `tooling/scripts/create-user.js` remains the sole, idempotent way an
+    org is provisioned, entirely outside the UI. Struck from the backlog
+    below rather than scheduled — building it back in would reverse an
+    explicit, deliberate product decision. (Unrelated minor finding from
+    the same pass, not itself a reason to keep this item: a leftover
+    "this organization's sites" copy string in
+    `apps/cms-admin/app/(admin)/(app)/sites/[siteId]/users/page.jsx`.)
 
 ## Planning and scaffolding
 
