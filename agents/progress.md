@@ -1,6 +1,6 @@
 # OpenForge Progress Tracker
 
-Last updated: 2026-09-08
+Last updated: 2026-09-12
 Current stage: the active workspace is now just one product,
 `apps/cms-admin` — a single-user, WordPress/Elementor-style CMS (grouped
 sidebar shell, live-canvas drag-and-drop editor with a Content/Style/
@@ -55,10 +55,12 @@ Status markers:
     infra, data model, auth, theme SDK, starter blocks, renderer, default
     theme, multi-tenant app, production Dockerfile) — see that section for
     evidence.
-  - Not started from the original Phase 0 plan: 0.1 governance file wiring,
-    0.7 CI/supply-chain workflows. These are not load-bearing for the CMS
-    and were explicitly deprioritized per the user's direction ("do it if
-    it is necessary for CMS"). Pick them up in a dedicated pass.
+  - Not started from the original Phase 0 plan (as of 2026-08-28): 0.1
+    governance file wiring, 0.7 CI/supply-chain workflows. These were not
+    load-bearing for the CMS and were explicitly deprioritized per the
+    user's direction ("do it if it is necessary for CMS"). Picked back up
+    2026-09-12 — see that "Current handoff" entry and the 0.1/0.7 sections
+    below for what landed.
   - Not started: Phase 0.6 process skeletons (`apps/api`, `apps/worker`
     are still empty), and Phase 5.
 - Objective (2026-08-29): build the CMS admin UI (`apps/cms-admin`) — login,
@@ -537,6 +539,63 @@ Status markers:
     isolation: 11/11 passed), consistent with concurrent-session file
     contention on the same shared test fixture path noted elsewhere in
     this log, not a regression from this change.
+- Objective (2026-09-12): pick up the mechanical, non-business-decision
+  parts of Phase 0.1 (identity and governance) and 0.7 (CI and supply
+  chain) that were deliberately deprioritized in favor of CMS feature
+  work — without touching the two items that require a maintainer/business
+  call (name/trademark verification, DCO/CLA).
+  - Completed: confirmed `.github/SECURITY.md` (already present, pointing
+    to GitHub private security advisory reporting and the full policy at
+    `openforge-docs/SECURITY.md`) is correct and did not need changes.
+    Added root `CODE_OF_CONDUCT.md` (full Contributor Covenant v2.1, with
+    the enforcement contact pointed at the same private-advisory channel).
+    Added `.github/CODEOWNERS` (default owner `@umarilyas02`, plus explicit
+    ownership of `.github/`, `apps/cms-admin/`, `packages/integration-security/`,
+    `packages/auth/`). Added `.github/pull_request_template.md` with a
+    checklist matching this file's own delivery rule (tests/lint/build run,
+    `agents/progress.md` updated, no co-author trailer) plus the repo's
+    hard constraints (no regex JSX editing, server-side site-access checks,
+    `isUuid` validation, secrets through `createSecretVault`). Added a real
+    CI workflow at `.github/workflows/ci.yml`: one job runs
+    `corepack pnpm install --frozen-lockfile` then `lint`, `test`, `build`
+    on `actions/checkout@v4` + `actions/setup-node@v4` (Node 24.11.0) with
+    pnpm activated via `corepack prepare pnpm@11.17.0 --activate` (matches
+    the root `packageManager` pin) and a pnpm-store cache; a second job
+    runs `gitleaks/gitleaks-action@v2` (fails the build on a real detected
+    secret, not just report-only) with `fetch-depth: 0`.
+  - Verified before committing: `corepack pnpm lint` and
+    `corepack pnpm --filter @openforge/cms-blocks run build --force`
+    followed by `apps/cms-admin`'s vitest suite in isolation both passed
+    against these exact commands (`lint`, `install`, targeted `build`);
+    `corepack pnpm test` at the repo root hit the same pre-existing,
+    already-documented flaky failures from concurrent-session fixture
+    contention noted above (`.git/index.lock` ENOENT, cache-hit builds
+    skipping real dist output because `turbo.json`'s `build` task declares
+    `outputs: []`) — not something introduced by this change, and not
+    reproducible on an isolated CI runner with no pre-existing local turbo
+    cache. Validated `.github/workflows/ci.yml` is well-formed YAML via
+    `python -c "import yaml; yaml.safe_load(open(...))"` (no `actionlint`
+    available in this environment).
+  - Deliberately left undone, matching the checklist's own carve-outs:
+    "Verify OpenForge name, repository, npm scope, domain and trademarks"
+    and "Decide DCO/CLA" both require a maintainer/business decision this
+    pass didn't make.
+  - Explicitly out of scope for this pass, left unchecked in 0.7: license
+    scanning (only the secret-scan half of "License and secret scans" was
+    added), dependency/container scans, an SBOM/provenance strategy, and
+    required reviews for protected paths — the last needs a manual GitHub
+    branch-protection setting ("Require review from Code Owners") on top
+    of the new CODEOWNERS file, which no file change can turn on.
+  - Also discovered, not fixed (out of scope — would be a large, unrelated
+    diff): `corepack pnpm format:check` currently fails across ~582 files
+    repo-wide, pre-existing and unrelated to this change. The new CI
+    workflow intentionally does not run a format gate for that reason —
+    running it as-is would fail CI on the current `main` on day one.
+  - Manual follow-ups only a maintainer can do (not file changes):
+    enable GitHub's private vulnerability reporting under
+    Settings > Security so the `.github/SECURITY.md` link actually
+    resolves to a report form; enable branch protection on `main`
+    requiring the new CI checks and CODEOWNERS review.
 
 ## Planning and scaffolding
 
@@ -569,10 +628,30 @@ Status markers:
 - [x] Select final license.
   - Evidence: remote repository includes the Apache License 2.0 in `LICENSE`.
 - [ ] Verify OpenForge name, repository, npm scope, domain and trademarks.
-- [ ] Publish security contact/private reporting.
-- [ ] Adopt complete recognized code of conduct.
+  - Skipped deliberately (2026-09-12): requires a maintainer/business
+    decision, not a mechanical file change.
+- [x] Publish security contact/private reporting.
+  - Evidence: `.github/SECURITY.md` points to GitHub private security
+    advisory reporting (`https://github.com/umarilyas02/OpenForge/security`)
+    and the full policy at `openforge-docs/SECURITY.md`; content reviewed
+    2026-09-12 and found already correct. Manual follow-up still needed:
+    a repository owner must enable "Private vulnerability reporting" under
+    Settings > Security for that link to actually resolve to a report
+    form — no file change can turn this setting on.
+- [x] Adopt complete recognized code of conduct.
+  - Evidence: root `CODE_OF_CONDUCT.md`, full Contributor Covenant v2.1
+    text, added 2026-09-12.
 - [ ] Decide DCO/CLA.
-- [ ] Add CODEOWNERS, pull request template and protected-area ownership.
+  - Skipped deliberately (2026-09-12): requires a maintainer decision, not
+    a mechanical file change.
+- [x] Add CODEOWNERS, pull request template and protected-area ownership.
+  - Evidence: `.github/CODEOWNERS` (default `@umarilyas02`, plus explicit
+    ownership of `.github/`, `apps/cms-admin/`,
+    `packages/integration-security/`, `packages/auth/`) and
+    `.github/pull_request_template.md`, added 2026-09-12. CODEOWNERS only
+    gates merges once a repository owner also enables branch protection's
+    "Require review from Code Owners" on `main` — a manual GitHub setting,
+    not a file change.
 
 ### 0.2 Monorepo bootstrap
 
@@ -637,11 +716,31 @@ Status markers:
 
 ### 0.7 CI and supply chain
 
-- [ ] Format/lint/unit/schema/build gates.
+- [x] Format/lint/unit/schema/build gates.
+  - Evidence: `.github/workflows/ci.yml`'s `quality` job runs
+    `corepack pnpm install --frozen-lockfile`, `lint`, `test`, `build` on
+    every push to `main` and every pull request. These four exact commands
+    were verified locally on 2026-09-12 (see "Current handoff"). Format is
+    *not* included as a gate: `corepack pnpm format:check` currently fails
+    across ~582 files repo-wide, a pre-existing condition unrelated to this
+    change — wiring it in as-is would fail CI against current `main`.
+    Fixing repo-wide formatting is a separate follow-up. There is no
+    distinct "schema" gate script in this repo; schema/config validation
+    is exercised through each package's own unit tests, covered by `test`.
 - [ ] License and secret scans.
+  - Partial: secret scanning is wired in (`.github/workflows/ci.yml`'s
+    `secret-scan` job runs `gitleaks/gitleaks-action@v2`, which fails the
+    build on a real detected secret, not just report-only). Dependency
+    license scanning is not yet added — left unchecked.
 - [ ] Dependency and container scans.
 - [ ] SBOM/provenance strategy.
+  - Noted as a deferred follow-up (2026-09-12), not faked: no SBOM/
+    provenance step was added in this pass.
 - [ ] Required reviews for protected paths.
+  - Blocked on a manual step: CODEOWNERS now exists (see 0.1 above), but
+    enforcing review still requires a repository owner to turn on branch
+    protection's "Require review from Code Owners" on `main` in GitHub
+    settings — not doable via a file change.
 
 ### Phase 0 exit
 
@@ -661,8 +760,10 @@ CMS surface") for the product-scope note.
 
 This phase deliberately builds only the Phase 0 primitives the CMS
 actually needs (config, schemas, logger, events, db, auth, local infra).
-Phase 0's governance (0.1) and CI (0.7) work remains unstarted — it isn't
-load-bearing here and was explicitly deprioritized by the user.
+Phase 0's governance (0.1) and CI (0.7) work was not load-bearing here and
+was explicitly deprioritized by the user at the time; it was picked back
+up in a dedicated pass on 2026-09-12 (see that "Current handoff" entry and
+the 0.1/0.7 sections above).
 
 ### CMS.1 Foundation primitives
 
@@ -1833,12 +1934,19 @@ load-bearing here and was explicitly deprioritized by the user.
   unresolved for the parts of Phase 0 not touched by the CMS work
   (auth/session library was resolved as custom-minimal; DB access was
   resolved as Drizzle; the rest remain open).
-- Phase 0.1 governance file wiring (root `CODE_OF_CONDUCT.md`,
-  `CONTRIBUTING.md`, `SECURITY.md`, `CODEOWNERS`, PR/issue templates) and
-  0.7 CI/supply-chain workflows are still not started — deliberately
-  deprioritized in favor of the CMS, not forgotten.
+- Phase 0.1 governance file wiring landed 2026-09-12: root
+  `CODE_OF_CONDUCT.md`, `.github/SECURITY.md` (confirmed already correct),
+  `.github/CODEOWNERS`, `.github/pull_request_template.md`. A root
+  `CONTRIBUTING.md` was not part of that pass and is still missing. 0.7
+  CI/supply-chain landed partially the same day: `.github/workflows/ci.yml`
+  runs lint/test/build and a gitleaks secret scan on every push/PR — still
+  missing a format gate (blocked on a pre-existing, repo-wide formatting
+  fix, see "Current handoff"), license/dependency/container scans, and an
+  SBOM/provenance strategy.
 - Manual GitHub repository-settings follow-ups, not doable via file
-  changes: enabling private vulnerability reporting, branch protection.
+  changes: enabling private vulnerability reporting (Settings > Security),
+  and branch protection on `main` (required status checks for the new CI
+  workflow, "Require review from Code Owners" for the new CODEOWNERS).
 - `future-work/apps/api` and `future-work/apps/worker` (formerly
   `apps/api`/`apps/worker`) are still empty (Phase 0.6) and now shelved
   along with the rest of the visual-editor product line (2026-09-08 — see
@@ -1872,6 +1980,7 @@ Add entries newest first.
 
 | Date | Scope | Evidence | Result |
 |---|---|---|---|
+| 2026-09-12 | Governance/CI files (`CODE_OF_CONDUCT.md`, `.github/CODEOWNERS`, `.github/pull_request_template.md`, `.github/workflows/ci.yml`) | `corepack pnpm lint` (repo-wide); `corepack pnpm --filter @openforge/cms-blocks run build --force` then `apps/cms-admin`'s vitest suite run in isolation; YAML parsed with `python -c "import yaml; yaml.safe_load(...)"` | Lint: 26/26 tasks passed. Targeted build + isolated cms-admin tests: 76/79 passed (3 failures = the same pre-existing `.git/index.lock` fixture-contention flake already logged below, re-confirmed not a regression). CI workflow YAML: well-formed |
 | 2026-09-08 | `apps/cms-admin` block-editor + site-git tests (isolated run) | `vitest run test/block-add-smoke.test.js test/site-git.test.js` | 14/14 passed |
 | 2026-09-08 | `@openforge/cms-blocks` defaultProps regression | `pnpm --filter @openforge/cms-blocks test` | 139/139 passed |
 | 2026-09-08 | `@openforge/component-library` registry | `pnpm --filter @openforge/component-library test`; counted `allLibraryComponents.length` directly | 5/5 passed; 47 entries across 7 categories confirmed |
