@@ -11,6 +11,7 @@ vi.mock("../src/lib/site-workspace.js", async () => {
 });
 
 const { getWorkspaceManager } = await import("../src/lib/site-workspace.js");
+const { initSiteGit } = await import("../src/lib/site-git.js");
 const { buildStarterFiles } = await import("../src/lib/starter-template.js");
 const { findNodeById, parsePageToBlockTree } =
   await import("../src/lib/source-content-tree.js");
@@ -39,6 +40,16 @@ describe("source-content-actions — real files on a real workspace", () => {
       slug: SITE_SLUG,
     });
     await manager.create(SITE_SLUG, files);
+    // Every write below goes through source-content-actions.js, which
+    // always ends in a real `git commit` (see commitSiteChanges). Without
+    // its own real git repo here, those commits would find none locally
+    // and walk up to whatever enclosing repo happens to contain this
+    // gitignored `data/` directory — silently committing the *actual*
+    // repo's current working-tree state under a misleading block-edit
+    // message. initSiteGit (exactly as block-add-smoke.test.js already
+    // does) keeps every commit this test produces properly contained.
+    const { rootPath } = await manager.describe(SITE_SLUG);
+    await initSiteGit(rootPath);
   });
 
   afterAll(async () => {
