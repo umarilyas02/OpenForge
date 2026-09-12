@@ -1,6 +1,6 @@
 # OpenForge Progress Tracker
 
-Last updated: 2026-09-08
+Last updated: 2026-09-12
 Current stage: the active workspace is now just one product,
 `apps/cms-admin` — a single-user, WordPress/Elementor-style CMS (grouped
 sidebar shell, live-canvas drag-and-drop editor with a Content/Style/
@@ -1186,6 +1186,84 @@ load-bearing here and was explicitly deprioritized by the user.
     before any database query that would otherwise throw at the driver
     level.
 
+### CMS.16 First-run account setup UI (2026-09-12)
+
+- [x] `/login` is now dual-purpose instead of always showing a sign-in
+      form. A new `apps/cms-admin/src/lib/account-setup.js` exports
+      `hasAnyUsers(db)`; `page.jsx` (now an async Server Component) checks
+      it and renders a one-time `SetupForm` ("Set up your account": name,
+      email, password, confirm password) in place of the existing
+      `LoginForm` only while the `users` table has zero rows. This closes
+      the long-standing gap noted in earlier entries and in `CMS exit`
+      below — until now the only way to provision this single-user
+      product's one account was the `tooling/scripts/create-user.js` CLI.
+  - Evidence: `apps/cms-admin/test/account-setup.test.js`, 6/6 passing
+    against real Postgres (see next bullet for how). Read
+    `app/(admin)/login/page.jsx`, `LoginForm.jsx`, and `SetupForm.jsx`
+    directly to confirm the zero-users branch and matching OKLCH/
+    `page-narrow`/`card`/`form-field` visual language (copied unchanged
+    from the pre-existing `LoginForm`, styled by the same
+    `app/(admin)/globals.css`).
+- [x] `createInitialAccount(db, { email, password, displayName })` in the
+      same module does the actual provisioning: real validation (required
+      name, `EMAIL_PATTERN` format check, an 8-character password
+      minimum matching `packages/auth`'s own `hashPassword` invariant),
+      then creates the user + a personal organization + an owner
+      `organization_members` row — the exact same shape
+      `tooling/scripts/create-user.js` provisions from the CLI, so
+      `assertOrgMembership`/`assertSiteAccess` keep working unchanged.
+      The insert runs inside a Postgres transaction guarded by a
+      `pg_advisory_xact_lock` plus an in-transaction re-check of
+      `hasAnyUsers`, so this can only ever succeed once for a given
+      install: a second call — concurrent or after the fact — always
+      returns an error instead of creating a second account. A `23505`
+      (unique violation) is still caught defensively and turned into a
+      friendly "already registered" error rather than a raw driver
+      error. The new `setup()` Server Action
+      (`app/(admin)/login/actions.js`) calls this, then signs the new
+      account in exactly like `login()` does (same `getSessionManager()`
+      issue + `SESSION_COOKIE_NAME` cookie + redirect to `/sites`) — a
+      shared `issueSessionAndRedirect()` helper now backs both actions.
+  - Evidence: `account-setup.test.js` is real-Postgres-backed (not
+    mocked) but isolated from the shared dev database's already-nonempty
+    `users` table (every other integration test in this suite inserts
+    users permanently and never cleans up, so the real table is never
+    actually empty) by running each test against a throwaway Postgres
+    schema — created fresh, dropped at the end — reached through a
+    dedicated connection with `search_path` pointed at it, so the
+    unqualified `users`/`organizations`/`organization_members` table
+    names the app code and Drizzle schema use resolve to genuinely empty
+    tables. Confirms, against real Postgres: (a) `hasAnyUsers` is `false`
+    on a fresh install; (b) invalid submissions (blank name, bad email,
+    short password) are rejected before any row is written; (c)
+    `createInitialAccount` creates a real user (scrypt password hash),
+    organization, and owner membership, and the resulting user id can
+    issue and verify a real session via `createDrizzleSessionStore`/
+    `createSessionManager` — the same login path a successful sign-in
+    uses; (d) `hasAnyUsers` flips to `true` once that account exists; (e)
+    a second `createInitialAccount` call against the same schema is
+    refused with an "already been completed" error and leaves the table
+    at exactly one user; (f) two concurrent first submissions, issued
+    from two separate real Postgres connections against one fresh
+    schema, cannot both win — exactly one succeeds and the other is
+    refused, proving the advisory-lock guard under real concurrency, not
+    just sequential re-checks.
+  - Full `apps/cms-admin` suite run for regressions
+    (`corepack pnpm --filter @openforge/cms-admin test`): 83/85 passed;
+    the 2 failures were both in `test/block-add-smoke.test.js` (a
+    `.git/index.lock` contention / timeout under the full suite's
+    parallel file execution) — re-run in isolation
+    (`vitest run test/block-add-smoke.test.js`) and it passed 7/7,
+    consistent with the same pre-existing, previously-documented
+    concurrent-fixture flakiness noted elsewhere in this log, not a
+    regression from this change.
+  - Not done: no UI test exercises the Server Component branch
+    (`page.jsx`'s zero-users check) directly through a rendered page —
+    there's no existing convention in this app's test suite for
+    rendering Next.js Server Components, so this is covered at the
+    `hasAnyUsers`/`createInitialAccount` level instead, which is what
+    both `page.jsx` and `setup()` actually call.
+
 ### CMS exit
 
 - [x] A created site's page renders correctly end to end from a cold
@@ -1209,11 +1287,14 @@ load-bearing here and was explicitly deprioritized by the user.
       `@openforge/component-library` catalog of 47 further component
       variants also exists (CMS.14), though wiring it into the canvas
       palette was still in progress, uncommitted, as of this update —
-      see CMS.14 for what's verified versus what isn't yet.
+      see CMS.14 for what's verified versus what isn't yet. `/login` now
+      also handles first-run account creation itself (CMS.16) — the CLI
+      script remains the only way to provision a *second* account, by
+      design.
 - [~] `apps/api` authenticated CRUD (the admin UI writes directly through
       `packages/db` via Server Actions instead), custom-domain SSL
       automation, multi-language content, theme marketplace/registry,
-      media/asset upload, user registration UI, an org
+      media/asset upload, an org
       switcher/org-creation UI, menu item nesting, drag-to-insert
       directly from the canvas palette (deferred given the cross-iframe
       native-drag reliability question — inserting still works via a
@@ -1872,6 +1953,8 @@ Add entries newest first.
 
 | Date | Scope | Evidence | Result |
 |---|---|---|---|
+| 2026-09-12 | `apps/cms-admin/test/account-setup.test.js` (real Postgres, isolated schema) | `vitest run test/account-setup.test.js` | 6/6 passed |
+| 2026-09-12 | `apps/cms-admin` full test suite (not isolated) | `pnpm --filter @openforge/cms-admin test` | 83/85 passed; 2 failures in `test/block-add-smoke.test.js` (`.git/index.lock` contention/timeout under parallel file execution) traced to the same pre-existing concurrent-fixture flakiness noted below, not a regression — re-run isolated: 7/7 passed |
 | 2026-09-08 | `apps/cms-admin` block-editor + site-git tests (isolated run) | `vitest run test/block-add-smoke.test.js test/site-git.test.js` | 14/14 passed |
 | 2026-09-08 | `@openforge/cms-blocks` defaultProps regression | `pnpm --filter @openforge/cms-blocks test` | 139/139 passed |
 | 2026-09-08 | `@openforge/component-library` registry | `pnpm --filter @openforge/component-library test`; counted `allLibraryComponents.length` directly | 5/5 passed; 47 entries across 7 categories confirmed |
