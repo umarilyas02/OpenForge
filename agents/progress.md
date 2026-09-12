@@ -1,6 +1,6 @@
 # OpenForge Progress Tracker
 
-Last updated: 2026-09-08
+Last updated: 2026-09-12
 Current stage: the active workspace is now just one product,
 `apps/cms-admin` — a single-user, WordPress/Elementor-style CMS (grouped
 sidebar shell, live-canvas drag-and-drop editor with a Content/Style/
@@ -870,8 +870,9 @@ load-bearing here and was explicitly deprioritized by the user.
       else slug-subdomain) in a new tab.
 - [x] Menus (`sites/[siteId]/menus`): create a menu, add items
       (label/url), reorder via the same native HTML5 drag-and-drop
-      pattern as the block editor. Item nesting (`parentId`) stays
-      unused/flat this pass, explicitly deferred.
+      pattern as the block editor. Item nesting (`parentId`) stayed
+      unused/flat this pass, explicitly deferred — see CMS.16
+      (2026-09-12) for the pass that built it.
 - [x] Team (`/team`, top-level nav item — `organization_members` is
       org-scoped, not site-scoped, so this doesn't force a mismatched
       per-site Users page): list members, add an existing account by
@@ -1186,6 +1187,81 @@ load-bearing here and was explicitly deprioritized by the user.
     before any database query that would otherwise throw at the driver
     level.
 
+### CMS.16 Menu item nesting (2026-09-12)
+
+- [x] Built the deferral named in CMS.9: `menu_items.parentId` (already
+      present in the schema and its very first migration,
+      `packages/db/migrations/0000_swift_fenris.sql` — no new migration
+      was needed) is now a real, used dropdown/submenu structure instead
+      of flat/unused. New `apps/cms-admin/src/lib/menu-tree.js` is a
+      dependency-free pair of pure helpers — `buildMenuTree(items)` folds
+      the flat `{id, parentId, position}` rows into the nested tree the
+      UI edits, `flattenMenuTree(tree)` turns an edited tree back into
+      `{id, parentId, position}` triples to persist — shared by the
+      client `MenuItemList` component and the `menus/actions.js` server
+      actions so the nesting logic is defined and tested exactly once.
+- [x] `MenuItemList.jsx` rewritten on the same native HTML5
+      drag-and-drop pattern as `BlockList`/the block editor, extended to
+      one level of nesting: dragging a row over another row's top/bottom
+      band reorders it as a sibling; dragging over the middle band of a
+      *top-level* row nests it as that row's child (rendered indented
+      under its parent via a new `.menu-item-children` rule in
+      `globals.css`, bordered/indented the same way `.block-card-slot`
+      already indents a block's slot content). A row that already has
+      children can't itself become a child — that would need a second
+      level — so the drop is rejected rather than silently produced.
+      New items from `MenuItemAddForm` always land at the end of the top
+      level; nesting is a deliberate follow-up drag.
+- [x] `reorderMenuItems(menuId, tree)` in `menus/actions.js` changed
+      signature from "an ordered array of ids" to "the edited nested
+      tree", flattened server-side and written as one batch of
+      `{parentId, position}` updates per item — a single drag that both
+      renests an item under a different parent *and* reorders siblings
+      persists atomically from the caller's point of view.
+      `removeMenuItem` was extended too: `parent_id` has no DB-level
+      FK/cascade (see `packages/db/src/schema/menus.js`), so deleting a
+      top-level item that has children now promotes those children to
+      top level in its place (mirroring WordPress's own behavior)
+      instead of leaving them with a dangling `parentId`.
+  - Evidence: read the full diff of `menus/actions.js` and
+    `MenuItemList.jsx` directly to confirm the promotion/rejection logic
+    described above is what's actually implemented, not just described.
+- [x] Confirmed, by grepping the whole repo (`apps/cms-admin`,
+      `packages/cms-blocks`, `packages/renderer`, every `themes/*`,
+      including `future-work/`) for `schema.menus`/`menuItems`, that the
+      Menus admin CRUD feature has never been wired to anything that
+      renders a live site: `packages/cms-blocks`' `navbar` block takes
+      its own independent free-text `links` prop (`Label|href` per
+      line), and no theme template reads the `menus`/`menu_items` tables
+      at all. This is a pre-existing architectural gap, not something
+      introduced or fixed by this pass — extending "render nested items
+      as a real submenu" to the live site would mean designing that
+      wiring from scratch (a navbar block or theme template that
+      resolves a menu by `key` and renders its tree), which is a
+      separate, larger feature than nesting itself and was left alone
+      rather than half-built under this task.
+- [x] Tests: `apps/cms-admin/test/menu-tree.test.js` (7 unit tests, no
+      DB) covers `buildMenuTree`/`flattenMenuTree` directly — flat
+      input, nested input sorted correctly on both levels, an orphaned
+      `parentId` treated as top-level, position reassignment, and a
+      same-level reorder. `apps/cms-admin/test/menu-nesting-integration.test.js`
+      (4 tests, real Postgres, `describe.skipIf` when unreachable,
+      following `save-content-integration.test.js`'s existing pattern)
+      creates a nested structure and reads it back with correct
+      parent/child relationships, reorders within a nesting level
+      without disturbing the other level, moves a top-level item to
+      become a child and confirms the persisted row's `parentId`, and
+      confirms removing a parent promotes its children to top level in
+      the database.
+  - Evidence: `DATABASE_URL=postgres://openforge:openforge_dev_only@localhost:5432/openforge corepack pnpm --filter @openforge/cms-admin exec vitest run test/menu-tree.test.js test/menu-nesting-integration.test.js` — 11/11 passed. Full suite: `corepack pnpm --filter @openforge/cms-admin test` — 90/90 passed (12 files). Getting there required first running `corepack pnpm --filter @openforge/cms-blocks run build` to produce the `dist/standalone/*.jsx` files that four pre-existing, unrelated test files need (a pre-existing gap in this workspace — an unbuilt package, not caused by this change). `corepack pnpm --filter @openforge/cms-admin lint` and a targeted `prettier --check`/`--write` pass clean.
+  - No new Drizzle migration: `menu_items.parent_id` already existed as
+    of the very first migration; confirmed via
+    `packages/db/migrations/0000_swift_fenris.sql` and by inspecting
+    `packages/db/src/schema/menus.js` directly before writing any code.
+    Ran `corepack pnpm --filter @openforge/db run migrate` against the
+    local dev database regardless, to confirm it was fully up to date
+    before testing against it (`packages/db` test: 1/1 passed).
+
 ### CMS exit
 
 - [x] A created site's page renders correctly end to end from a cold
@@ -1214,13 +1290,15 @@ load-bearing here and was explicitly deprioritized by the user.
       `packages/db` via Server Actions instead), custom-domain SSL
       automation, multi-language content, theme marketplace/registry,
       media/asset upload, user registration UI, an org
-      switcher/org-creation UI, menu item nesting, drag-to-insert
-      directly from the canvas palette (deferred given the cross-iframe
-      native-drag reliability question — inserting still works via a
-      click, then drag-to-reorder into position), nested-slot drag
-      reorder on the canvas (Layers view only), `content_revisions`
-      browsing/restore — explicitly deferred, named so they aren't
-      silently dropped.
+      switcher/org-creation UI, drag-to-insert directly from the canvas
+      palette (deferred given the cross-iframe native-drag reliability
+      question — inserting still works via a click, then drag-to-reorder
+      into position), nested-slot drag reorder on the canvas (Layers view
+      only), `content_revisions` browsing/restore, wiring the Menus admin
+      entity into any live-site nav rendering (menu item nesting itself
+      was built — see CMS.16 — but no navbar block or theme template
+      reads the `menus`/`menu_items` tables at all yet) — explicitly
+      deferred, named so they aren't silently dropped.
 
 ## Phase 1 — Compatible Next.js project model
 
@@ -1872,6 +1950,8 @@ Add entries newest first.
 
 | Date | Scope | Evidence | Result |
 |---|---|---|---|
+| 2026-09-12 | Menu item nesting (`menu-tree.js`, `MenuItemList.jsx`, `menus/actions.js`) | `corepack pnpm --filter @openforge/cms-admin exec vitest run test/menu-tree.test.js test/menu-nesting-integration.test.js` (real Postgres) | 11/11 passed |
+| 2026-09-12 | `apps/cms-admin` full test suite (isolated run, after `cms-blocks` build) | `corepack pnpm --filter @openforge/cms-admin test` | 90/90 passed, 12/12 files |
 | 2026-09-08 | `apps/cms-admin` block-editor + site-git tests (isolated run) | `vitest run test/block-add-smoke.test.js test/site-git.test.js` | 14/14 passed |
 | 2026-09-08 | `@openforge/cms-blocks` defaultProps regression | `pnpm --filter @openforge/cms-blocks test` | 139/139 passed |
 | 2026-09-08 | `@openforge/component-library` registry | `pnpm --filter @openforge/component-library test`; counted `allLibraryComponents.length` directly | 5/5 passed; 47 entries across 7 categories confirmed |
