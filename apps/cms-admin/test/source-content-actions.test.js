@@ -11,6 +11,7 @@ vi.mock("../src/lib/site-workspace.js", async () => {
 });
 
 const { getWorkspaceManager } = await import("../src/lib/site-workspace.js");
+const { initSiteGit, listSiteCommits } = await import("../src/lib/site-git.js");
 const { buildStarterFiles } = await import("../src/lib/starter-template.js");
 const { findNodeById, parsePageToBlockTree } =
   await import("../src/lib/source-content-tree.js");
@@ -39,6 +40,8 @@ describe("source-content-actions — real files on a real workspace", () => {
       slug: SITE_SLUG,
     });
     await manager.create(SITE_SLUG, files);
+    const { rootPath } = await manager.describe(SITE_SLUG);
+    await initSiteGit(rootPath);
   });
 
   afterAll(async () => {
@@ -227,5 +230,17 @@ describe("source-content-actions — real files on a real workspace", () => {
       "openforge-cms.faq-item",
     );
     expect(findNodeById(tree, "node_0000000000000000")).toBeNull();
+  });
+
+  it("every save so far landed as a real git commit, oldest first", async () => {
+    const { rootPath } = await manager.describe(SITE_SLUG);
+    const commits = await listSiteCommits(rootPath, 100);
+
+    expect(commits.length).toBeGreaterThan(5);
+    // The very first save this suite made (in buildStarterFiles + create)
+    // isn't itself a commit — beforeAll only calls initSiteGit, not
+    // commitSiteChanges — so the oldest real commit here is the first
+    // action's own.
+    expect(commits.at(-1).message).toMatch(/openforge-cms\.cta/u);
   });
 });
