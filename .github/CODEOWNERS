@@ -1,0 +1,20 @@
+# CODEOWNERS
+#
+# Requires branch protection with "Require review from Code Owners" enabled
+# in repository settings for these rules to actually gate merges (a manual,
+# one-time GitHub settings step — not something a file alone can turn on).
+#
+# Last match wins, so more specific paths are listed after the catch-all.
+
+# Default owner for anything not matched below.
+* @umarilyas02
+
+# Governance, CI, and supply-chain configuration.
+/.github/ @umarilyas02
+
+# Primary product surface.
+/apps/cms-admin/ @umarilyas02
+
+# Security-sensitive packages: secret storage and auth/session boundary.
+/packages/integration-security/ @umarilyas02
+/packages/auth/ @umarilyas02
