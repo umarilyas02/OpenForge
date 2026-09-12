@@ -1,6 +1,6 @@
 # OpenForge Progress Tracker
 
-Last updated: 2026-09-08
+Last updated: 2026-09-12
 Current stage: the active workspace is now just one product,
 `apps/cms-admin` — a single-user, WordPress/Elementor-style CMS (grouped
 sidebar shell, live-canvas drag-and-drop editor with a Content/Style/
@@ -242,20 +242,178 @@ Status markers:
     field live-updates the canvas, dragging reorders blocks, and Save
     persists the new order, read back directly from the database. Full
     repo `pnpm check`: 78/78 tasks pass at every batch.
-- Note: between the entry above and the ones below, `apps/cms-admin`'s
-  content storage moved from database JSON to real, on-disk Next.js
-  project source files compiled through the same AST pipeline as the
-  static editor (git-backed workspaces — see `packages/workspace`'s
-  `WorkspaceManager`) — landed in commits `ca47ca6`, `d721a60`,
-  `768efc6`, `f3c468a`, `1b1f505` on 2026-09-04, and a WordPress-
-  familiar nav/theme rebuild, a Media Library with real uploads, a
-  Users > Add New flow, an icon/illustration pass, and a merged mobile
-  topbar landed on 2026-09-07 (`6ea1ef0`, `93949d7`, `e7d325c`,
-  `de70ffd`, `b48990f`). None of that is detailed with its own
-  evidence-backed entry here yet — this note exists so the entries
-  below (which assume file-backed sites) aren't read as inconsistent
-  with the DB-backed description above. Backfilling CMS.13/CMS.14-style
-  entries for that gap is left for a dedicated pass.
+- Objective (2026-09-04, same day continued): migrate `apps/cms-admin`'s
+  content storage from database JSON to real, on-disk Next.js project
+  source files compiled through the same AST pipeline as the static
+  editor (git-backed workspaces — `packages/workspace`'s
+  `WorkspaceManager`) — the prerequisite the CMS.12 entry above's
+  live-canvas work still needed, and the assumption every entry below
+  this one now depends on.
+  - Completed (`d721a60`): `packages/cms-blocks/src/
+    generate-standalone-block.js` turns a block's existing registered
+    source (function + `createCmsBlock` call) into a plain, importable
+    component file with zero CMS-registry code — the same single source
+    of truth, not a hand-authored second copy — rewriting any block that
+    reads a `slots` prop to read plain JSX `children` instead, since a
+    real source file passes nested content as children. New
+    `tooling/scripts/generate-block-files.js` runs this for all 38
+    blocks into `packages/cms-blocks/dist/standalone/` (gitignored build
+    output), wired into `cms-blocks`' own `build` script.
+  - Completed (`ca47ca6`): site creation now provisions a real,
+    buildable Next.js project via `WorkspaceManager` (`package.json`,
+    `next.config.js`, a starter `app/page.jsx` composed from two real
+    `cms-blocks` components) instead of a `content_items` row
+    referencing a theme; the site overview lists pages by reading the
+    workspace's real `app/**/page.jsx` files. Found and fixed a real
+    standalone-build gap along the way: `@openforge/cms-blocks` was only
+    ever reached via a dynamic, block-id-parameterized specifier, which
+    Next's file tracer silently failed to detect, omitting the package
+    from `.next/standalone` with no build-time warning — fixed via
+    `outputFileTracingIncludes` plus reading generated block files by
+    plain relative path instead of package-name resolution.
+  - Completed (`768efc6`): `parsePageToBlockTree`
+    (`apps/cms-admin/src/lib/source-content-tree.js`) parses a page's
+    real JSX source into the same `{blockId, blockVersion, props,
+    slots}` tree shape the canvas already renders, using
+    `@openforge/compiler`'s `buildProjectIndex` for node identity so a
+    node read here can be handed straight back as a write-side
+    operation's `target.nodeId`. A block's file identity now doubles as
+    its block id — every block component lives at
+    `components/openforge/<kebab-block-id>.jsx` — so recovering "which
+    block is this JSX tag" needs no separate lookup table.
+  - Completed (`f3c468a`): `setBlockProps`/`moveBlock`/`removeBlock`/
+    `insertBlock` (`source-content-actions.js`) translate the canvas's
+    editing interactions into real `@openforge/compiler` operations
+    (`set-jsx-attribute`, `move-jsx`, `remove-jsx`, `add-import` +
+    `insert-jsx`) applied against a site's real page files and saved
+    back through `WorkspaceManager`'s revisioned `saveFile`. Every
+    page's root became a real `<main>` element rather than a bare
+    fragment (a fragment can only be targeted with before/after, not
+    inside-start/inside-end, so an emptied page would have nowhere for
+    the next block to land); new block instances always render
+    non-self-closing for the same reason. Handles a real correctness
+    hazard: adding an import shifts every later node's id in that file
+    (a node's id is partly derived from its position among the file's
+    top-level statements) — `insertBlock` locates its container by
+    structural tree address before `ensureBlockAvailable` runs and
+    re-resolves that address afterward, rather than trusting a node id
+    across an operation that can invalidate it.
+  - Completed (`1b1f505`): new `/sites/[siteId]/pages/editor` route loads
+    a page's real block tree (`parsePageToBlockTree`) and renders it
+    through `CanvasEditor`/`BlockList` — every prop edit, drag reorder,
+    ↑/↓ move, insert, and remove now applies immediately as a real
+    compiler operation on the site's own files (no local draft, no
+    separate Save button), then replaces local state with the freshly
+    re-parsed tree the server action returns. `CanvasEditor`/`BlockList`
+    moved from array-index paths + a single `onChange(nextTree)` to
+    explicit node-id-addressed callbacks
+    (`onPropsChange`/`onMove`/`onInsert`/`onRemove`) matching
+    `source-content-actions.js`'s API directly; `/canvas` itself stayed
+    array-path-addressed internally, with `CanvasEditor` bridging the two
+    protocols so the postMessage contract didn't need to change. Fixed a
+    real gap found while wiring this up: `@openforge/renderer`'s
+    content-tree schema is strict and rejected the app's own `id` field
+    once included in a page's block-tree nodes, breaking every canvas
+    render until it was stripped before crossing the iframe boundary.
+  - Evidence: `apps/cms-admin/test/source-content-tree.test.js` and
+    `test/source-content-actions.test.js` exercise this exact pipeline
+    against a real git-backed workspace (parsing the generated starter
+    page, node-id assignment matching `buildProjectIndex`, insert/
+    move/remove/setBlockProps, the stale-node-id-after-import-shift
+    rejection case, and reusing an already-imported block). Re-run in
+    this pass on 2026-09-12 after regenerating
+    `packages/cms-blocks/dist/standalone/` (`corepack pnpm --filter
+    @openforge/cms-blocks run build` — required first on a fresh
+    checkout/worktree since it's gitignored build output; without it
+    every test in this area fails with `ENOENT ... dist/standalone/
+    hero.jsx`, a build-order issue, not a defect in this work):
+    `corepack pnpm --filter @openforge/cms-admin exec vitest run
+    test/source-content-tree.test.js test/source-content-actions.test.js
+    test/block-add-smoke.test.js` — 23/23 tests pass. Full
+    `apps/cms-admin` suite re-verified the same way: `corepack pnpm
+    --filter @openforge/cms-admin test` — 79/79 tests pass across all 10
+    test files (no `.git/index.lock` contention this run).
+- Objective (2026-09-07): a WordPress-familiar nav/theme rebuild, a
+  working Media Library, a Users > Add New flow, an icon/illustration
+  pass, and a merged mobile topbar for `apps/cms-admin`.
+  - Completed (`6ea1ef0`): `AppShell.jsx`'s sidebar restructured into
+    flat top-level items (Dashboard, Posts, Media, Pages, Content,
+    Extensions, Users, Tools, Settings) plus an expandable Appearance
+    section (Themes, Site Editor, Customize, Menus, Design Tokens),
+    matching the mental model developers already know from WordPress;
+    "View site" and the signed-in user moved into a new light topbar
+    with a sign-out dropdown. The admin reskinned from the prior dark
+    theme to a light, editorial system (warm off-white surfaces,
+    monochrome accent, tight radii, subtle shadows) while keeping the
+    sidebar dark and the existing Geist font stack untouched.
+    `packages/design-tokens`'s save action generalized to cover every
+    token type it already models (color, spacing, radius, typography,
+    shadow — previously color-only), backing a new Design Tokens page
+    (`DesignTokensForm.jsx`) grouped into Foundations sections with a
+    live-updating preview panel. Dashboard, Posts, Media, Content,
+    Users, and Tools added as real pages backed by existing data
+    (`content_items`, `assets`, `organization_members`); Appearance/
+    Themes and Site Editor added as thin pages over the existing theme
+    installation and canvas editor.
+  - Completed (`93949d7`): a real Users > Add New flow
+    (`users/actions.js`, `AddUserForm.jsx`) — creates the account (with
+    a one-time temporary password, since there's no outbound email in
+    this install yet) if it doesn't exist, adds them to the site's
+    organization with a chosen role, and guards against re-adding an
+    existing member.
+  - Completed (`e7d325c`): the dark mobile-only topbar and the light
+    desktop topbar were both rendering at narrow widths, stacking
+    redundantly — folded the hamburger button into the single
+    `.app-topbar` (hidden on desktop via CSS, shown under 900px) so
+    there's one topbar at every width, with "View site" and the user
+    menu still reachable on mobile.
+  - Completed (`de70ffd`): every inline nav/chevron/hamburger/logout SVG
+    in the admin replaced with `lucide-react`; new
+    `EmptyIllustration.jsx` adds flat, single-tone empty-state variants
+    (pages, media, content, puzzle, browser, clock) redrawn with the
+    admin's own CSS tokens rather than unDraw's stock palette, wired into
+    every true empty state (Pages, Media, Content, Posts, Extensions, and
+    both empty states on the Sites list).
+  - Completed (`b48990f`): Media turned from a read-only list into a
+    working upload feature. `packages/db` gained a nullable
+    `assets.external_id` column + unique index (migration
+    `0001_chemical_mentor.sql`), since `@openforge/storage`'s asset
+    manager mints its own `asset_<hash>` ids that don't fit the existing
+    uuid primary key. New `src/lib/asset-blob-storage.js` (local-disk
+    object storage: bytes + a JSON metadata sidecar, rooted in a sibling
+    directory of `SITES_STORAGE_PATH`), `asset-db-storage.js` (a Drizzle
+    adapter satisfying `@openforge/storage`'s asset-manager storage
+    contract), and `asset-manager.js` (wires the above together with
+    `@openforge/storage`'s `createPythonAssetAnalyzer` against the
+    already-built, already-tested CLI at
+    `services/python-analysis/app/processors/analyze_image.py`, plus an
+    HMAC URL signer using a process-lifetime signing secret — a restart
+    invalidates outstanding signed links, an accepted tradeoff since
+    they're always re-derived on render with a short TTL). New top-level
+    `app/assets/[...key]/route.js` (deliberately outside the `(admin)`
+    auth group) serves bytes to `<img>` tags, authorized by the HMAC
+    signature alone. `media/actions.js` + `UploadAssetForm.jsx` are the
+    real upload form/action; `media/page.jsx` now renders real signed
+    thumbnails.
+  - Evidence: no dedicated automated test file exists for this batch —
+    per the commit's own message, it was verified end to end live (real
+    Postgres, a real Python subprocess call for image analysis outside
+    the browser, correctly-shaped w640/w1280 WebP variants, signed URLs
+    that verify and reject tampering, bytes round-tripping through blob
+    storage, and sha256 dedup correctly flagging a re-upload), not via
+    vitest. Confirmed in this backfill pass by reading the shipped code
+    directly: `apps/cms-admin/src/components/AppShell.jsx`,
+    `DesignTokensForm.jsx`, `app/(admin)/(app)/sites/[siteId]/users/
+    actions.js`, `AddUserForm.jsx`, `src/lib/asset-manager.js`,
+    `asset-blob-storage.js`, `asset-db-storage.js`, `app/assets/
+    [...key]/route.js`. This batch touches no code path any existing
+    automated test exercises; the full `apps/cms-admin` suite (79/79,
+    see the entry above) is unaffected either way.
+  - Migration status: `packages/db/migrations/0001_chemical_mentor.sql`
+    (the `assets.external_id` column + index) is generated and present
+    with a matching `meta/0001_snapshot.json`/`_journal.json` entry;
+    whether it has been applied to any running dev database was not
+    independently verified in this backfill pass.
 - Objective (2026-09-07): the block library's `defaultProps` had never
   actually been checked against each block's own required-field
   validation, and `/canvas` rendered the whole page tree inside one
@@ -1858,13 +2016,12 @@ load-bearing here and was explicitly deprioritized by the user.
   recorded evidence of its own — verify and commit it (or pick it back
   up) before treating "insert from the component library" as a real,
   working feature.
-- The gap between CMS.12 (2026-09-04) and CMS.13 (2026-09-07) — moving
-  site content from database JSON to real on-disk Next.js project files,
-  a WordPress-familiar nav/theme rebuild, a Media Library with real
-  uploads, a Users > Add New flow, an icon/illustration pass, and a
-  merged mobile topbar — landed on `main` but has no evidence-backed
-  `progress.md` entry of its own yet (see the note under "Current
-  handoff" above). Backfill it in a dedicated pass.
+- `packages/db/migrations/0001_chemical_mentor.sql` (`assets.external_id`)
+  is generated but its application to any running dev database was not
+  verified in the 2026-09-12 backfill pass that documented the Media
+  Library upload feature it supports — confirm with `drizzle-kit
+  migrate` (or equivalent) before relying on real uploads against a real
+  database.
 
 ## Verification log
 
@@ -1872,6 +2029,8 @@ Add entries newest first.
 
 | Date | Scope | Evidence | Result |
 |---|---|---|---|
+| 2026-09-12 | `apps/cms-admin` full test suite (backfill pass for the CMS.12→CMS.13 gap) | `corepack pnpm --filter @openforge/cms-blocks run build` (regenerates gitignored `dist/standalone/`) then `corepack pnpm --filter @openforge/cms-admin test` | 79/79 passed across 10 test files |
+| 2026-09-12 | `apps/cms-admin` file-backed page editor tests (isolated run) | `vitest run test/source-content-tree.test.js test/source-content-actions.test.js test/block-add-smoke.test.js` | 23/23 passed |
 | 2026-09-08 | `apps/cms-admin` block-editor + site-git tests (isolated run) | `vitest run test/block-add-smoke.test.js test/site-git.test.js` | 14/14 passed |
 | 2026-09-08 | `@openforge/cms-blocks` defaultProps regression | `pnpm --filter @openforge/cms-blocks test` | 139/139 passed |
 | 2026-09-08 | `@openforge/component-library` registry | `pnpm --filter @openforge/component-library test`; counted `allLibraryComponents.length` directly | 5/5 passed; 47 entries across 7 categories confirmed |
