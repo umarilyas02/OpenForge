@@ -1004,6 +1004,78 @@ Status markers:
     incident runbooks, license/container/SBOM scanning, DCO/CLA and
     trademark decisions. Phase 6 in the checklist below is still `[ ]` for
     everything except what this entry just checked off.
+- Objective (2026-09-17, same day continued): "continue" -- picked up the
+  next slice of the hardening work: a real backup/restore drill, and an
+  accessibility lint pass over `apps/cms-admin`.
+  - Completed: a genuine backup/restore drill against the real
+    development database, documented as `docs/cms-backup-and-restore.md`.
+    Not a dry run or a doc written from reasoning alone -- `pg_dump`'d the
+    live dev `DATABASE_URL` (via a disposable `postgres:18-alpine`
+    container, since no local `pg_dump` binary exists on this machine),
+    restored it into a fresh throwaway Postgres container, and diffed row
+    counts directly between source and restored for every table with data
+    (`users`, `organizations`, `sites`, etc.) -- exact match, all 15 tables
+    present. Found along the way that the real dev database is Postgres
+    18, not 16 -- `docker/compose/docker-compose.yml`'s `postgres` service
+    (added earlier this same day) was pinned to `postgres:16-alpine`,
+    which would have made a real restore drill against a local compose
+    stack fail outright (`pg_dump`/`pg_restore` refuse a newer major
+    source than their own version); repinned to `postgres:18-alpine` and
+    corrected `STACK.md` to match. The throwaway container and the dump
+    file were deleted immediately after (the dump held real password
+    hashes and session data). Not yet drilled: restoring
+    `SITES_STORAGE_PATH` itself (no real site files existed in this
+    environment's storage path to exercise against) and a combined
+    from-scratch restore of both stores together.
+  - Completed: added `eslint-plugin-jsx-a11y` (recommended rules),
+    scoped to `apps/cms-admin/**/*.jsx` for now -- `packages/cms-blocks`
+    and `themes/*` render real JSX too and deserve the same pass, tracked
+    as a follow-up rather than folded in unreviewed. Found 4 real
+    findings, all in the live canvas's `wrapNode`/background click
+    handlers (`app/(canvas)/canvas/page.jsx`) -- the one part of this
+    product that behaves like a design tool (Figma/Webflow-style
+    click-to-select), which turned out to have *zero* keyboard support
+    for block selection or deselection.
+    - Fixed the background click-to-deselect handler for real: added a
+      window-level Escape-key listener that calls the same
+      `clearSelection()` the background click already used, then
+      confirmed with a real Playwright browser test (not just lint
+      passing) that Escape actually clears a selection made by mouse
+      click, via the same `postMessage` contract the parent editor reads.
+    - Attempted a real fix for block-selection keyboard support
+      (`role="button"`, `tabIndex`, `onKeyDown` on `wrapNode`'s wrapper)
+      and, importantly, **tested it instead of trusting it**: a live
+      Playwright keyboard-tab test proved it does not actually work --
+      `wrapNode`'s wrapper is `display: contents` (required so CSS
+      sibling/child selectors reach through it for drag-highlight
+      styling), and a `display: contents` element cannot receive keyboard
+      focus in Chromium even with `tabIndex` set. Reverted the
+      non-functional attempt rather than ship code that looks accessible
+      but isn't; the finding is now a targeted, honestly-reasoned
+      `eslint-disable` comment (explaining the real technical constraint
+      and pointing at this entry) instead of a suppressed rule or a fake
+      fix. A real fix needs a small layout redesign (moving the
+      click/focus target off the `display: contents` wrapper) -- left
+      explicitly open below rather than attempted under time pressure.
+    - Incidental find during this pass, unrelated to accessibility: the
+      Next.js 16.3.5 upgrade earlier today turned out to auto-generate an
+      `apps/cms-admin/AGENTS.md` + `CLAUDE.md` pair on every `next dev`
+      (a new built-in "warn agents this Next version may differ from
+      training data" feature -- see
+      `node_modules/next/dist/server/lib/generate-agent-files.js`). A
+      nested `CLAUDE.md` inside `apps/cms-admin/` would shadow/compete
+      with this repo's own carefully maintained root `CLAUDE.md` for any
+      agent working in that directory, so it's disabled via
+      `next.config.js`'s new `agentRules: false`, verified by re-running
+      `next dev` and confirming neither file reappears.
+  - Verified: full repo lint (26/26 tasks) and the full `apps/cms-admin`
+    test suite (86/86) both pass unchanged after all of the above.
+  - Not done, still open: the same `jsx-a11y` pass for
+    `packages/cms-blocks`/`themes/*`; the actual layout fix for
+    keyboard-focusable block selection on the canvas; every other Phase 6
+    item not already checked off in the entry above (WCAG audit proper,
+    threat model, performance benchmarks, operational logging/runbooks,
+    license/SBOM scanning).
 
 ## Planning and scaffolding
 
@@ -2271,7 +2343,12 @@ the 0.1/0.7 sections above).
 ### 6.1 Reliability
 
 - [ ] Retry/dead-letter and idempotency.
-- [ ] Backup/restore drills.
+- [-] Backup/restore drills.
+  - Evidence: real `pg_dump`/`pg_restore` drill against the live dev
+    database, 2026-09-17 — see "Current handoff" and
+    `docs/cms-backup-and-restore.md`. Postgres side verified end to end
+    (row counts matched exactly); `SITES_STORAGE_PATH` restore and a
+    combined from-scratch drill are still undone.
 - [ ] Migration recovery.
 - [ ] Artifact/workspace cleanup.
 
@@ -2305,7 +2382,15 @@ the 0.1/0.7 sections above).
 ### 6.4 Accessibility
 
 - [ ] WCAG 2.2 AA audit.
-- [ ] Keyboard/screen reader.
+- [-] Keyboard/screen reader.
+  - Evidence: `eslint-plugin-jsx-a11y` added and scoped to
+    `apps/cms-admin/**/*.jsx`, 2026-09-17 — see "Current handoff". Found
+    and fixed real keyboard-deselect support in the live canvas (Escape
+    key), verified with a real Playwright test, not just lint passing.
+    Found, attempted, tested, and honestly reverted a non-working fix for
+    block-selection keyboard focus (a `display: contents` layout
+    constraint) — real fix still open. `packages/cms-blocks`/`themes/*`
+    not yet linted with this plugin; no screen-reader testing done.
 - [ ] Contrast/focus/status/reduced motion.
 - [ ] Official block contract.
 

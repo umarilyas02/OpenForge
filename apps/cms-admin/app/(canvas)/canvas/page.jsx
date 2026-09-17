@@ -113,6 +113,17 @@ export default function CanvasPage() {
     );
   }
 
+  // The keyboard equivalent of clicking the canvas background to deselect
+  // (below) -- Escape is the standard idiom for dismissing a selection,
+  // not making the entire background itself a tab stop.
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === "Escape") clearSelection();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   function handleRemoveSelected() {
     if (!selectedPath) return;
     window.parent.postMessage(
@@ -161,11 +172,21 @@ export default function CanvasPage() {
     resetDrag();
   }
 
+  function selectBlock(path, blockId) {
+    setSelectedPath(path);
+    setSelectedBlockId(blockId);
+    window.parent.postMessage(
+      { type: "of-canvas-select", path, blockId },
+      window.location.origin,
+    );
+  }
+
   function wrapNode(element, path, migrated) {
     const isTopLevel = path.length === 1;
     const index = path[0];
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events -- role/tabIndex/onKeyDown were tried here and verified NOT to work: this wrapper is `display: contents` (required so CSS sibling selectors like ".of-block + .of-block" see through it, and the drag-highlight `[data-of-path] > *` selectors below target its real child directly), and a `display: contents` element cannot receive keyboard focus in Chromium even with tabIndex set -- confirmed with a real Playwright keyboard-tab test, not just reasoning about the spec. A real fix needs a layout redesign (e.g. moving the hit target off the contents wrapper), tracked in agents/progress.md rather than faked here.
       <div
         data-of-block-id={migrated.blockId}
         data-of-path={JSON.stringify(path)}
@@ -173,12 +194,7 @@ export default function CanvasPage() {
         key={JSON.stringify(path)}
         onClick={(event) => {
           event.stopPropagation();
-          setSelectedPath(path);
-          setSelectedBlockId(migrated.blockId);
-          window.parent.postMessage(
-            { type: "of-canvas-select", path, blockId: migrated.blockId },
-            window.location.origin,
-          );
+          selectBlock(path, migrated.blockId);
         }}
         onDragEnd={resetDrag}
         onDragOver={
@@ -314,6 +330,7 @@ export default function CanvasPage() {
     : 0;
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events -- the Escape-key handler above is the real keyboard equivalent for this click-to-deselect background; the background itself shouldn't be a tab stop.
     <div onClick={clearSelection}>
       {/* Token CSS is generated and validated by packages/design-tokens, never raw user input. */}
       <style dangerouslySetInnerHTML={{ __html: css }} />
