@@ -1,6 +1,6 @@
 # OpenForge Progress Tracker
 
-Last updated: 2026-09-12
+Last updated: 2026-09-17
 Current stage: the active workspace is now just one product,
 `apps/cms-admin` — a single-user, WordPress/Elementor-style CMS (grouped
 sidebar shell, live-canvas drag-and-drop editor with a Content/Style/
@@ -847,6 +847,57 @@ Status markers:
     real commit; worth a real investigation of `WorkspaceManager`/
     `initSiteGit` path resolution under concurrent test runs if this
     recurs.
+- Objective (2026-09-17): pick up two long-standing "not started" backlog
+  items from the CMS.13/CMS.17-era entries above — content revision
+  browsing/restore, and a production Dockerfile for `apps/cms-admin` (the
+  one active product; only the shelved `cms-renderer` ever had one) — and
+  apply the pending `assets.external_id` migration this file had flagged
+  unverified since 2026-09-12.
+  - Completed: `restoreSiteToCommit` (`site-git.js`) restores a site's real
+    files to an earlier commit's content and records the result as a new
+    forward commit (checks out the target tree, then explicitly removes any
+    path added since it, since `git checkout <hash> -- .` alone never
+    deletes) — history only ever moves forward, so a restore is itself
+    restorable and nothing needs force-pushing. Wired into Settings >
+    History as a per-commit Restore button (`RestoreCommitForm.jsx`,
+    confirm-before-submit matching `ActivateThemeForm`'s existing pattern).
+  - Found and fixed a real bug this surfaced, not specific to the new
+    feature: this machine's Git for Windows ships `core.autocrlf=true` as
+    its *system*-level default (common on Windows installs), which silently
+    rewrites a checked-out file's line endings -- a real risk for any
+    git-backed site workspace given the architecture's "source is
+    authoritative" guarantee, first caught by a restore test comparing
+    exact file bytes. `initSiteGit` now forces `core.autocrlf=false` on
+    every new site repo.
+  - Completed: `apps/cms-admin/Dockerfile`, adapted from the shelved
+    `future-work/cms-renderer/Dockerfile` template (multi-stage, standalone
+    Next.js output, non-root user). Found and fixed a real build failure
+    while verifying it, not just writing it from the template: the
+    originally-copied `corepack pnpm exec turbo run build --filter=...`
+    step failed on every workspace dependency inside the Alpine build stage
+    with "unable to spawn child process: No such file or directory" --
+    isolated interactively (a debug image built from the Dockerfile's own
+    `deps` stage, `docker run` shells into it) to Turborepo 2.10.7
+    constructing each task's command as a package-relative
+    `./node_modules/.bin/pnpm`, which pnpm's isolated workspace
+    `node_modules` layout only ever creates at the repo root, never inside
+    an individual package -- confirmed the same `pnpm run build` succeeds
+    when invoked directly. Replaced with `pnpm --filter
+    "@openforge/cms-admin..." run build` (pnpm's own recursive,
+    dependency-ordered filter), verified clean end to end: the image builds
+    with no cache, boots, and its `/login` route returns HTTP 200.
+  - Completed: applied `packages/db/migrations/0001_chemical_mentor.sql`
+    (the `assets.external_id` column/index backing Media Library uploads,
+    generated 2026-09-07 but never confirmed applied) via `drizzle-kit
+    migrate` against the actual dev `DATABASE_URL`
+    (`apps/cms-admin/.env.local` points at) -- succeeded with no pending
+    migrations left.
+  - Not started (unchanged): user registration UI (still login-only, no
+    `/register` route; `tooling/scripts/create-user.js` remains the sole
+    provisioning path), menu item nesting (`menuItems.parentId` exists in
+    the schema already, `MenuItemList.jsx`/`MenuItemAddForm.jsx` are still
+    flat with no parent-selection UI).
+  - Evidence: see the two 2026-09-17 rows in the Verification log below.
 
 ## Planning and scaffolding
 
@@ -2239,16 +2290,21 @@ the 0.1/0.7 sections above).
   default import generated for components that are all named exports)
   and no test coverage; both fixed, see CMS.14 and the 2026-09-12
   "Current handoff" entry.
-- `packages/db/migrations/0001_chemical_mentor.sql` (`assets.external_id`)
+- ~~`packages/db/migrations/0001_chemical_mentor.sql` (`assets.external_id`)
   is generated but its application to any running dev database was not
   verified in the 2026-09-12 backfill pass that documented the Media
   Library upload feature it supports — confirm with `drizzle-kit
   migrate` (or equivalent) before relying on real uploads against a real
-  database.
+  database.~~ Resolved 2026-09-17: ran `drizzle-kit migrate` against the
+  same dev `DATABASE_URL` `apps/cms-admin/.env.local` points at —
+  `[✓] migrations applied successfully!`, no errors.
 
 ## Verification log
 
 Add entries newest first.
+
+| 2026-09-17 | `apps/cms-admin` production Dockerfile (real `docker build` + `docker run`, not just static review) | `docker build -f apps/cms-admin/Dockerfile -t openforge-cms-admin .` from repo root; `docker run` the built image on a free port with a fake `DATABASE_URL`; `curl http://localhost:<port>/login` | First build attempt failed for real (`turbo run build --filter=...` errors "unable to spawn child process" inside Alpine for every workspace dependency, isolated interactively to Turborepo 2.10.7 constructing a package-relative `./node_modules/.bin/pnpm` that pnpm's workspace layout never creates per-package) — switched the build step to `pnpm --filter "@openforge/cms-admin..." run build` (pnpm's own recursive, dependency-ordered filter), confirmed working directly in the same container before changing the Dockerfile. Rebuilt clean: all dependencies + `next build` succeeded, image ran, `/login` returned HTTP 200 |
+| 2026-09-17 | `apps/cms-admin` site history restore (`restoreSiteToCommit`) | `vitest run test/site-git.test.js` in isolation; full suite via `corepack pnpm --filter @openforge/cms-admin test` after regenerating `dist/standalone/`; `eslint` on every changed file | 9/9 site-git tests passed (incl. a file-content round trip and a rejected malformed hash); full suite 80/80 non-skipped passed; lint clean |
 
 | Date | Scope | Evidence | Result |
 |---|---|---|---|
