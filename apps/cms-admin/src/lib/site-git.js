@@ -13,11 +13,19 @@ async function git(rootPath, args) {
   return run("git", args, { cwd: rootPath });
 }
 
-/** Real git history, local to the server's disk -- no GitHub connection required for this. */
+/**
+ * Real git history, local to the server's disk -- no GitHub connection
+ * required for this. `core.autocrlf` is forced off: this repo's own source
+ * is authoritative (see CLAUDE.md), so a checkout/restore must reproduce a
+ * committed file byte-for-byte -- a machine with Git for Windows' common
+ * system-wide `core.autocrlf=true` default would otherwise silently
+ * rewrite every text file's line endings on checkout.
+ */
 export async function initSiteGit(rootPath) {
   await git(rootPath, ["init"]);
   await git(rootPath, ["config", "user.name", COMMITTER_NAME]);
   await git(rootPath, ["config", "user.email", COMMITTER_EMAIL]);
+  await git(rootPath, ["config", "core.autocrlf", "false"]);
 }
 
 /**
@@ -71,6 +79,41 @@ export async function pushSiteChanges(rootPath, { remoteUrl, branch, token }) {
  */
 export function buildGitHubRemoteUrl({ owner, repo }) {
   return `https://github.com/${owner}/${repo}.git`;
+}
+
+const COMMIT_HASH_PATTERN = /^[0-9a-f]{4,40}$/iu;
+
+/**
+ * Restores the working tree to exactly match an earlier commit, then
+ * records that as a new commit -- history only ever moves forward, so a
+ * restore can itself be undone by restoring to a later hash, and nothing
+ * needs force-pushing. `git checkout <hash> -- .` alone would recreate or
+ * update every path that exists at <hash>, but silently leaves behind any
+ * path that was added *after* <hash> (checkout only ever adds/updates, it
+ * never deletes) -- those are removed explicitly first.
+ *
+ * @param {string} rootPath
+ * @param {string} hash
+ */
+export async function restoreSiteToCommit(rootPath, hash) {
+  if (!COMMIT_HASH_PATTERN.test(hash)) {
+    throw new Error(`Not a valid commit hash: ${hash}`);
+  }
+
+  const { stdout } = await git(rootPath, [
+    "diff",
+    "--name-only",
+    "--diff-filter=A",
+    hash,
+    "HEAD",
+  ]);
+  const addedSinceHash = stdout.trim().split("\n").filter(Boolean);
+  if (addedSinceHash.length > 0) {
+    await git(rootPath, ["rm", "-f", "--ignore-unmatch", "--", ...addedSinceHash]);
+  }
+
+  await git(rootPath, ["checkout", hash, "--", "."]);
+  await commitSiteChanges(rootPath, `Restore to ${hash}`);
 }
 
 export async function listSiteCommits(rootPath, limit = 20) {

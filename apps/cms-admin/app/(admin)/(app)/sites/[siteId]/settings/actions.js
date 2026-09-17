@@ -19,6 +19,7 @@ import {
   buildGitHubRemoteUrl,
   commitSiteChanges,
   pushSiteChanges,
+  restoreSiteToCommit,
 } from "../../../../../../src/lib/site-git.js";
 import { getWorkspaceManager } from "../../../../../../src/lib/site-workspace.js";
 
@@ -85,6 +86,36 @@ export async function updateSiteSettings(siteId, _prevState, formData) {
   } catch {
     return {
       error: "That slug or custom domain is already in use by another site.",
+      ok: false,
+    };
+  }
+
+  return { error: null, ok: true };
+}
+
+/**
+ * Restores the site's real files to an earlier commit's content, recorded
+ * as a new forward commit (see restoreSiteToCommit's own doc for why).
+ *
+ * @param {string} siteId
+ * @param {string} hash
+ */
+export async function restoreSiteCommit(siteId, hash) {
+  const user = await requireUser();
+  const site = await loadAuthorizedSite(siteId, user);
+
+  let rootPath;
+  try {
+    ({ rootPath } = await getWorkspaceManager().describe(site.slug));
+  } catch {
+    return { error: "This site has no workspace files yet.", ok: false };
+  }
+
+  try {
+    await restoreSiteToCommit(rootPath, hash);
+  } catch (error) {
+    return {
+      error: `Restore failed: ${String(error.message || error).slice(0, 300)}`,
       ok: false,
     };
   }

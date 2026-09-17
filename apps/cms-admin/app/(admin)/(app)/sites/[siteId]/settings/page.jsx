@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
 import { GitHubConnectionPanel } from "../../../../../../src/components/GitHubConnectionPanel.jsx";
+import { RestoreCommitForm } from "../../../../../../src/components/RestoreCommitForm.jsx";
 import { SiteSettingsForm } from "../../../../../../src/components/SiteSettingsForm.jsx";
 import { getDb } from "../../../../../../src/lib/db.js";
 import {
@@ -17,6 +18,7 @@ import {
   disconnectGitHub,
   getSiteGitConnection,
   pushToGitHub,
+  restoreSiteCommit,
   updateSiteSettings,
 } from "./actions.js";
 
@@ -91,7 +93,7 @@ export default async function SiteSettingsPage({ params }) {
           <p className="muted">No history yet.</p>
         ) : (
           <div className="card">
-            {commits.map((commit) => (
+            {commits.map((commit, index) => (
               <div className="list-row" key={commit.hash}>
                 <div>
                   <div className="list-row-title">{commit.message}</div>
@@ -99,6 +101,14 @@ export default async function SiteSettingsPage({ params }) {
                     {commit.hash} · {commit.date}
                   </div>
                 </div>
+                {index === 0 ? null : (
+                  <RestoreCommitForm
+                    hash={commit.hash}
+                    message={commit.message}
+                    restoreSiteCommit={restoreSiteCommit}
+                    siteId={site.id}
+                  />
+                )}
               </div>
             ))}
           </div>

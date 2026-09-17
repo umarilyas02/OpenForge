@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 
@@ -11,6 +11,7 @@ import {
   initSiteGit,
   listSiteCommits,
   pushSiteChanges,
+  restoreSiteToCommit,
 } from "../src/lib/site-git.js";
 
 const run = promisify(execFile);
@@ -106,6 +107,55 @@ describe("site-git", () => {
 
       const config = await run("git", ["-C", ROOT, "config", "--list"]);
       expect(config.stdout).not.toMatch(/unused-for-a-local-remote/u);
+    });
+  });
+
+  describe("restoreSiteToCommit", () => {
+    const RESTORE_ROOT = "./data/test-site-git-restore";
+
+    beforeAll(async () => {
+      await rm(RESTORE_ROOT, { force: true, recursive: true });
+      await mkdir(RESTORE_ROOT, { recursive: true });
+      await initSiteGit(RESTORE_ROOT);
+    });
+
+    afterAll(async () => {
+      await rm(RESTORE_ROOT, { force: true, recursive: true });
+    });
+
+    it("restores edited content, recreates a since-deleted file, and removes a since-added file, as a new forward commit", async () => {
+      await writeFile(`${RESTORE_ROOT}/page.jsx`, "export default function Page() { return 1; }\n");
+      await writeFile(`${RESTORE_ROOT}/keep.jsx`, "export const keep = true;\n");
+      await commitSiteChanges(RESTORE_ROOT, "First version");
+      const [{ hash: firstHash }] = await listSiteCommits(RESTORE_ROOT, 1);
+
+      await writeFile(`${RESTORE_ROOT}/page.jsx`, "export default function Page() { return 2; }\n");
+      await rm(`${RESTORE_ROOT}/keep.jsx`);
+      await writeFile(`${RESTORE_ROOT}/extra.jsx`, "export const extra = true;\n");
+      await commitSiteChanges(RESTORE_ROOT, "Second version");
+
+      await restoreSiteToCommit(RESTORE_ROOT, firstHash);
+
+      expect(await readFile(`${RESTORE_ROOT}/page.jsx`, "utf8")).toBe(
+        "export default function Page() { return 1; }\n",
+      );
+      expect(await readFile(`${RESTORE_ROOT}/keep.jsx`, "utf8")).toBe(
+        "export const keep = true;\n",
+      );
+      await expect(access(`${RESTORE_ROOT}/extra.jsx`)).rejects.toThrow();
+
+      const commits = await listSiteCommits(RESTORE_ROOT);
+      expect(commits).toHaveLength(3);
+      expect(commits[0].message).toBe(`Restore to ${firstHash}`);
+
+      const status = await run("git", ["-C", RESTORE_ROOT, "status", "--porcelain"]);
+      expect(status.stdout.trim()).toBe("");
+    });
+
+    it("rejects a hash that doesn't look like a real git object id", async () => {
+      await expect(
+        restoreSiteToCommit(RESTORE_ROOT, "--upload-pack=evil"),
+      ).rejects.toThrow(/not a valid commit hash/iu);
     });
   });
 });
