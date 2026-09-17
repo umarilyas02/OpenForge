@@ -932,6 +932,78 @@ Status markers:
     live Postgres. Left unresolved for a human to reconcile -- either
     worktree's compose changes should win, not both running under the same
     project name unintentionally.
+- Objective (2026-09-17, same day continued): asked directly whether the
+  app is "production ready" -- answered honestly that it isn't (Phase 6,
+  production hardening, is entirely unstarted per this file's own
+  checklist), then asked to start closing that gap for real. Full Phase 6
+  (a formal security threat model, a WCAG 2.2 AA audit, performance
+  benchmarking against the plan's stated SLAs, operational runbooks) is
+  multi-week scope no single pass finishes honestly -- this entry covers
+  the highest-leverage, genuinely tractable slice done with real
+  verification, not stubs.
+  - Completed: `apps/cms-admin/app/healthz/route.js` -- a top-level route
+    (no session gate, matching `assets/[...key]/route.js`'s precedent for
+    why) checking real Postgres connectivity (`select 1`) and write access
+    to `SITES_STORAGE_PATH`, 200/503 accordingly. Verified live against the
+    built Docker image both ways: a real dev `DATABASE_URL` returns
+    `{"status":"ok",...}` at 200; a deliberately broken one returns a real
+    `503` with the actual connection error in the body. No vitest added for
+    this -- confirmed first that *no* existing test in this app exercises
+    `getDb()` against real Postgres at all (CI has no Postgres service), so
+    a DB-dependent test here would either be the first to silently break CI
+    or need to silently skip itself, matching neither of this codebase's
+    established conventions (DB-backed features are verified live, e.g. the
+    Media Library upload feature per the 2026-09-07 entry above).
+  - Completed: ran `pnpm audit --prod` for the first time against this
+    repo and found 9 real vulnerabilities (2 moderate, 5 high, **2
+    critical**) -- both critical findings were unauthenticated
+    Next.js RCEs (GHSA-p293-qw3h-jr36, GHSA-2xp9-vwfh-vxw4) affecting the
+    pinned `next@16.2.12`, patched at `16.3.3+`. Bumped `apps/cms-admin` to
+    `next@16.3.5` (latest stable), which also resolved the remaining
+    sharp/libheif/libvips and PostCSS findings as transitive fallout of the
+    same dependency-tree refresh. The one leftover (`nanoid`, high,
+    pinned deep inside `next`/`postcss`'s own tree) was closed with a
+    `pnpm-workspace.yaml` `overrides: { nanoid: ">=3.3.18" }` --
+    discovered along the way that pnpm 11 silently ignores a `pnpm.*`
+    block in `package.json` (moved to `pnpm-workspace.yaml` as of pnpm
+    v10+) after an override placed there had no effect on `pnpm why`.
+    Re-ran `pnpm audit --prod`: **0 known vulnerabilities**. Re-verified
+    build + lint + the full test suite (86/86) pass on the upgraded
+    dependency tree.
+  - Completed: added a `dependency-audit` CI job
+    (`.github/workflows/ci.yml`) running `pnpm audit --prod --audit-level
+    high` on every push/PR, so a regression like the one just found gets
+    caught automatically going forward instead of waiting for someone to
+    think to run it by hand.
+  - Completed: a real adversarial audit of every site-scoped
+    `actions.js`/`route.js` file under
+    `app/(admin)/(app)/sites/[siteId]/**` (not just `page.jsx` -- per
+    CLAUDE.md's own hard constraint, Next.js layouts don't wrap Route
+    Handlers or Server Actions, so the shared `[siteId]/layout.jsx`'s
+    `assertSiteAccess` check does not protect them) for every exported
+    function actually being authorization-checked, directly or via a
+    shared `loadAuthorizedSite` helper. Found one real gap:
+    `getSiteGitConnection` (`settings/actions.js`) was exported from a
+    `"use server"` module -- meaning directly client-callable with an
+    arbitrary `siteId`, bypassing the page-render-time check entirely --
+    with **no authorization check of its own**, returning another site's
+    connected GitHub `repoOwner`/`repoName`/`defaultBranch` (not the vaulted
+    token itself) to whoever called it. Fixed to call the same
+    `loadAuthorizedSite` helper every sibling export in that file already
+    uses. Every other site-scoped `actions.js`/`route.js` file was checked
+    by hand (not just the same heuristic) and found already correctly
+    covered. Verified via full re-lint + the full test suite (86/86,
+    unchanged) after the fix; no dedicated regression test added, for the
+    same DB-test-convention reason as the health route above -- the fix is
+    a one-line pattern-match to five already-correct sibling functions in
+    the same file, not new logic.
+  - Not done in this pass, explicitly still open: WCAG/accessibility
+    audit, a written security threat model, performance benchmarking
+    against the plan's stated SLAs (editor <3s, canvas <100ms, compiler
+    <500ms), operational logging/metrics/alerting, backup/restore drills,
+    incident runbooks, license/container/SBOM scanning, DCO/CLA and
+    trademark decisions. Phase 6 in the checklist below is still `[ ]` for
+    everything except what this entry just checked off.
 
 ## Planning and scaffolding
 
@@ -2206,8 +2278,21 @@ the 0.1/0.7 sections above).
 ### 6.2 Security
 
 - [ ] Threat models.
-- [ ] Web/tenancy/archive/sandbox adversarial tests.
-- [ ] Supply-chain gates and signed artifacts.
+- [-] Web/tenancy/archive/sandbox adversarial tests.
+  - Evidence: 2026-09-17 manual adversarial pass over every
+    `app/(admin)/(app)/sites/[siteId]/**` `actions.js`/`route.js` (Server
+    Actions and Route Handlers aren't covered by the shared
+    `[siteId]/layout.jsx`'s authorization check — see CLAUDE.md's hard
+    constraint) found and fixed one real cross-tenant leak
+    (`getSiteGitConnection`, see "Current handoff"). No formal, repeatable
+    adversarial test suite exists yet; archive/sandbox untouched (no
+    archive-extraction or plugin-sandbox surface currently active in the
+    CMS product).
+- [-] Supply-chain gates and signed artifacts.
+  - Evidence: `dependency-audit` CI job (`pnpm audit --prod --audit-level
+    high`) added 2026-09-17, added after it caught 9 real vulnerabilities
+    including 2 critical unauthenticated Next.js RCEs — see "Current
+    handoff". No signed-artifact/provenance story yet.
 - [ ] Independent review where feasible.
 
 ### 6.3 Performance
@@ -2227,7 +2312,11 @@ the 0.1/0.7 sections above).
 ### 6.5 Operations
 
 - [ ] Logs/traces/metrics/alerts.
-- [ ] Health/readiness.
+- [x] Health/readiness.
+  - Evidence: `apps/cms-admin/app/healthz/route.js`, added 2026-09-17,
+    checks real Postgres connectivity and `SITES_STORAGE_PATH` write
+    access. Verified live against the built Docker image in both the
+    healthy (200) and unhealthy (503, real DB error in the body) cases.
 - [ ] Audit retention.
 - [ ] Operational and incident runbooks.
 
