@@ -144,10 +144,18 @@ async function loadAuthorizedSite(siteId, user) {
 }
 
 /**
+ * Exported from a "use server" module, so this is directly callable by any
+ * authenticated client, not only from this site's own settings page --
+ * `loadAuthorizedSite` is required here for the same reason every other
+ * export in this file requires it, not just as a page-render convenience.
+ *
  * @param {string} siteId
  * @returns {Promise<{ id: string, repoOwner: string, repoName: string, defaultBranch: string } | null>}
  */
 export async function getSiteGitConnection(siteId) {
+  const user = await requireUser();
+  const site = await loadAuthorizedSite(siteId, user);
+
   const db = getDb();
   const [connection] = await db
     .select({
@@ -157,7 +165,7 @@ export async function getSiteGitConnection(siteId) {
       defaultBranch: schema.siteGitConnections.defaultBranch,
     })
     .from(schema.siteGitConnections)
-    .where(eq(schema.siteGitConnections.siteId, siteId));
+    .where(eq(schema.siteGitConnections.siteId, site.id));
   return connection ?? null;
 }
 
