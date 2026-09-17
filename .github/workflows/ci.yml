@@ -64,8 +64,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Pinned to a commit SHA rather than the floating v2 tag it used to
+      # use -- discovered during the 2026-09-17 hardening pass, while
+      # fixing a *confirmed-compromised* pin on a different action
+      # (aquasecurity/trivy-action, below), that floating major-version
+      # tags on third-party Actions are exactly the pattern that class of
+      # attack exploits (a compromised maintainer account can force-push a
+      # tag to malicious code without this repo's own history ever
+      # changing). No evidence gitleaks-action itself has ever been
+      # compromised -- this is hardening the pattern, not responding to a
+      # specific incident. SHA verified independently via GitHub's own API
+      # (both the tag ref and the commit itself, PGP-signed) to be v3.0.0.
       - name: Run gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # gitleaks-action fails the job (non-zero exit) when it finds a
@@ -109,3 +120,41 @@ jobs:
       # project's own source to be relicensed).
       - name: Check dependency licenses
         run: corepack pnpm --filter @openforge/scripts run check:licenses
+
+  container-scan:
+    name: Container image vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Not pushed anywhere -- built locally in the runner and scanned in
+      # place, same as apps/cms-admin/Dockerfile's own documented build
+      # command from the repo root.
+      - name: Build cms-admin image
+        run: docker build -f apps/cms-admin/Dockerfile -t openforge-cms-admin:ci .
+
+      # exit-code 1 on any HIGH/CRITICAL finding actually present in the
+      # image today (confirmed clean against the fixed Dockerfile during
+      # the 2026-09-17 hardening pass -- apk upgrade in the runner stage
+      # picks up OS package fixes the base image tag itself lags, and the
+      # bundled npm/npx/corepack -- unused at runtime, only pnpm is needed
+      # to build -- are removed there too, since they carried their own
+      # real, separately-tracked CVEs).
+      # Pinned to a commit SHA, not a mutable version tag, on purpose:
+      # aquasecurity/trivy-action had a real supply-chain compromise on
+      # 2026-03-19 (a threat actor force-pushed 76 of the action's 77
+      # version tags to credential-stealing malware -- see
+      # GHSA-69fq-xp46-6x23). This SHA is v0.35.0, the one tag GitHub's
+      # immutable-releases protection kept safe, and the exact commit the
+      # incident's own published remediation guidance names as safe to
+      # pin. Verified via a real Trivy scan (not just documentation) that
+      # this action version actually finds real vulnerabilities during
+      # the 2026-09-17 hardening pass -- see agents/progress.md.
+      - name: Scan image for HIGH/CRITICAL vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: openforge-cms-admin:ci
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
