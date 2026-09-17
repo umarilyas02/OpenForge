@@ -1176,6 +1176,53 @@ Status markers:
     open rather than forcing a broken or fake result.
   - Verified: `node tooling/scripts/check-licenses.js` passes cleanly
     against the real dependency tree; full repo lint (26/26) unchanged.
+- Objective (2026-09-17, same day continued): a container image
+  vulnerability scan — the last named-but-unstarted piece of Phase 0.7's
+  supply-chain checklist — using the now-real `apps/cms-admin/Dockerfile`
+  as the thing to scan.
+  - Completed: tested with a real local Trivy scan (the `aquasec/trivy`
+    Docker image against a real build of `apps/cms-admin/Dockerfile`)
+    before writing any CI config — found 6 real HIGH-severity findings:
+    an OpenSSL CVE in the `node:24-alpine` base image (already fixed
+    upstream in Alpine's package repo, but the base image tag hadn't been
+    rebuilt to pick it up yet — confirmed by pulling the latest tag and
+    finding it unchanged) and 4 CVEs in **npm's own bundled
+    dependencies** shipped inside the Node image (`brace-expansion`,
+    `ip-address`, `tar`) — not this app's dependencies, but real
+    vulnerabilities sitting in the shipped image regardless. Fixed both
+    for real: `apk update && apk upgrade --no-cache` in the runner stage
+    (picks up OS fixes independent of when the base tag was last
+    rebuilt) and removed the bundled `npm`/`npx`/`corepack` entirely
+    (the running container only ever executes `node
+    apps/cms-admin/server.js` — pnpm, needed to build, never runs in the
+    final image — so they were dead weight carrying real CVEs, not just
+    scan noise). Rebuilt and rescanned: zero HIGH/CRITICAL findings.
+    Smoke-tested the hardened image still boots and serves `/healthz`/
+    `/login` correctly without npm present.
+  - Found something more serious while wiring this into CI, before it
+    ever got committed: `aquasecurity/trivy-action` — the GitHub Action
+    this needed — had a real, documented supply-chain compromise on
+    2026-03-19 (GHSA-69fq-xp46-6x23): a threat actor force-pushed 76 of
+    its 77 version tags to credential-stealing malware. The tag this
+    entry's own first draft used (`@0.28.0`) was one of the compromised
+    ones. Caught by actually checking (`WebSearch`/`WebFetch` against
+    GitHub's own release page and API, cross-verified the commit SHA two
+    independent ways: the tag-ref API and the commit API directly,
+    confirmed PGP-signed) before committing anything, not by assumption.
+    Fixed by pinning to the one tag GitHub's immutable-releases
+    protection kept safe (`v0.35.0`, SHA
+    `57a97c7e7821a5776cebc9bb87c984fa69cba8f1`) via commit SHA rather than
+    a mutable tag. Applied the same hardening to the pre-existing
+    `gitleaks/gitleaks-action@v2` floating-tag reference while in there —
+    no evidence that one was ever compromised, but the same floating-tag
+    pattern is exactly what this class of attack exploits, so it's now
+    pinned to `v3.0.0`'s verified commit SHA too.
+  - Completed: `container-scan` CI job builds the real
+    `apps/cms-admin/Dockerfile` image and runs the pinned Trivy action
+    against it, failing on any HIGH/CRITICAL finding.
+  - Verified: full repo lint (26/26), a real `docker build` + Trivy
+    rescan (0 HIGH/CRITICAL), and a boot/`/healthz`/`/login` smoke test
+    of the hardened image, all pass.
 
 ## Planning and scaffolding
 
@@ -2478,11 +2525,24 @@ the 0.1/0.7 sections above).
     handoff". Same job also runs `tooling/scripts/check-licenses.js`
     (added the same day), which found one real dependency
     (`@img/sharp-win32-x64`) with a non-MIT/Apache license and required a
-    real reviewed decision, not just an allow-everything default. An SBOM
-    was attempted (`@cyclonedx/cyclonedx-npm`) and found genuinely
-    incompatible with pnpm's `node_modules` layout — still open, needs a
-    pnpm-native tool. No signed-artifact/provenance story, no container
-    scan.
+    real reviewed decision, not just an allow-everything default. A new
+    `container-scan` CI job (Trivy, pinned to a verified commit SHA — see
+    below) scans the real `apps/cms-admin/Dockerfile` image and, in
+    building it, found and fixed 6 real HIGH-severity findings (a lagging
+    OS OpenSSL patch, plus 4 CVEs in npm's own bundled deps that had zero
+    legitimate use in a container that never runs npm) — image now scans
+    clean. An SBOM was attempted (`@cyclonedx/cyclonedx-npm`) and found
+    genuinely incompatible with pnpm's `node_modules` layout — still
+    open, needs a pnpm-native tool. No signed-artifact/provenance story
+    yet.
+  - Also found, unplanned: `aquasecurity/trivy-action` itself had a real
+    supply-chain compromise on 2026-03-19 (76 of 77 version tags
+    force-pushed to credential-stealing malware, GHSA-69fq-xp46-6x23) —
+    caught by actually checking before committing a CI reference to it,
+    not by assumption. Both it and the pre-existing floating
+    `gitleaks/gitleaks-action@v2` reference are now pinned to
+    independently-verified commit SHAs instead of mutable tags. See
+    "Current handoff" for the full verification trail.
 - [ ] Independent review where feasible.
 
 ### 6.3 Performance

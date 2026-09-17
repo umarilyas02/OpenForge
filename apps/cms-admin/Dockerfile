@@ -35,6 +35,16 @@ FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3903
+# Picks up any OS package security fix released after this base image tag
+# was last rebuilt (confirmed via a real Trivy scan during the 2026-09-17
+# hardening pass: node:24-alpine's own libssl3/libcrypto3 lagged a real
+# published OpenSSL fix even at the latest tag). Removes the bundled
+# npm/npx/corepack too -- this image only ever runs `node
+# apps/cms-admin/server.js`, so npm's own (also real, also
+# Trivy-confirmed) vulnerable transitive deps are dead weight with zero
+# legitimate runtime use, not just noise to suppress.
+RUN apk update && apk upgrade --no-cache \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
 
 COPY --from=builder /repo/apps/cms-admin/.next/standalone ./
