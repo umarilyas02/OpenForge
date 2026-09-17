@@ -1312,6 +1312,45 @@ Status markers:
     contention already documented multiple times elsewhere in this file
     (`EPERM` on a `rename`, this time in `block-add-smoke.test.js`) —
     confirmed by re-running that exact file alone (7/7 passed).
+- Objective (2026-09-17, same day continued): pushing the last several
+  commits actually turned CI red on GitHub (not locally) — investigated
+  and fixed both real causes rather than assuming they'd self-resolve.
+  - Root-caused the "Check dependency licenses" CI failure: `pnpm
+    licenses list` reports a *different* sharp binary package per OS/arch
+    (`@img/sharp-win32-x64` on this dev machine vs.
+    `@img/sharp-libvips-linux-x64` on the `ubuntu-latest` CI runner), each
+    with its own differently-formatted license string — the allowlist
+    only had the Windows one. Confirmed by actually reproducing CI in a
+    real `node:24` Linux container (no `gh` CLI or authenticated API
+    access available to read the actual failed-job logs directly, so this
+    was the way to get real ground truth rather than guess). Rewrote
+    `tooling/scripts/check-licenses.js` from a flat license-string
+    allowlist to a package-name-scoped exception list for the known
+    sharp/libvips packages specifically — more precise than just adding
+    the new license string, since a *different*, unrelated future LGPL
+    package should still fail the check. Verified clean on both platforms
+    with the same reproduction container.
+  - Root-caused the "Test" step failure too, in the same reproduction:
+    several `apps/cms-admin` test files
+    (`source-content-actions.test.js`, `block-add-smoke.test.js`, others)
+    spawn a real `git` subprocess per assertion against a real on-disk
+    workspace, relying on vitest's 5000ms default timeout — too tight
+    under real CI resource contention. When one test's git commit didn't
+    finish in time, vitest abandoned it without the subprocess itself
+    being cleaned up, leaving a stale `.git/index.lock` that then broke
+    every subsequent test in the same file (`"Unable to create
+    .../.git/index.lock: File exists"` cascading from a single timeout).
+    This likely explains at least some of the "known flake" failures
+    logged in earlier entries in this file that were previously
+    attributed only to concurrent-session contention. Added
+    `apps/cms-admin/vitest.config.js` with `testTimeout: 20000` (a real,
+    generous margin — even in the Linux container, itself running with
+    slower-than-native disk I/O since it bind-mounts this Windows
+    machine's filesystem, real git operations completed well under 20s).
+    Re-ran the full suite in the same container: 48/48 tasks passed, 0
+    failures (was 3 failed files / 14 failed tests before the fix).
+  - Verified: full repo lint (26/26) on the real dev machine after both
+    fixes.
 
 
 - [x] Read the complete documentation set.
