@@ -1076,6 +1076,60 @@ Status markers:
     item not already checked off in the entry above (WCAG audit proper,
     threat model, performance benchmarks, operational logging/runbooks,
     license/SBOM scanning).
+- Objective (2026-09-17, same day continued): "do it then make it prod
+  ready do not stop untill it is" -- continued the same real-work,
+  real-verification approach into a written threat model and real
+  performance measurements. Flagged plainly, and not attempted: DCO/CLA
+  and trademark decisions and enabling GitHub repository settings
+  (branch protection, private vulnerability reporting) are the user's or a
+  maintainer's calls, not code changes — see "Blockers" below, unchanged.
+  - Completed: `docs/cms-threat-model.md` -- written from direct reading
+    of the current code (session/secret/asset-signing mechanisms, the
+    site-scoped authorization audit from earlier today, path-safety
+    checks in `WorkspaceManager`), not a generic template; every control
+    cited names the file that implements it. Documents assets ranked by
+    impact, the actual trust boundaries and what guards each one, five
+    concrete attack scenarios (one of them the real bug fixed earlier
+    today), and an explicit "out of scope for this deployment shape"
+    section plus honest open questions (CSRF not independently verified,
+    no full `isUuid()` sweep, no session-revocation UI).
+  - Completed: `apps/cms-admin/test/performance-report.test.js` and
+    `docs/cms-performance.md` -- real timings (not estimates) of the exact
+    functions the live canvas/page editor calls, against a real
+    git-backed workspace fixture (same pattern as
+    `test/block-add-smoke.test.js`), measured against the Phase 6.3
+    targets below. First attempt used vitest's `bench()` API and produced
+    broken `NaN` output (it's explicitly marked experimental) --
+    abandoned it for a plain, controlled `it()`-based measurement instead
+    of fighting an unreliable tool.
+    - Results: editor load p95 165ms (target <3000ms, **met**
+      comfortably); a single prop-edit round trip (transform + save + git
+      commit) p95 483ms (target <100ms, **not met**); a reorder round trip
+      p95 246ms (target <100ms, **not met**); a first-use block insert
+      p95 961ms (target <500ms, **not met**).
+    - Traced *why*, not just logged the numbers: `commitSiteChanges`'s
+      real `git add -A && git commit` on every save is the dominant cost
+      (the git-free editor-load path stays under 200ms even at p95).
+      Checked whether this is actually felt by a user or just a
+      background-save number: read `SourceContentEditor.jsx`'s
+      `dispatch()` and confirmed it applies the server's response to the
+      canvas's tree state only *after* the round trip resolves, not
+      optimistically -- so the canvas visibly lags the measured latency,
+      compounding with `BlockPropsForm.jsx`'s existing 450ms idle
+      debounce to roughly 0.7-1.3s from "user stops typing" to "canvas
+      shows it." Documented two real (not attempted) fixes -- optimistic
+      canvas updates, or batching the git commit itself -- and flagged
+      that the original targets likely predate the CMS pivot and may be
+      the wrong SLA shape for a git-commit-per-edit architecture, which is
+      itself a product decision, not an implementation one.
+  - Verified: full repo lint (26/26) and the full `apps/cms-admin` test
+    suite (90/90, up from 86 -- the 4 new performance-report tests) pass.
+  - Not done, still open: the two real fixes the performance report names
+    (optimistic canvas updates, commit batching); a deeper adversarial
+    pass beyond the one manual audit already done (CSRF, a full `isUuid()`
+    sweep, git-error-message fuzzing -- all named in the threat model's
+    own "Open questions"); everything else already listed as open in the
+    entry above this one.
 
 ## Planning and scaffolding
 
@@ -2354,7 +2408,13 @@ the 0.1/0.7 sections above).
 
 ### 6.2 Security
 
-- [ ] Threat models.
+- [x] Threat models.
+  - Evidence: `docs/cms-threat-model.md`, written 2026-09-17 from direct
+    code review, not a template — assets ranked by impact, trust
+    boundaries mapped to the actual code that guards each one, five
+    concrete attack scenarios, explicit out-of-scope section, and named
+    open questions. Not independently reviewed by a second party (see
+    "Independent review" below, still open).
 - [-] Web/tenancy/archive/sandbox adversarial tests.
   - Evidence: 2026-09-17 manual adversarial pass over every
     `app/(admin)/(app)/sites/[siteId]/**` `actions.js`/`route.js` (Server
@@ -2374,9 +2434,25 @@ the 0.1/0.7 sections above).
 
 ### 6.3 Performance
 
-- [ ] Editor under 3 seconds target.
-- [ ] Common canvas response under 100 ms target.
-- [ ] Ordinary compiler transform under 500 ms target.
+- [x] Editor under 3 seconds target.
+  - Evidence: `apps/cms-admin/test/performance-report.test.js` +
+    `docs/cms-performance.md`, 2026-09-17 — real measurement, p95 165ms
+    against a 3000ms target. Rerun the test to reproduce on other hardware.
+- [!] Common canvas response under 100 ms target.
+  - Blocked, not just unmet: measured p95 for a prop edit is 483ms, for a
+    reorder 246ms — both against a real git-backed workspace, see
+    `docs/cms-performance.md`. The dominant cost is `commitSiteChanges`'s
+    real `git commit` on every save, a deliberate architectural choice
+    (it's what backs site history/restore). Confirmed the canvas isn't
+    optimistic (`SourceContentEditor.jsx`'s `dispatch()` applies the
+    server response only after it resolves), so this is genuinely felt by
+    a user, not just a background number. Closing this needs a real
+    product/architecture decision (optimistic canvas updates, or batching
+    the commit itself), not a quick fix — see `docs/cms-performance.md`'s
+    own recommendations section.
+- [!] Ordinary compiler transform under 500 ms target.
+  - Blocked for the same reason as above: a first-use block insert
+    measured p95 961ms (mean 363ms) — see `docs/cms-performance.md`.
 - [ ] Incremental indexing and queue/resource budgets.
 
 ### 6.4 Accessibility
@@ -2452,6 +2528,13 @@ the 0.1/0.7 sections above).
 
 ## Blockers
 
+- The canvas/compiler-transform performance targets (Phase 6.3, "canvas
+  response under 100 ms" / "compiler transform under 500 ms") are
+  measured and genuinely not met (2026-09-17 — see `docs/cms-performance.md`
+  and "Current handoff"), and closing the gap is a real product decision
+  (optimistic canvas rendering vs. batching the per-edit git commit that
+  backs site history/restore), not a quick implementation fix — blocked on
+  that decision being made, not on more measurement.
 - Project/package naming, domain and trademark checks are unresolved.
 - Technical selections listed in Implementation Plan section 8 are
   unresolved for the parts of Phase 0 not touched by the CMS work
