@@ -79,6 +79,7 @@ function ComparisonTable({ heading, headers, rows, featuredColumn }) {
         aria-label={regionLabel}
         className="of-comparison-table-scroll"
         role="region"
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- the WAI-ARIA Authoring Practices' documented pattern for a keyboard-scrollable region: role="region" + tabIndex={0} + an accessible name lets keyboard users scroll this table with arrow keys once focused, which a plain overflow container can't do on its own.
         tabIndex={0}
       >
         <table className="of-comparison-table-grid">

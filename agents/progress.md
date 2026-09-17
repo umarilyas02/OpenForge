@@ -1130,6 +1130,22 @@ Status markers:
     sweep, git-error-message fuzzing -- all named in the threat model's
     own "Open questions"); everything else already listed as open in the
     entry above this one.
+- Objective (2026-09-17, same day continued): closed the
+  `packages/cms-blocks`/`themes/*` gap the earlier `jsx-a11y` pass had
+  left open.
+  - Completed: widened `eslint.config.js`'s `jsx-a11y` scope from just
+    `apps/cms-admin/**/*.jsx` to also cover `packages/cms-blocks/**/*.jsx`
+    and `themes/*/**/*.jsx`. One finding, in
+    `comparison-table.jsx`'s horizontally-scrollable region
+    (`role="region"` + `tabIndex={0}`) — checked it against the actual
+    WAI-ARIA Authoring Practices spec before touching anything, confirmed
+    it's the *documented correct* technique for making a scrollable table
+    keyboard-operable (not a bug), and annotated it with a targeted
+    `eslint-disable` explaining why rather than weakening real
+    accessibility code to satisfy the linter. All 11 themes and the rest
+    of `packages/cms-blocks` were already clean — zero other findings.
+  - Verified: full repo lint (26/26) and `packages/cms-blocks`'s test
+    suite (178/178) pass.
 
 ## Planning and scaffolding
 
@@ -2459,14 +2475,18 @@ the 0.1/0.7 sections above).
 
 - [ ] WCAG 2.2 AA audit.
 - [-] Keyboard/screen reader.
-  - Evidence: `eslint-plugin-jsx-a11y` added and scoped to
-    `apps/cms-admin/**/*.jsx`, 2026-09-17 — see "Current handoff". Found
-    and fixed real keyboard-deselect support in the live canvas (Escape
-    key), verified with a real Playwright test, not just lint passing.
-    Found, attempted, tested, and honestly reverted a non-working fix for
-    block-selection keyboard focus (a `display: contents` layout
-    constraint) — real fix still open. `packages/cms-blocks`/`themes/*`
-    not yet linted with this plugin; no screen-reader testing done.
+  - Evidence: `eslint-plugin-jsx-a11y` added, 2026-09-17 — see "Current
+    handoff". Found and fixed real keyboard-deselect support in the live
+    canvas (Escape key), verified with a real Playwright test, not just
+    lint passing. Found, attempted, tested, and honestly reverted a
+    non-working fix for block-selection keyboard focus (a `display:
+    contents` layout constraint) — real fix still open. Extended to
+    `packages/cms-blocks`/`themes/*` the same day: one finding
+    (`comparison-table.jsx`'s scrollable region), confirmed it was
+    already the *correct* WAI-ARIA pattern (a false positive in the
+    rule, not a bug) and annotated rather than changed; all 11 themes
+    and the rest of `cms-blocks` were already clean. No screen-reader
+    testing done with an actual screen reader.
 - [ ] Contrast/focus/status/reduced motion.
 - [ ] Official block contract.
 

@@ -28,12 +28,14 @@ export default [
     },
   },
   {
-    // Scoped to apps/cms-admin's own admin UI for now (the interface a
-    // real user directly operates every session) -- packages/cms-blocks
-    // and themes/* render real JSX too and deserve the same pass, tracked
-    // separately in agents/progress.md rather than folded in unreviewed
-    // here.
-    files: ["apps/cms-admin/**/*.jsx"],
+    // apps/cms-admin's own admin UI, plus packages/cms-blocks and
+    // themes/* -- the real block components and theme example content
+    // rendered on every live site, not just the admin interface.
+    files: [
+      "apps/cms-admin/**/*.jsx",
+      "packages/cms-blocks/**/*.jsx",
+      "themes/*/**/*.jsx",
+    ],
     plugins: { "jsx-a11y": jsxA11y },
     rules: jsxA11y.flatConfigs.recommended.rules,
   },
