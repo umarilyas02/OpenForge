@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@openforge/auth": "workspace:*",
-    "@openforge/db": "workspace:*"
+    "@openforge/db": "workspace:*",
+    "@openforge/workspace": "workspace:*",
+    "drizzle-orm": "0.45.2"
   },
   "engines": {
     "node": ">=24.11.0"

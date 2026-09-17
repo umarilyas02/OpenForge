@@ -518,6 +518,12 @@ importers:
       '@openforge/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@openforge/workspace':
+        specifier: workspace:*
+        version: link:../../packages/workspace
+      drizzle-orm:
+        specifier: 0.45.2
+        version: 0.45.2(pg@8.23.0)
 
   tooling/test-utils: {}
 

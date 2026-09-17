@@ -1223,6 +1223,40 @@ Status markers:
   - Verified: full repo lint (26/26), a real `docker build` + Trivy
     rescan (0 HIGH/CRITICAL), and a boot/`/healthz`/`/login` smoke test
     of the hardened image, all pass.
+- Objective (2026-09-17, same day continued): operational runbooks (Phase
+  6.5) — the incident-response-shaped gap in what's otherwise become a
+  fairly deep operational understanding of this app this session.
+  - Found a real gap before writing anything: `WorkspaceManager.recover()`
+    (reconciles a site's workspace after an interrupted save — stale temp
+    files, a stuck revision) is real and tested
+    (`packages/workspace/test/workspace-manager.test.js`), but **nothing
+    in `apps/cms-admin`'s actual UI or Server Actions calls it** — only
+    `cleanup()` (full deletion, wired into theme activation) has a real
+    entry point. Closed it with `tooling/scripts/recover-site-workspace.js`
+    (matching `create-user.js`'s existing CLI-script convention), taking
+    either `--slug=` or `--site-id=` (resolved via a real DB lookup).
+  - Tested it for real, not just written and trusted: created a real
+    throwaway local workspace and ran the script against it — caught and
+    fixed a real bug this surfaced (`removeTemporaryFiles` returns a
+    plain count, not an array; the script's own message tried to read
+    `.length` off it and printed `"removed undefined stale temp
+    file(s)"`). Also exercised the `--site-id` path end-to-end by
+    inserting a throwaway row into the real dev database, confirming the
+    lookup and recovery both worked, then deleting the row and local test
+    files afterward.
+  - Completed: `docs/cms-operational-runbooks.md` — six runbooks (app
+    won't start / `/healthz` 503, a site won't load or save keeps
+    failing, GitHub push fails, the canvas feels slow, Media Library
+    uploads fail, plus an honest "not yet covered" section) each grounded
+    in real code read this session, not generic advice — every runbook
+    names the exact file/function involved and, where relevant, points at
+    the specific fix or finding from earlier in this same hardening pass
+    (the git-commit-per-edit latency, the `ENCRYPTION_MASTER_KEY`
+    rotation footgun, the ties back to `docs/cms-backup-and-restore.md`
+    and `docs/cms-performance.md`).
+  - Verified: full repo lint (26/26) and `packages/workspace`'s test
+    suite (7/7, confirming no regression to `recover()`/`cleanup()`
+    themselves) pass.
 
 ## Planning and scaffolding
 
@@ -2498,6 +2532,16 @@ the 0.1/0.7 sections above).
     combined from-scratch drill are still undone.
 - [ ] Migration recovery.
 - [ ] Artifact/workspace cleanup.
+  - Checked 2026-09-17 while building the operational runbooks: found
+    there is genuinely **no delete-a-site feature anywhere in the
+    product** — `WorkspaceManager.cleanup()` (real, tested, deletes a
+    workspace directory) has exactly one caller, theme activation's
+    destructive replace, not an actual "remove this site" action. This
+    is a real product gap, not an implementation detail — whether sites
+    should be deletable in v1, and what should happen to Postgres rows/
+    vaulted secrets/git history when one is, is a product decision this
+    pass didn't make, not something to build unreviewed under a
+    "hardening" label.
 
 ### 6.2 Security
 
@@ -2596,7 +2640,13 @@ the 0.1/0.7 sections above).
     access. Verified live against the built Docker image in both the
     healthy (200) and unhealthy (503, real DB error in the body) cases.
 - [ ] Audit retention.
-- [ ] Operational and incident runbooks.
+- [x] Operational and incident runbooks.
+  - Evidence: `docs/cms-operational-runbooks.md`, 2026-09-17 — six
+    runbooks grounded in real code, not generic advice. Closed a real gap
+    found along the way (`WorkspaceManager.recover()` had no operational
+    entry point) with `tooling/scripts/recover-site-workspace.js`, tested
+    against a real throwaway workspace and a real throwaway DB row (both
+    caught a real bug and were cleaned up afterward).
 
 ### 6.6 Release
 
