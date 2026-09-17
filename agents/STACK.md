@@ -64,17 +64,25 @@ A subset of blocks (Spotlight Card, Gradient Heading, Marquee Text, Feature List
 
 | Service | Image | Notes |
 |---|---|---|
+| Postgres | `postgres:16-alpine` | port `${POSTGRES_PORT:-5432}`, healthcheck via `pg_isready`, data in `docker/volumes/postgres-data` |
 | Redis | `redis:7-alpine` | port `${REDIS_PORT:-6379}`, healthcheck via `redis-cli ping` |
 | MinIO | `minio/minio:latest` | S3-compatible object storage, API port `${MINIO_API_PORT:-9000}`, console `${MINIO_CONSOLE_PORT:-9001}` |
+| cms-admin | built from `apps/cms-admin/Dockerfile` | port `${CMS_ADMIN_PORT:-3903}`, waits on Postgres's healthcheck, site files in `docker/volumes/cms-admin-sites` |
 
-**Postgres is not defined as a service in this compose file** even though `envs/examples/infrastructure.env.example` includes `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_PORT` — despite this, a populated `docker/volumes/postgres-data/` exists on disk, so Postgres is evidently run some other way in this environment (not this compose file as currently committed).
+Added 2026-09-17 (Postgres and cms-admin were both previously missing from
+this file, tracked as a known gap). `cms-admin`'s `DATABASE_URL` is built
+from the same `POSTGRES_*` vars the `postgres` service uses, pointed at
+that service's hostname rather than `localhost`; `envs/local/cms-admin.env`
+(gitignored, mirrors `envs/examples/cms-admin.env.example`) is read for
+anything not already covered (currently just `ENCRYPTION_MASTER_KEY`, only
+needed for Settings > GitHub).
 
-Per-app Dockerfiles are mostly unbuilt. The only real one is
-`future-work/cms-renderer/Dockerfile` — a genuine multi-stage build
-(`node:24-alpine`, corepack/pnpm install → `pnpm --filter
-@openforge/cms-renderer build` → standalone Next.js runner on port 3000),
-now shelved along with the app it belongs to. No app currently in
-`apps/*` has a Dockerfile.
+`apps/cms-admin/Dockerfile` is the one real, verified Dockerfile among
+`apps/*` (a genuine `docker build` + `docker run` + `curl /login` pass, not
+just written from a template — see `agents/progress.md`'s 2026-09-17 entry
+for the real build failure it caught and fixed along the way).
+`future-work/cms-renderer/Dockerfile` — the template this one was adapted
+from — is shelved along with the app it belongs to.
 
 Note: `docker/README.md` still states Dockerfiles/Compose manifests are "Phase 0 implementation work and are intentionally absent" — that note is stale relative to `docker-compose.yml`, which exists.
 

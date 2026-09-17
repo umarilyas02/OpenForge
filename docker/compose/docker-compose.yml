@@ -1,6 +1,26 @@
 name: openforge
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - path: ../../envs/local/infrastructure.env
+        required: false
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-openforge}
+      POSTGRES_USER: ${POSTGRES_USER:-openforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openforge_dev_only}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ../volumes/postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-openforge} -d $${POSTGRES_DB:-openforge}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -37,3 +57,26 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  cms-admin:
+    build:
+      context: ../..
+      dockerfile: apps/cms-admin/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - path: ../../envs/local/infrastructure.env
+        required: false
+      - path: ../../envs/local/cms-admin.env
+        required: false
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-openforge}:${POSTGRES_PASSWORD:-openforge_dev_only}@postgres:5432/${POSTGRES_DB:-openforge}
+      SITES_STORAGE_PATH: /app/data/sites
+      NEXT_PUBLIC_CMS_RENDERER_ORIGIN: ${NEXT_PUBLIC_CMS_RENDERER_ORIGIN:-http://localhost:3902}
+      ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:-}
+    ports:
+      - "${CMS_ADMIN_PORT:-3903}:3903"
+    volumes:
+      - ../volumes/cms-admin-sites:/app/data/sites

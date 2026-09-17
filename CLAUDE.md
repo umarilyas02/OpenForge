@@ -84,11 +84,12 @@ it (tree loaded from Postgres) before being shelved.
   token is passed as a one-off `-c http.extraheader`, never written to
   `.git/config`.
 - The full self-hosted stack is meant to run through Docker Compose.
-  `docker/compose/docker-compose.yml` currently provisions Redis and MinIO
-  only (no Postgres service — check its current state before relying on
-  this, it has changed during development). Per-app Dockerfiles are mostly
-  unbuilt; `future-work/cms-renderer/Dockerfile` was the one real, complete
-  one, now shelved along with the app.
+  `docker/compose/docker-compose.yml` provisions Postgres, Redis, MinIO, and
+  `cms-admin` itself (built from `apps/cms-admin/Dockerfile`) — check its
+  current state before relying on this, it has changed during development.
+  `apps/cms-admin/Dockerfile` is the one real, build-and-run-verified
+  Dockerfile among `apps/*`; `future-work/cms-renderer/Dockerfile` was the
+  template it was adapted from, now shelved along with that app.
   See `STACK.md` for the exact current state of local infra and Docker.
 
 ## Commands

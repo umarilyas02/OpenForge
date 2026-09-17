@@ -898,6 +898,40 @@ Status markers:
     the schema already, `MenuItemList.jsx`/`MenuItemAddForm.jsx` are still
     flat with no parent-selection UI).
   - Evidence: see the two 2026-09-17 rows in the Verification log below.
+- Objective (2026-09-17, same day continued): wire the new
+  `apps/cms-admin/Dockerfile` and a Postgres service into
+  `docker/compose/docker-compose.yml`, closing the gap `STACK.md` had
+  explicitly documented ("Postgres is not defined as a service in this
+  compose file... evidently run some other way").
+  - Completed: added a `postgres` service (`postgres:16-alpine`, using the
+    existing `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD`/
+    `POSTGRES_PORT` vars `envs/examples/infrastructure.env.example` already
+    documented, data in `docker/volumes/postgres-data` — already present on
+    disk and gitignored, confirming this was the anticipated location) and
+    a `cms-admin` service (built from `apps/cms-admin/Dockerfile`, waits on
+    Postgres's healthcheck, `DATABASE_URL` built from the same Postgres
+    vars pointed at the `postgres` service hostname, site files in the new
+    `docker/volumes/cms-admin-sites`, reads `envs/local/cms-admin.env`
+    following the existing `examples/` → `local/` convention documented in
+    `envs/README.md`). Added `CMS_ADMIN_PORT` to
+    `infrastructure.env.example`. Updated `STACK.md` and `CLAUDE.md`'s own
+    stale "no Postgres service" notes to match.
+  - Verified `docker compose config` (repo root's
+    `docker/compose/docker-compose.yml`) resolves and validates cleanly
+    with no errors, for all four services.
+  - Deliberately not verified further: did not run `docker compose up` in
+    this pass. Discovered mid-task that a container-name collision already
+    exists -- an unrelated agent worktree
+    (`.claude/worktrees/agent-a953e312740537d6e`) already has its own
+    near-identical `postgres`/`cms-admin` additions to this same file
+    running live under the identical `name: openforge` compose project
+    (confirmed via `docker inspect`'s compose labels on the already-running
+    `openforge-postgres-1`/`openforge-cms-admin-1` containers). Running
+    `docker compose up` from this worktree would target those same
+    container names and risk recreating/restarting that other worktree's
+    live Postgres. Left unresolved for a human to reconcile -- either
+    worktree's compose changes should win, not both running under the same
+    project name unintentionally.
 
 ## Planning and scaffolding
 
