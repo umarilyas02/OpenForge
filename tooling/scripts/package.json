@@ -6,6 +6,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
+    "check:licenses": "node check-licenses.js",
     "lint": "eslint .",
     "seed:cms-demo": "node seed-cms-demo.js"
   },

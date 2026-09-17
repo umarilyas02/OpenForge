@@ -74,7 +74,7 @@ jobs:
           # account — not needed while this repository is public.
 
   dependency-audit:
-    name: Dependency vulnerability scan
+    name: Dependency vulnerability and license scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -102,3 +102,10 @@ jobs:
       # agents/progress.md.
       - name: Audit production dependencies
         run: corepack pnpm audit --prod --audit-level high
+
+      # Fails on any production dependency whose license isn't in the
+      # explicit allowlist in tooling/scripts/check-licenses.js (permissive
+      # licenses only, no copyleft that would force this Apache-2.0
+      # project's own source to be relicensed).
+      - name: Check dependency licenses
+        run: corepack pnpm --filter @openforge/scripts run check:licenses

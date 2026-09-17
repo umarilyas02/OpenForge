@@ -1146,6 +1146,36 @@ Status markers:
     of `packages/cms-blocks` were already clean — zero other findings.
   - Verified: full repo lint (26/26) and `packages/cms-blocks`'s test
     suite (178/178) pass.
+- Objective (2026-09-17, same day continued): license scanning and an
+  SBOM — the two named-but-unstarted pieces of Phase 0.7/6.2's
+  supply-chain checklist.
+  - Completed: `tooling/scripts/check-licenses.js` — runs `pnpm licenses
+    list --prod --json` and fails on any production dependency whose
+    license isn't in an explicit allowlist (permissive/attribution
+    licenses only). Actually ran it against this repo first, not written
+    from assumption: found one real, non-trivial case —
+    `@img/sharp-win32-x64` (a prebuilt native binary the Media Library's
+    image analysis depends on) carries "Apache-2.0 AND
+    LGPL-3.0-or-later". Reviewed rather than reflexively blocked or
+    allowed: LGPL only obligates sharing modifications to the LGPL-covered
+    component itself when redistributed, not the licensing of code that
+    depends on it — the same binary Next.js's own image optimization
+    relies on — so it's allowlisted with that reasoning written inline,
+    not silently passed. Verified the check actually *fails* on a real
+    violation (temporarily stripped the allowlist entry, confirmed a
+    real failure with the right error, restored it) before trusting it.
+    Wired in as a step in the existing `dependency-audit` CI job
+    (renamed to "Dependency vulnerability and license scan").
+  - Attempted, genuinely blocked: a real SBOM via the standard
+    `@cyclonedx/cyclonedx-npm` tool. It shells out to `npm ls` internally,
+    which fails wholesale against pnpm's isolated (non-hoisted)
+    `node_modules` layout — confirmed by actually running it, not
+    assumed. A working SBOM here needs a pnpm-native tool (e.g. Syft),
+    which wasn't evaluated or installed in this pass rather than reaching
+    for an unvetted new dependency under time pressure. Left explicitly
+    open rather than forcing a broken or fake result.
+  - Verified: `node tooling/scripts/check-licenses.js` passes cleanly
+    against the real dependency tree; full repo lint (26/26) unchanged.
 
 ## Planning and scaffolding
 
@@ -2445,7 +2475,14 @@ the 0.1/0.7 sections above).
   - Evidence: `dependency-audit` CI job (`pnpm audit --prod --audit-level
     high`) added 2026-09-17, added after it caught 9 real vulnerabilities
     including 2 critical unauthenticated Next.js RCEs — see "Current
-    handoff". No signed-artifact/provenance story yet.
+    handoff". Same job also runs `tooling/scripts/check-licenses.js`
+    (added the same day), which found one real dependency
+    (`@img/sharp-win32-x64`) with a non-MIT/Apache license and required a
+    real reviewed decision, not just an allow-everything default. An SBOM
+    was attempted (`@cyclonedx/cyclonedx-npm`) and found genuinely
+    incompatible with pnpm's `node_modules` layout — still open, needs a
+    pnpm-native tool. No signed-artifact/provenance story, no container
+    scan.
 - [ ] Independent review where feasible.
 
 ### 6.3 Performance
@@ -2564,11 +2601,15 @@ the 0.1/0.7 sections above).
   `CODE_OF_CONDUCT.md`, `.github/SECURITY.md` (confirmed already correct),
   `.github/CODEOWNERS`, `.github/pull_request_template.md`. A root
   `CONTRIBUTING.md` was not part of that pass and is still missing. 0.7
-  CI/supply-chain landed partially the same day: `.github/workflows/ci.yml`
-  runs lint/test/build and a gitleaks secret scan on every push/PR — still
-  missing a format gate (blocked on a pre-existing, repo-wide formatting
-  fix, see "Current handoff"), license/dependency/container scans, and an
-  SBOM/provenance strategy.
+  CI/supply-chain landed partially the same day, and dependency/license
+  scanning was completed 2026-09-17: `.github/workflows/ci.yml` runs
+  lint/test/build, a gitleaks secret scan, `pnpm audit --prod
+  --audit-level high`, and `tooling/scripts/check-licenses.js` on every
+  push/PR — still missing a format gate (blocked on a pre-existing,
+  repo-wide formatting fix, see "Current handoff"), a container scan, and
+  an SBOM/provenance strategy (attempted via `@cyclonedx/cyclonedx-npm`,
+  genuinely blocked — it's incompatible with pnpm's `node_modules` layout,
+  see "Current handoff"; needs a pnpm-native tool, not yet evaluated).
 - Manual GitHub repository-settings follow-ups, not doable via file
   changes: enabling private vulnerability reporting (Settings > Security),
   and branch protection on `main` (required status checks for the new CI
