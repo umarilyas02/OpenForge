@@ -16,6 +16,7 @@ function Progress({ label, percent }) {
         <span className="of-progress-value">{clamped}%</span>
       </div>
       <div
+        aria-label={label}
         aria-valuemax={100}
         aria-valuemin={0}
         aria-valuenow={clamped}
@@ -60,7 +61,7 @@ export const progressBlock = createCmsBlock({
     ],
     slots: [],
     accessibility: [
-      "Uses a real progressbar role with aria-valuenow/min/max; the numeric value is also shown as visible text.",
+      "Uses a real progressbar role with aria-valuenow/min/max and aria-label (the block's own label text) so it has an accessible name; the numeric value is also shown as visible text.",
     ],
     migrations: [],
   },

@@ -19,14 +19,17 @@
   "scripts": {
     "build": "esbuild src/index.js --bundle --platform=node --format=esm --jsx=automatic --packages=external --outfile=dist/index.js && node ../../tooling/scripts/generate-block-files.js",
     "lint": "eslint src test",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:a11y": "vitest run test/accessibility-axe.manual.test.js --config vitest.a11y.config.js"
   },
   "dependencies": {
     "react": "19.2.8",
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "axe-core": "4.10.2",
     "esbuild": "0.28.2",
+    "playwright": "1.55.0",
     "react-dom": "19.2.8"
   },
   "engines": {

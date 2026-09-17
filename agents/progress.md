@@ -1273,8 +1273,46 @@ Status markers:
     real limit this doesn't cover (a migration that succeeds but is
     semantically wrong — this repo's migrations are forward-only).
   - Cleaned up the disposable container and scratch files afterward.
+- Objective (2026-09-17, same day continued): real, browser-based
+  accessibility testing (Phase 6.4) — `eslint-plugin-jsx-a11y` (earlier
+  entries) is static analysis only and structurally can't catch what
+  needs a real layout/paint engine, most importantly color-contrast.
+  - Completed: `packages/cms-blocks/test/accessibility-axe.manual.test.js`
+    — renders all 51 official blocks with their own minimal valid props
+    (reusing `official-blocks.test.js`'s existing `minimalProps` helper)
+    into one real page with the real `blocks.css`, loads it in a real
+    Playwright/Chromium browser, and runs real `axe-core` against it.
+    Deliberately not wired into the default `test` script (a new
+    `vitest.config.js` excludes it, a separate `vitest.a11y.config.js`
+    is what `pnpm run test:a11y` uses to include it) — browser launch
+    and axe are real added time and devDependencies only this one check
+    needs, not something every ordinary `pnpm test` run should pay for.
+  - Found one real violation across all 51 blocks:
+    `openforge-cms.progress`'s `role="progressbar"` element had no
+    accessible name (no `aria-label`/`aria-labelledby`/`title`) — a
+    genuine WCAG failure, not a false positive (unlike the
+    `comparison-table.jsx` finding from the earlier `jsx-a11y` pass).
+    Fixed with `aria-label={label}`, reusing the block's own already-
+    visible label text as its accessible name. Re-ran: zero
+    serious/critical violations across all 51 blocks.
+  - Found and fixed a real mistake in this pass's own setup: initially
+    added `@openforge/renderer`/`@openforge/theme-default` as
+    devDependencies for a rendering approach the final test doesn't
+    actually use (it renders each block component directly), which
+    created a genuine circular dependency turbo's `lint` task graph
+    correctly refused to run (`cms-blocks#lint -> renderer#lint ->
+    cms-blocks#lint`). Removed the unused deps rather than restructuring
+    around the cycle.
+  - Verified: full repo lint (26/26), `packages/cms-blocks`'s default
+    test suite unchanged at 178/178 (confirming the a11y test is
+    correctly excluded from normal runs and the Progress fix didn't
+    regress anything), and the a11y check itself passing clean.
+  - Noted, not caused by this change: a full-suite `pnpm test` run hit
+    the same pre-existing Windows parallel-test-worker filesystem
+    contention already documented multiple times elsewhere in this file
+    (`EPERM` on a `rename`, this time in `block-add-smoke.test.js`) —
+    confirmed by re-running that exact file alone (7/7 passed).
 
-## Planning and scaffolding
 
 - [x] Read the complete documentation set.
   - Evidence: product, architecture, platform, design, testing, roadmap,
@@ -2640,7 +2678,16 @@ the 0.1/0.7 sections above).
 
 ### 6.4 Accessibility
 
-- [ ] WCAG 2.2 AA audit.
+- [-] WCAG 2.2 AA audit.
+  - Evidence: `packages/cms-blocks/test/accessibility-axe.manual.test.js`,
+    2026-09-17 — real `axe-core` in a real Playwright/Chromium browser
+    against real rendered markup and CSS for all 51 official blocks
+    (catches color-contrast and other layout-dependent failures static
+    `jsx-a11y` linting structurally cannot). Found and fixed one real
+    violation (`openforge-cms.progress` had no accessible name). Not a
+    full WCAG audit: only covers the block library in isolation, not
+    `apps/cms-admin`'s own admin UI, real composed pages, or any theme's
+    actual example content.
 - [-] Keyboard/screen reader.
   - Evidence: `eslint-plugin-jsx-a11y` added, 2026-09-17 — see "Current
     handoff". Found and fixed real keyboard-deselect support in the live
