@@ -64,7 +64,7 @@ A subset of blocks (Spotlight Card, Gradient Heading, Marquee Text, Feature List
 
 | Service | Image | Notes |
 |---|---|---|
-| Postgres | `postgres:16-alpine` | port `${POSTGRES_PORT:-5432}`, healthcheck via `pg_isready`, data in `docker/volumes/postgres-data` |
+| Postgres | `postgres:18-alpine` | port `${POSTGRES_PORT:-5432}`, healthcheck via `pg_isready`, data in `docker/volumes/postgres-data` |
 | Redis | `redis:7-alpine` | port `${REDIS_PORT:-6379}`, healthcheck via `redis-cli ping` |
 | MinIO | `minio/minio:latest` | S3-compatible object storage, API port `${MINIO_API_PORT:-9000}`, console `${MINIO_CONSOLE_PORT:-9001}` |
 | cms-admin | built from `apps/cms-admin/Dockerfile` | port `${CMS_ADMIN_PORT:-3903}`, waits on Postgres's healthcheck, site files in `docker/volumes/cms-admin-sites` |

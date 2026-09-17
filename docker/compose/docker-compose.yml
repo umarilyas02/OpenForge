@@ -2,7 +2,7 @@ name: openforge
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     env_file:
       - path: ../../envs/local/infrastructure.env
