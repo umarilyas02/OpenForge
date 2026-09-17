@@ -72,3 +72,33 @@ jobs:
           # real leak; this is not merely advisory. GITLEAKS_LICENSE is
           # only required for private-repo use under an organization
           # account — not needed while this repository is public.
+
+  dependency-audit:
+    name: Dependency vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack and activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Install dependencies
+        run: corepack pnpm install --frozen-lockfile
+
+      # --prod: only dependencies that actually ship at runtime (not
+      # eslint/vitest/etc., which pose no production risk). --audit-level
+      # high: fails the build on high/critical findings, not every
+      # moderate/low advisory in a transitive devtool -- this caught two
+      # real, unauthenticated-RCE-class Next.js CVEs (GHSA-p293-qw3h-jr36,
+      # GHSA-2xp9-vwfh-vxw4) during the 2026-09-17 hardening pass; see
+      # agents/progress.md.
+      - name: Audit production dependencies
+        run: corepack pnpm audit --prod --audit-level high
