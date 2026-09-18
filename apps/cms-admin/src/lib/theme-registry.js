@@ -1,6 +1,15 @@
 import { OFFICIAL_CMS_BLOCKS, createCmsBlockRegistry } from "@openforge/cms-blocks";
 import { createThemeRegistry } from "@openforge/theme-sdk";
 import { agencyTheme, exampleSite as agencyExampleSite } from "@openforge/theme-agency";
+import {
+  automotiveTheme,
+  exampleSite as automotiveExampleSite,
+} from "@openforge/theme-automotive";
+import { beautyTheme, exampleSite as beautyExampleSite } from "@openforge/theme-beauty";
+import {
+  constructionTheme,
+  exampleSite as constructionExampleSite,
+} from "@openforge/theme-construction";
 import { defaultTheme } from "@openforge/theme-default";
 import {
   ecommerceTheme,
@@ -10,18 +19,27 @@ import {
   educationTheme,
   exampleSite as educationExampleSite,
 } from "@openforge/theme-education";
+import { eventsTheme, exampleSite as eventsExampleSite } from "@openforge/theme-events";
+import { exampleSite as financeExampleSite, financeTheme } from "@openforge/theme-finance";
+import { exampleSite as fitnessExampleSite, fitnessTheme } from "@openforge/theme-fitness";
 import {
   exampleSite as healthcareExampleSite,
   healthcareTheme,
 } from "@openforge/theme-healthcare";
+import { exampleSite as legalExampleSite, legalTheme } from "@openforge/theme-legal";
 import {
   exampleSite as magazineExampleSite,
   magazineTheme,
 } from "@openforge/theme-magazine";
+import { exampleSite as musicExampleSite, musicTheme } from "@openforge/theme-music";
 import {
   exampleSite as nonprofitExampleSite,
   nonprofitTheme,
 } from "@openforge/theme-nonprofit";
+import {
+  exampleSite as photographyExampleSite,
+  photographyTheme,
+} from "@openforge/theme-photography";
 import {
   exampleSite as portfolioExampleSite,
   portfolioTheme,
@@ -35,6 +53,7 @@ import {
   restaurantTheme,
 } from "@openforge/theme-restaurant";
 import { exampleSite as saasExampleSite, saasTheme } from "@openforge/theme-saas";
+import { exampleSite as travelExampleSite, travelTheme } from "@openforge/theme-travel";
 
 export const DEFAULT_THEME_ID = "openforge-theme.default";
 
@@ -68,6 +87,16 @@ const EXAMPLE_SITES_BY_THEME_ID = {
   "openforge-theme.nonprofit": nonprofitExampleSite,
   "openforge-theme.realestate": realestateExampleSite,
   "openforge-theme.magazine": magazineExampleSite,
+  "openforge-theme.fitness": fitnessExampleSite,
+  "openforge-theme.legal": legalExampleSite,
+  "openforge-theme.photography": photographyExampleSite,
+  "openforge-theme.finance": financeExampleSite,
+  "openforge-theme.travel": travelExampleSite,
+  "openforge-theme.events": eventsExampleSite,
+  "openforge-theme.construction": constructionExampleSite,
+  "openforge-theme.beauty": beautyExampleSite,
+  "openforge-theme.automotive": automotiveExampleSite,
+  "openforge-theme.music": musicExampleSite,
 };
 
 for (const theme of [
@@ -82,6 +111,16 @@ for (const theme of [
   nonprofitTheme,
   realestateTheme,
   magazineTheme,
+  fitnessTheme,
+  legalTheme,
+  photographyTheme,
+  financeTheme,
+  travelTheme,
+  eventsTheme,
+  constructionTheme,
+  beautyTheme,
+  automotiveTheme,
+  musicTheme,
 ]) {
   themeRegistry.register(theme);
 }
