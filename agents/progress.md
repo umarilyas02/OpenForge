@@ -1351,7 +1351,38 @@ Status markers:
     failures (was 3 failed files / 14 failed tests before the fix).
   - Verified: full repo lint (26/26) on the real dev machine after both
     fixes.
-
+- Objective (2026-09-19): dispatcher 20 parallel agents to build 10 new
+  themes + 10 new blocks end-to-end in one tight loop (proven pattern from
+  2026-09-08's 10-theme/13-block sprint).
+  - Completed: all 20 agents finished successfully and independently (10
+    themes: fitness, legal, photography, finance, travel, events,
+    construction, beauty, automotive, music; 10 blocks: map-embed,
+    blockquote, code-block, author-bio, share-buttons, tag-list,
+    search-bar, back-to-top, job-listing, process-steps). Full integration
+    done: imported all 10 new themes into `apps/cms-admin/src/lib/
+    theme-registry.js`, registered all 10 new blocks in
+    `packages/cms-blocks/src/official-blocks.js`, bumped block-count
+    assertion from 51 → 61 in
+    `packages/cms-blocks/test/official-blocks.test.js`, added all 10
+    themes as workspace dependencies in `apps/cms-admin/package.json`.
+  - Verified: `corepack pnpm install` succeeded (37 workspace projects).
+    `packages/cms-blocks` lint clean, test clean (208/208 tests pass).
+    `packages/cms-blocks run build` regenerated 61 standalone block files
+    into `dist/standalone/`.
+  - Theme test verification: 6 of 10 new themes pass their own test suite
+    (fitness, photography, events, construction, automotive, music). 4
+    themes (legal, finance, travel, beauty) have one failing test each —
+    all the same pattern: assertion expects specific hero/section text not
+    present in the theme's `example-site.js` (a copy mismatch introduced by
+    the agent that built each one). These are straightforward fixes pending
+    user direction (not touched in this pass per "do not build/test").
+  - No `pnpm` commands were run by the agents themselves (per established
+    collision-avoidance protocol from prior passes); `pnpm install` here
+    was the first workspace-level command, cleanly picking up all 20 new
+    packages.
+  - Not done in this pass (user-requested holdoff): fixing the 4 theme
+    test failures, running `apps/cms-admin` build/test (to confirm the
+    admin app itself compiles with 21 themes/61 blocks wired in).
 
 - [x] Read the complete documentation set.
   - Evidence: product, architecture, platform, design, testing, roadmap,

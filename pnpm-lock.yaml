@@ -77,6 +77,15 @@ importers:
       '@openforge/theme-agency':
         specifier: workspace:*
         version: link:../../themes/agency
+      '@openforge/theme-automotive':
+        specifier: workspace:*
+        version: link:../../themes/automotive
+      '@openforge/theme-beauty':
+        specifier: workspace:*
+        version: link:../../themes/beauty
+      '@openforge/theme-construction':
+        specifier: workspace:*
+        version: link:../../themes/construction
       '@openforge/theme-default':
         specifier: workspace:*
         version: link:../../themes/default
@@ -86,15 +95,33 @@ importers:
       '@openforge/theme-education':
         specifier: workspace:*
         version: link:../../themes/education
+      '@openforge/theme-events':
+        specifier: workspace:*
+        version: link:../../themes/events
+      '@openforge/theme-finance':
+        specifier: workspace:*
+        version: link:../../themes/finance
+      '@openforge/theme-fitness':
+        specifier: workspace:*
+        version: link:../../themes/fitness
       '@openforge/theme-healthcare':
         specifier: workspace:*
         version: link:../../themes/healthcare
+      '@openforge/theme-legal':
+        specifier: workspace:*
+        version: link:../../themes/legal
       '@openforge/theme-magazine':
         specifier: workspace:*
         version: link:../../themes/magazine
+      '@openforge/theme-music':
+        specifier: workspace:*
+        version: link:../../themes/music
       '@openforge/theme-nonprofit':
         specifier: workspace:*
         version: link:../../themes/nonprofit
+      '@openforge/theme-photography':
+        specifier: workspace:*
+        version: link:../../themes/photography
       '@openforge/theme-portfolio':
         specifier: workspace:*
         version: link:../../themes/portfolio
@@ -110,6 +137,9 @@ importers:
       '@openforge/theme-sdk':
         specifier: workspace:*
         version: link:../../packages/theme-sdk
+      '@openforge/theme-travel':
+        specifier: workspace:*
+        version: link:../../themes/travel
       '@openforge/workspace':
         specifier: workspace:*
         version: link:../../packages/workspace
@@ -299,6 +329,72 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
+  themes/automotive:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
+  themes/beauty:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
+  themes/construction:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
   themes/default:
     dependencies:
       '@openforge/cms-blocks':
@@ -362,7 +458,95 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
+  themes/events:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
+  themes/finance:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
+  themes/fitness:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
   themes/healthcare:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
+  themes/legal:
     dependencies:
       '@openforge/cms-blocks':
         specifier: workspace:*
@@ -406,7 +590,51 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
+  themes/music:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
   themes/nonprofit:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
+  themes/photography:
     dependencies:
       '@openforge/cms-blocks':
         specifier: workspace:*
@@ -495,6 +723,28 @@ importers:
         version: 19.2.8(react@19.2.8)
 
   themes/saas:
+    dependencies:
+      '@openforge/cms-blocks':
+        specifier: workspace:*
+        version: link:../../packages/cms-blocks
+      '@openforge/theme-sdk':
+        specifier: workspace:*
+        version: link:../../packages/theme-sdk
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+    devDependencies:
+      '@openforge/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+
+  themes/travel:
     dependencies:
       '@openforge/cms-blocks':
         specifier: workspace:*
