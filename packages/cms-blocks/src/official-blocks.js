@@ -1,14 +1,18 @@
 import { accordionBlock } from "./blocks/accordion.jsx";
 import { alertBlock } from "./blocks/alert.jsx";
+import { authorBioBlock } from "./blocks/author-bio.jsx";
 import { avatarGroupBlock } from "./blocks/avatar-group.jsx";
 import { avatarItemBlock } from "./blocks/avatar-item.jsx";
+import { backToTopBlock } from "./blocks/back-to-top.jsx";
 import { badgeBlock } from "./blocks/badge.jsx";
 import { bannerBlock } from "./blocks/banner.jsx";
+import { blockquoteBlock } from "./blocks/blockquote.jsx";
 import { breadcrumbsBlock } from "./blocks/breadcrumbs.jsx";
 import { buttonBlock } from "./blocks/button.jsx";
 import { cardBlock } from "./blocks/card.jsx";
 import { carouselBlock } from "./blocks/carousel.jsx";
 import { carouselSlideBlock } from "./blocks/carousel-slide.jsx";
+import { codeBlockBlock } from "./blocks/code-block.jsx";
 import { columnsBlock } from "./blocks/columns.jsx";
 import { comparisonTableBlock } from "./blocks/comparison-table.jsx";
 import { contactFormBlock } from "./blocks/contact-form.jsx";
@@ -26,16 +30,21 @@ import { heroBlock } from "./blocks/hero.jsx";
 import { iconBoxBlock } from "./blocks/icon-box.jsx";
 import { imageBlock } from "./blocks/image.jsx";
 import { imageGalleryBlock } from "./blocks/image-gallery.jsx";
+import { jobListingBlock } from "./blocks/job-listing.jsx";
 import { locationCardBlock } from "./blocks/location-card.jsx";
 import { logoCloudBlock } from "./blocks/logo-cloud.jsx";
 import { logoItemBlock } from "./blocks/logo-item.jsx";
+import { mapEmbedBlock } from "./blocks/map-embed.jsx";
 import { marqueeTextBlock } from "./blocks/marquee-text.jsx";
 import { navbarBlock } from "./blocks/navbar.jsx";
 import { newsletterSignupBlock } from "./blocks/newsletter-signup.jsx";
 import { pricingBlock } from "./blocks/pricing.jsx";
+import { processStepsBlock } from "./blocks/process-steps.jsx";
 import { progressBlock } from "./blocks/progress.jsx";
 import { ratingBlock } from "./blocks/rating.jsx";
 import { richTextBlock } from "./blocks/rich-text.jsx";
+import { searchBarBlock } from "./blocks/search-bar.jsx";
+import { shareButtonsBlock } from "./blocks/share-buttons.jsx";
 import { socialLinkItemBlock } from "./blocks/social-link-item.jsx";
 import { socialLinksBlock } from "./blocks/social-links.jsx";
 import { spacerBlock } from "./blocks/spacer.jsx";
@@ -44,6 +53,7 @@ import { statBlock } from "./blocks/stat.jsx";
 import { statsRowBlock } from "./blocks/stats-row.jsx";
 import { tabPanelBlock } from "./blocks/tab-panel.jsx";
 import { tabsBlock } from "./blocks/tabs.jsx";
+import { tagListBlock } from "./blocks/tag-list.jsx";
 import { teamMemberBlock } from "./blocks/team-member.jsx";
 import { testimonialBlock } from "./blocks/testimonial.jsx";
 import { timelineBlock } from "./blocks/timeline.jsx";
@@ -102,4 +112,14 @@ export const OFFICIAL_CMS_BLOCKS = Object.freeze([
   socialLinksBlock,
   socialLinkItemBlock,
   comparisonTableBlock,
+  mapEmbedBlock,
+  blockquoteBlock,
+  codeBlockBlock,
+  authorBioBlock,
+  shareButtonsBlock,
+  tagListBlock,
+  searchBarBlock,
+  backToTopBlock,
+  jobListingBlock,
+  processStepsBlock,
 ]);
