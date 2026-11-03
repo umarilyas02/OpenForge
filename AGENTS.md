@@ -157,3 +157,6 @@ When generating images that feature clothing or garments, show a real person wea
 Alwatys use tailwind for styling not plain css never plain css unless u need to add the animation
 
 Always clean the scripts and builds and sql and artifacts and everything temporary u make after work is done
+
+Use `agent-desktop` to see and operate desktop apps. Before the first use, run
+`agent-desktop skills get desktop` and `agent-desktop skills get platform`, and follow them.
